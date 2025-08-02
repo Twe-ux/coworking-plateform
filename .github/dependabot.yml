@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    assignees:
+      - "maintainer"
+    reviewers:
+      - "maintainer"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      production-dependencies:
+        patterns:
+          - "react*"
+          - "next*"
+          - "@types/*"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        patterns:
+          - "eslint*"
+          - "prettier*"
+          - "@typescript-eslint/*"
+          - "turbo"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5

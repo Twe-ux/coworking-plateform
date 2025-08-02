@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: coworking-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: coworking-platform
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - coworking-network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7.2-alpine
+    container_name: coworking-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - coworking-network
+
+  # Web Application (Customer-facing)
+  web:
+    build:
+      context: .
+      target: development
+    container_name: coworking-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mongodb://admin:password@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_URL=http://localhost:3003
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/.next
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    command: pnpm --filter @coworking/web dev
+
+  # Dashboard Application (Business owners)
+  dashboard:
+    build:
+      context: .
+      target: development
+    container_name: coworking-dashboard
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mongodb://admin:password@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3001
+      - NEXT_PUBLIC_API_URL=http://localhost:3003
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/dashboard/.next
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    command: pnpm --filter @coworking/dashboard dev
+
+  # Admin Application (Platform management)
+  admin:
+    build:
+      context: .
+      target: development
+    container_name: coworking-admin
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mongodb://admin:password@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3002
+      - NEXT_PUBLIC_API_URL=http://localhost:3003
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/admin/.next
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    command: pnpm --filter @coworking/admin dev
+
+  # API Service
+  api:
+    build:
+      context: .
+      target: development
+    container_name: coworking-api
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mongodb://admin:password@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - API_SECRET_KEY=development-secret-key
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/dist
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    command: pnpm --filter @coworking/api dev
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  coworking-network:
+    driver: bridge

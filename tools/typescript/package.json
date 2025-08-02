@@ -1,0 +1,11 @@
+{
+  "name": "@coworking/typescript-config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.json",
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "react-library.json"
+  ]
+}

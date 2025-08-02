@@ -1,0 +1,35 @@
+{
+  "allowedTools": [
+    "Bash(*)",
+    "Read(*)", 
+    "Write(*)",
+    "Edit(*)",
+    "MultiEdit(*)",
+    "Grep(*)",
+    "Glob(*)", 
+    "LS(*)",
+    "Task(*)",
+    "WebSearch(*)",
+    "WebFetch(*)",
+    "TodoWrite(*)"
+  ],
+  "autoAcceptTools": [
+    "Read",
+    "Grep", 
+    "Glob",
+    "LS",
+    "TodoWrite"
+  ],
+  "projectSettings": {
+    "workingDirectory": "/Users/twe/Developer/coworking-platform",
+    "testCommand": "npm test",
+    "lintCommand": "npm run lint",
+    "buildCommand": "npm run build",
+    "devCommand": "npm run dev"
+  },
+  "mcpSettings": {
+    "enabled": true,
+    "autoReconnect": true,
+    "timeout": 5000
+  }
+}

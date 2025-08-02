@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: coworking-mongodb-prod
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: coworking-platform
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - coworking-network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7.2-alpine
+    container_name: coworking-redis-prod
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - coworking-network
+
+  # Web Application
+  web:
+    build:
+      context: .
+      target: web
+    container_name: coworking-web-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    restart: unless-stopped
+
+  # Dashboard Application
+  dashboard:
+    build:
+      context: .
+      target: dashboard
+    container_name: coworking-dashboard-prod
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    restart: unless-stopped
+
+  # Admin Application
+  admin:
+    build:
+      context: .
+      target: admin
+    container_name: coworking-admin-prod
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    restart: unless-stopped
+
+  # API Service
+  api:
+    build:
+      context: .
+      target: api
+    container_name: coworking-api-prod
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/coworking-platform?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - API_SECRET_KEY=${API_SECRET_KEY}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - coworking-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  coworking-network:
+    driver: bridge

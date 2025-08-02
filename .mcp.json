@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "node",
+      "args": ["/Users/twe/.claude/mcp-servers/filesystem.js"],
+      "env": {
+        "FILESYSTEM_BASE_PATH": "/Users/twe/Developer/coworking-platform"
+      }
+    },
+    "memory": {
+      "command": "python",
+      "args": ["-m", "http.server", "8000"],
+      "disabled": true
+    }
+  }
+}

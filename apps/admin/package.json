@@ -1,0 +1,31 @@
+{
+  "name": "@coworking/admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -p 3002",
+    "lint": "next lint",
+    "start": "next start",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@coworking/ui": "workspace:*",
+    "@coworking/database": "workspace:*",
+    "@coworking/auth": "workspace:*",
+    "@coworking/config": "workspace:*",
+    "@coworking/utils": "workspace:*",
+    "next": "14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^14.0.0",
+    "@types/node": "^20.5.2",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^8.48.0",
+    "eslint-config-next": "14.0.0",
+    "typescript": "^5.1.6"
+  }
+}
