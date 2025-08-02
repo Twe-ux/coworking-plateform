@@ -56,4 +56,4 @@ catalog:
   # Development tools
   eslint: ^8.48.0
   prettier: ^3.0.2
-  turbo: ^1.10.12
+  turbo: ^2.5.5
