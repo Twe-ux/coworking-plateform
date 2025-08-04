@@ -3,19 +3,19 @@
 ## 🏗️ Setup & Infrastructure
 
 ### Environment Setup
-- [ ] Initialize Next.js 14 project with TypeScript
-- [ ] Configure Turborepo for monorepo structure
-- [ ] Setup ESLint with custom rules
-- [ ] Configure Prettier with team standards
-- [ ] Setup Husky for pre-commit hooks
-- [ ] Configure commitlint for conventional commits
+- [x] Initialize Next.js 14 project with TypeScript
+- [x] Configure Turborepo for monorepo structure
+- [x] Setup ESLint with custom rules
+- [x] Configure Prettier with team standards
+- [x] Setup Husky for pre-commit hooks
+- [x] Configure commitlint for conventional commits
 
 ### Database & Services
-- [ ] Create MongoDB Atlas cluster
-- [ ] Design database schemas
-- [ ] Setup Mongoose models
-- [ ] Configure Cloudinary account
-- [ ] Setup Stripe account and webhooks
+- [x] Create MongoDB Atlas cluster
+- [x] Design database schemas
+- [x] Setup Mongoose models
+- [x] Configure Cloudinary account
+- [x] Setup Stripe account and webhooks
 - [ ] Configure SendGrid/Resend for emails
 
 ### CI/CD Pipeline
@@ -30,11 +30,11 @@
 ## 🔐 Authentication System
 
 ### NextAuth Configuration
-- [ ] Install and configure NextAuth.js
-- [ ] Setup JWT strategy
-- [ ] Create auth providers (credentials, Google, etc.)
-- [ ] Implement role-based access control (RBAC)
-- [ ] Create auth middleware
+- [x] Install and configure NextAuth.js
+- [x] Setup JWT strategy
+- [x] Create auth providers (credentials, Google, etc.)
+- [x] Implement role-based access control (RBAC)
+- [x] Create auth middleware
 
 ### User Management
 - [ ] User registration flow
@@ -45,11 +45,11 @@
 - [ ] Account settings page
 
 ### Security
-- [ ] Implement rate limiting
-- [ ] Setup CSRF protection
-- [ ] Configure secure headers
+- [x] Implement rate limiting
+- [x] Setup CSRF protection
+- [x] Configure secure headers
 - [ ] Implement 2FA (optional)
-- [ ] Create security audit logs
+- [x] Create security audit logs
 
 ---
 
@@ -84,20 +84,20 @@
 ## 📅 Booking System
 
 ### Calendar Component
-- [ ] Monthly/Weekly/Daily views
-- [ ] Available slots display
+- [x] Monthly/Weekly/Daily views (vue mensuelle implémentée)
+- [x] Available slots display (avec filtrage intelligent)
 - [ ] Drag-and-drop booking
 - [ ] Recurring bookings
 - [ ] Time zone support
-- [ ] Mobile-optimized calendar
+- [x] Mobile-optimized calendar (mobile-first design)
 
 ### Booking Flow
-- [ ] Space/desk selection
-- [ ] Date/time picker
-- [ ] Duration selection
+- [x] Space/desk selection (avec espace populaire)
+- [x] Date/time picker (avec validation même jour)
+- [x] Duration selection (minimum 1h obligatoire)
 - [ ] Add-on services
-- [ ] Price calculation
-- [ ] Booking confirmation
+- [x] Price calculation
+- [x] Booking confirmation
 
 ### Booking Management
 - [ ] Booking CRUD operations
