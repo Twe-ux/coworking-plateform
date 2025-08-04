@@ -7,9 +7,17 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['../../test-setup.ts'],
+    setupFiles: ['./__tests__/setup/jest.setup.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],
+      threshold: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
+        }
+      },
       exclude: [
         'node_modules/',
         '.next/',
@@ -20,7 +28,9 @@ export default defineConfig({
         '**/tests/**',
         '**/__tests__/**'
       ]
-    }
+    },
+    testTimeout: 10000,
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {

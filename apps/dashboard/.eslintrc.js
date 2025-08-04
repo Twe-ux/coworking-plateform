@@ -1,5 +1,5 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   root: true,
-  extends: ["@coworking/eslint-config/next.js"],
+  extends: ["next/core-web-vitals"],
 };

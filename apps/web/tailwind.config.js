@@ -1,4 +1,4 @@
-const sharedConfig = require("@coworking/tailwind-config");
+const sharedConfig = require("../../tools/tailwind");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
