@@ -21,7 +21,8 @@ export default withAuth(
     if (!token) {
       // Construire l'URL de login avec le bon host et port
       const correctHost = 'localhost:3000'
-      const protocol = process.env.NODE_ENV === 'production' ? 'https:' : 'http:'
+      const protocol =
+        process.env.NODE_ENV === 'production' ? 'https:' : 'http:'
       const loginUrl = new URL('/login', `${protocol}//${correctHost}`)
       // Utiliser pathname relatif pour éviter les références de port incorrectes
       loginUrl.searchParams.set('callbackUrl', pathname)
@@ -66,21 +67,45 @@ export default withAuth(
       return NextResponse.redirect(new URL(redirectPath, req.url))
     }
 
-    // Headers de sécurité pour toutes les routes protégées
+    // Headers de sécurité renforcés pour toutes les routes protégées
     const response = NextResponse.next()
     response.headers.set('X-Content-Type-Options', 'nosniff')
     response.headers.set('X-Frame-Options', 'DENY')
     response.headers.set('X-XSS-Protection', '1; mode=block')
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.set('X-DNS-Prefetch-Control', 'off')
+    response.headers.set(
+      'Permissions-Policy',
+      'camera=(), microphone=(), geolocation=()'
+    )
 
-    // CSP pour les routes sensibles
+    // HSTS en production uniquement
+    if (process.env.NODE_ENV === 'production') {
+      response.headers.set(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains; preload'
+      )
+    }
+
+    // CSP renforcé pour les routes sensibles
     if (
       pathname.startsWith('/admin') ||
       pathname.startsWith('/dashboard/admin')
     ) {
       response.headers.set(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+        "default-src 'self'; script-src 'self' 'nonce-' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' data:; connect-src 'self' https://api.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+      )
+    } else if (pathname.startsWith('/dashboard')) {
+      // CSP moins strict pour les autres routes du dashboard
+      const scriptSrc =
+        process.env.NODE_ENV === 'development'
+          ? "'self' 'unsafe-inline' 'unsafe-eval'"
+          : "'self' 'unsafe-inline'"
+
+      response.headers.set(
+        'Content-Security-Policy',
+        `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; frame-ancestors 'none';`
       )
     }
 

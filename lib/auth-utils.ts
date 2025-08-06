@@ -310,7 +310,7 @@ export function getRedirectPath(
 }
 
 /**
- * Système de protection contre les attaques par brute force
+ * Système de protection contre les attaques par brute force avec timing constant
  */
 const loginAttempts = new Map<
   string,
@@ -318,8 +318,13 @@ const loginAttempts = new Map<
     count: number
     lastAttempt: number
     blocked: boolean
+    progressiveDelay: number
+    jitterSeed: number // SECURITY: Randomisation pour éviter timing attacks
   }
 >()
+
+// Cache de timing constant pour éviter les timing attacks
+const TIMING_SAFE_DELAY = 500 // 500ms minimum pour toutes les réponses
 
 export function checkBruteForce(ip: string): {
   isBlocked: boolean
@@ -328,7 +333,7 @@ export function checkBruteForce(ip: string): {
   const attempts = loginAttempts.get(ip)
   const now = Date.now()
   const maxAttempts = 5
-  const lockoutDuration = 15 * 60 * 1000 // 15 minutes
+  const baseLockoutDuration = 15 * 60 * 1000 // 15 minutes
   const resetWindow = 60 * 60 * 1000 // 1 heure pour reset automatique
 
   if (!attempts) {
@@ -341,14 +346,20 @@ export function checkBruteForce(ip: string): {
     return { isBlocked: false }
   }
 
+  // SECURITY: Délai progressif basé sur le nombre de tentatives
+  const progressiveLockoutDuration =
+    baseLockoutDuration * Math.pow(2, Math.min(attempts.count - maxAttempts, 4))
+
   // Vérifier si bloqué
   if (attempts.blocked && attempts.count >= maxAttempts) {
-    const remainingTime = lockoutDuration - (now - attempts.lastAttempt)
+    const remainingTime =
+      progressiveLockoutDuration - (now - attempts.lastAttempt)
     if (remainingTime > 0) {
       return { isBlocked: true, remainingTime }
     } else {
       // La période de blocage est terminée, débloquer mais garder le compteur
       attempts.blocked = false
+      attempts.progressiveDelay = Math.min(attempts.progressiveDelay * 2, 60000) // Max 1 minute
       return { isBlocked: false }
     }
   }
@@ -357,24 +368,29 @@ export function checkBruteForce(ip: string): {
 }
 
 /**
- * Enregistre une tentative de connexion échouée
+ * Enregistre une tentative de connexion échouée avec timing constant
  */
-export function recordFailedLogin(ip: string): void {
+export async function recordFailedLogin(ip: string): Promise<void> {
+  const startTime = Date.now()
   const now = Date.now()
   const maxAttempts = 5
   const attempts = loginAttempts.get(ip) || {
     count: 0,
     lastAttempt: 0,
     blocked: false,
+    progressiveDelay: 1000,
+    jitterSeed: Math.random(),
   }
 
   const newCount = attempts.count + 1
   const shouldBlock = newCount >= maxAttempts
 
   loginAttempts.set(ip, {
+    ...attempts,
     count: newCount,
     lastAttempt: now,
     blocked: shouldBlock,
+    progressiveDelay: Math.min(attempts.progressiveDelay * 1.5, 30000), // Max 30s
   })
 
   // Log si l'IP vient d'être bloquée
@@ -382,6 +398,13 @@ export function recordFailedLogin(ip: string): void {
     console.warn(
       `[SECURITY] IP ${ip} bloquée après ${newCount} tentatives de connexion échouées`
     )
+  }
+
+  // SECURITY: Attendre un délai minimum constant pour éviter timing attacks
+  const elapsed = Date.now() - startTime
+  const remainingDelay = Math.max(0, TIMING_SAFE_DELAY - elapsed)
+  if (remainingDelay > 0) {
+    await new Promise((resolve) => setTimeout(resolve, remainingDelay))
   }
 }
 

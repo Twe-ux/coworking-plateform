@@ -11,6 +11,11 @@ interface SecureFetchOptions extends RequestInit {
   requireAuth?: boolean
   includeCsrf?: boolean
   timeout?: number
+  retries?: number
+  retryDelay?: number
+  cache?: boolean
+  cacheKey?: string
+  cacheDuration?: number
 }
 
 interface SecureFetchResponse<T = any> {
@@ -20,8 +25,12 @@ interface SecureFetchResponse<T = any> {
   ok: boolean
 }
 
+// Simple cache pour les requêtes GET
+const fetchCache = new Map<string, { data: any; expires: number }>()
+
 /**
  * Fonction fetch sécurisée avec gestion automatique de l'authentification et CSRF
+ * Inclut retry automatique et cache pour les requêtes GET
  */
 export async function secureFetch<T = any>(
   url: string,
@@ -31,9 +40,29 @@ export async function secureFetch<T = any>(
     requireAuth = true,
     includeCsrf = true,
     timeout = 10000,
+    retries = 3,
+    retryDelay = 1000,
+    cache = false,
+    cacheKey,
+    cacheDuration = 5 * 60 * 1000, // 5 minutes
     headers = {},
     ...fetchOptions
   } = options
+
+  // Vérifier le cache pour les requêtes GET
+  const method = fetchOptions.method?.toUpperCase() || 'GET'
+  const finalCacheKey = cacheKey || `${method}:${url}`
+
+  if (cache && method === 'GET') {
+    const cached = fetchCache.get(finalCacheKey)
+    if (cached && cached.expires > Date.now()) {
+      return {
+        status: 200,
+        ok: true,
+        data: cached.data,
+      }
+    }
+  }
 
   try {
     // Vérifier l'authentification si requise
@@ -74,14 +103,37 @@ export async function secureFetch<T = any>(
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-    // Effectuer la requête
-    const response = await fetch(url, {
-      ...fetchOptions,
-      headers: secureHeaders,
-      signal: controller.signal,
-      credentials: 'same-origin', // Inclure les cookies de session
-    })
+    // Fonction de retry avec backoff exponentiel
+    const executeRequest = async (attempt: number): Promise<Response> => {
+      try {
+        const response = await fetch(url, {
+          ...fetchOptions,
+          headers: secureHeaders,
+          signal: controller.signal,
+          credentials: 'same-origin',
+        })
 
+        // Retry pour les erreurs serveur (5xx) et certaines erreurs réseau
+        if (!response.ok && response.status >= 500 && attempt < retries) {
+          const delay = retryDelay * Math.pow(2, attempt - 1) // Backoff exponentiel
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          return executeRequest(attempt + 1)
+        }
+
+        return response
+      } catch (error) {
+        if (attempt < retries && error instanceof TypeError) {
+          // Erreur réseau, retry
+          const delay = retryDelay * Math.pow(2, attempt - 1)
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          return executeRequest(attempt + 1)
+        }
+        throw error
+      }
+    }
+
+    // Effectuer la requête avec retry
+    const response = await executeRequest(1)
     clearTimeout(timeoutId)
 
     // Traiter la réponse
@@ -103,6 +155,24 @@ export async function secureFetch<T = any>(
           (data as any)?.message ||
           `Erreur HTTP ${response.status}`,
         data,
+      }
+    }
+
+    // Mettre en cache si demandé
+    if (cache && method === 'GET' && data) {
+      fetchCache.set(finalCacheKey, {
+        data,
+        expires: Date.now() + cacheDuration,
+      })
+
+      // Nettoyer le cache périodiquement
+      if (fetchCache.size > 100) {
+        const now = Date.now()
+        for (const [key, value] of fetchCache.entries()) {
+          if (value.expires <= now) {
+            fetchCache.delete(key)
+          }
+        }
       }
     }
 
