@@ -1,36 +1,12 @@
 'use client'
 
+import ClientOnly from '@/components/ClientOnly'
+import Footer from '@/components/Footer'
+import Logo from '@/components/Logo'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import {
-  ArrowRight,
-  Award,
-  Calendar,
-  Check,
-  ChevronDown,
-  Clock,
-  Coffee,
-  Crown,
-  Droplets,
-  Flame,
-  Gift,
-  Heart,
-  Mail,
-  MapPin,
-  MessageCircle,
-  Phone,
-  Send,
-  Shield,
-  Snowflake,
-  Star,
-  Users,
-  Wifi,
-  Zap,
-} from 'lucide-react'
+import { ArrowRight, Coffee, MapPin, Star, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import ClientOnly from '@/components/ClientOnly'
-import Logo from '@/components/Logo'
-import Footer from '@/components/Footer'
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -70,11 +46,11 @@ export default function Home() {
   }
 
   return (
-    <main className="from-coffee-secondary to-coffee-muted relative min-h-screen overflow-hidden bg-gradient-to-br via-white">
+    <main className="from-coffee-secondary to-coffee-muted relative min-h-screen overflow-hidden bg-linear-to-br via-white">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="bg-coffee-primary/10 absolute -right-40 -top-40 h-80 w-80 rounded-full blur-3xl"
+          className="bg-coffee-primary/10 absolute -top-40 -right-40 h-80 w-80 rounded-full blur-3xl"
           animate={{
             x: mousePosition.x * 0.01,
             y: mousePosition.y * 0.01,
@@ -122,14 +98,14 @@ export default function Home() {
 
           <motion.h1
             variants={itemVariants}
-            className="from-coffee-accent via-coffee-primary to-coffee-accent mb-6 bg-gradient-to-r bg-clip-text text-5xl font-bold leading-tight text-transparent md:text-7xl"
+            className="from-coffee-accent via-coffee-primary to-coffee-accent mb-6 bg-linear-to-r bg-clip-text text-5xl leading-tight font-bold text-transparent md:text-7xl"
           >
             Cow or King
             <br />
-            <span className="from-coffee-accent via-coffee-primary to-coffee-accent relative bg-gradient-to-r bg-clip-text pb-4 text-5xl font-bold leading-tight text-transparent md:text-7xl">
+            <span className="from-coffee-accent via-coffee-primary to-coffee-accent relative bg-linear-to-r bg-clip-text pb-4 text-5xl leading-tight font-bold text-transparent md:text-7xl">
               Café
               <motion.div
-                className="from-coffee-primary to-coffee-accent absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r"
+                className="from-coffee-primary to-coffee-accent absolute right-0 -bottom-2 left-0 h-1 bg-linear-to-r"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 1, duration: 0.8 }}
@@ -139,7 +115,7 @@ export default function Home() {
 
           <motion.p
             variants={itemVariants}
-            className="mx-auto mb-8 mt-16 max-w-3xl text-xl leading-relaxed text-gray-700 md:text-2xl"
+            className="mx-auto mt-16 mb-8 max-w-3xl text-xl leading-relaxed text-gray-700 md:text-2xl"
           >
             Votre espace de coworking au cœur de Strasbourg. Travaillez dans
             notre café avec place, salle verrière et étage disponibles à la
@@ -152,7 +128,7 @@ export default function Home() {
           >
             <Link href="/reservation">
               <motion.button
-                className="from-coffee-primary to-coffee-accent group flex min-h-[56px] items-center gap-2 rounded-full bg-gradient-to-r px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
+                className="from-coffee-primary to-coffee-accent group flex min-h-[56px] items-center gap-2 rounded-full bg-linear-to-r px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >

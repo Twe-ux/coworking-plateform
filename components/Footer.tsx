@@ -52,7 +52,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="from-coffee-accent via-coffee-accent relative overflow-hidden bg-gradient-to-br to-black text-white">
+    <footer className="from-coffee-accent via-coffee-accent relative overflow-hidden bg-linear-to-br to-black text-white">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="bg-coffee-primary absolute left-10 top-10 h-32 w-32 rounded-full blur-3xl" />
@@ -130,7 +130,7 @@ export default function Footer() {
           {/* Newsletter Section */}
           <motion.div
             variants={itemVariants}
-            className="from-coffee-primary/20 to-coffee-secondary/20 border-coffee-primary/30 mt-12 rounded-2xl border bg-gradient-to-r p-8 backdrop-blur-sm"
+            className="from-coffee-primary/20 to-coffee-secondary/20 border-coffee-primary/30 mt-12 rounded-2xl border bg-linear-to-r p-8 backdrop-blur-sm"
           >
             <div className="mx-auto max-w-2xl text-center">
               <h3 className="mb-4 text-2xl font-bold">Restez informé</h3>
@@ -145,7 +145,7 @@ export default function Footer() {
                   className="focus:ring-coffee-primary flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none focus:ring-2"
                 />
                 <motion.button
-                  className="from-coffee-primary to-coffee-secondary whitespace-nowrap rounded-xl bg-gradient-to-r px-6 py-3 font-semibold text-white"
+                  className="from-coffee-primary to-coffee-secondary whitespace-nowrap rounded-xl bg-linear-to-r px-6 py-3 font-semibold text-white"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >

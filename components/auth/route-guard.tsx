@@ -60,3 +60,36 @@ export function RouteGuard({
 
   return <>{children}</>
 }
+
+// Composants de protection spécifiques par rôle
+export function AdminGuard({ children }: { children: ReactNode }) {
+  return (
+    <RouteGuard requiredRoles={[UserRole.ADMIN]}>
+      {children}
+    </RouteGuard>
+  )
+}
+
+export function ManagerGuard({ children }: { children: ReactNode }) {
+  return (
+    <RouteGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
+      {children}
+    </RouteGuard>
+  )
+}
+
+export function StaffGuard({ children }: { children: ReactNode }) {
+  return (
+    <RouteGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF]}>
+      {children}
+    </RouteGuard>
+  )
+}
+
+export function ClientGuard({ children }: { children: ReactNode }) {
+  return (
+    <RouteGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT]}>
+      {children}
+    </RouteGuard>
+  )
+}

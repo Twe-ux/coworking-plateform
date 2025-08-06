@@ -81,7 +81,7 @@ const SPACES: Space[] = [
       'Climatisation',
       'Calme',
     ],
-    image: 'bg-gradient-to-br from-blue-400 to-indigo-600',
+    image: 'bg-linear-to-br from-blue-400 to-indigo-600',
     available: true,
     rating: 4.9,
     specialty: 'Luminosité naturelle',
@@ -102,7 +102,7 @@ const SPACES: Space[] = [
       'Accès boissons',
       'Ambiance café',
     ],
-    image: 'bg-gradient-to-br from-amber-400 to-orange-600',
+    image: 'bg-linear-to-br from-amber-400 to-orange-600',
     available: true,
     rating: 4.8,
     specialty: 'Ambiance café conviviale',
@@ -124,7 +124,7 @@ const SPACES: Space[] = [
       'Vue dégagée',
       'Concentration',
     ],
-    image: 'bg-gradient-to-br from-green-400 to-emerald-600',
+    image: 'bg-linear-to-br from-green-400 to-emerald-600',
     available: true,
     rating: 4.7,
     specialty: 'Calme et concentration',
@@ -336,7 +336,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
             onClick={handlePrevMonth}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="border-coffee-primary/50 bg-coffee-primary/10 hover:border-coffee-primary hover:bg-coffee-primary/20 min-w-[100px] flex-shrink-0 rounded-xl border-2 p-4 text-center backdrop-blur-sm transition-all duration-200"
+            className="border-coffee-primary/50 bg-coffee-primary/10 hover:border-coffee-primary hover:bg-coffee-primary/20 min-w-[100px] shrink-0 rounded-xl border-2 p-4 text-center backdrop-blur-sm transition-all duration-200"
           >
             <div className="flex flex-col items-center">
               <ChevronLeft className="text-coffee-primary mb-1 h-6 w-6" />
@@ -363,7 +363,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
               onClick={() => handleDateSelect(date)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`min-w-[80px] flex-shrink-0 rounded-xl border-2 p-4 text-center transition-all duration-200 ${
+              className={`min-w-[80px] shrink-0 rounded-xl border-2 p-4 text-center transition-all duration-200 ${
                 isSelected
                   ? 'border-coffee-primary bg-coffee-primary/20 text-coffee-accent shadow-lg'
                   : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent/80 border-white/30 bg-white/20 backdrop-blur-sm'
@@ -387,7 +387,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           onClick={handleNextMonth}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="border-coffee-primary/50 bg-coffee-primary/10 hover:border-coffee-primary hover:bg-coffee-primary/20 min-w-[100px] flex-shrink-0 rounded-xl border-2 p-4 text-center backdrop-blur-sm transition-all duration-200"
+          className="border-coffee-primary/50 bg-coffee-primary/10 hover:border-coffee-primary hover:bg-coffee-primary/20 min-w-[100px] shrink-0 rounded-xl border-2 p-4 text-center backdrop-blur-sm transition-all duration-200"
         >
           <div className="flex flex-col items-center">
             <ChevronRight className="text-coffee-primary mb-1 h-6 w-6" />
@@ -735,15 +735,15 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
   }
 
   return (
-    <div className="from-coffee-secondary/20 to-coffee-secondary/10 relative min-h-screen overflow-hidden bg-gradient-to-br via-white pt-24 sm:pt-24">
+    <div className="from-coffee-secondary/20 to-coffee-secondary/10 relative min-h-screen overflow-hidden bg-linear-to-br via-white pt-24 sm:pt-24">
       {/* Navbar Transition Gradient */}
-      <div className="absolute left-0 right-0 top-0 h-32 bg-gradient-to-b from-white/60 via-white/30 to-transparent backdrop-blur-sm" />
+      <div className="absolute left-0 right-0 top-0 h-32 bg-linear-to-b from-white/60 via-white/30 to-transparent backdrop-blur-sm" />
 
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="bg-coffee-primary/10 absolute -right-40 -top-40 h-80 w-80 rounded-full blur-3xl" />
         <div className="bg-coffee-accent/10 absolute -bottom-40 -left-40 h-80 w-80 rounded-full blur-3xl" />
-        <div className="from-coffee-primary/5 to-coffee-accent/5 absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-gradient-to-r blur-3xl" />
+        <div className="from-coffee-primary/5 to-coffee-accent/5 absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-linear-to-r blur-3xl" />
       </div>
 
       {/* Enhanced Header with Better Spacing */}
@@ -768,7 +768,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                 {getStepTitle()}
               </p>
             </div>
-            <div className="from-coffee-primary to-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r shadow-lg">
+            <div className="from-coffee-primary to-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-r shadow-lg">
               <span className="text-sm font-bold text-white">{step}/4</span>
             </div>
           </div> */}
@@ -777,7 +777,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
           <div className="relative">
             <div className="h-4 overflow-hidden rounded-full bg-gray-200/50 backdrop-blur-sm">
               <motion.div
-                className="from-coffee-primary to-coffee-accent relative h-full rounded-full bg-gradient-to-r shadow-sm"
+                className="from-coffee-primary to-coffee-accent relative h-full rounded-full bg-linear-to-r shadow-sm"
                 initial={{ width: '25%' }}
                 animate={{ width: `${(step / 4) * 100}%` }}
                 transition={{ duration: 0.6, ease: 'easeInOut' }}
@@ -824,7 +824,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
               className="mt-6 rounded-xl border border-red-200/50 bg-red-50/80 p-4 shadow-sm backdrop-blur-sm"
             >
               <div className="flex items-center gap-3">
-                <Info className="h-5 w-5 flex-shrink-0 text-red-500" />
+                <Info className="h-5 w-5 shrink-0 text-red-500" />
                 <div className="text-sm font-medium text-red-700">
                   {Object.values(errors)[0]}
                 </div>
@@ -903,13 +903,13 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       >
                         {/* Background Image/Gradient */}
                         <div className={`absolute inset-0 ${space.image}`}>
-                          <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/40" />
+                          <div className="absolute inset-0 bg-linear-to-br from-black/20 via-transparent to-black/40" />
                         </div>
 
                         {/* Popular Star Badge */}
                         {space.isPopular && (
                           <div className="absolute right-3 top-3 z-10">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-lg">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r from-yellow-400 to-yellow-500 shadow-lg">
                               <Star className="h-4 w-4 fill-current text-white" />
                             </div>
                           </div>
@@ -944,7 +944,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                               <motion.div
                                 initial={{ scale: 0, rotate: -180 }}
                                 animate={{ scale: 1, rotate: 0 }}
-                                className="from-coffee-primary to-coffee-accent flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r shadow-lg"
+                                className="from-coffee-primary to-coffee-accent flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r shadow-lg"
                               >
                                 <Check className="h-5 w-5 text-white" />
                               </motion.div>
@@ -991,7 +991,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           </div>
 
                           {/* Hover Effect Overlay */}
-                          <div className="from-coffee-primary/5 to-coffee-accent/5 absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                          <div className="from-coffee-primary/5 to-coffee-accent/5 absolute inset-0 rounded-2xl bg-linear-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         </div>
                       </motion.div>
                     ))}
@@ -1004,7 +1004,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     transition={{ delay: 0.8 }}
                     className={`flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl py-4 font-semibold text-white shadow-lg transition-all duration-300 ${
                       bookingData.space && !isLoading
-                        ? 'from-coffee-primary via-coffee-primary to-coffee-accent bg-gradient-to-r hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]'
+                        ? 'from-coffee-primary via-coffee-primary to-coffee-accent bg-linear-to-r hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]'
                         : 'cursor-not-allowed bg-gray-300'
                     }`}
                     disabled={!bookingData.space || isLoading}
@@ -1189,7 +1189,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                   transition={{ delay: 0.8 + index * 0.02 }}
                                   className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                                     bookingData.startTime === slot.time
-                                      ? 'from-coffee-primary to-coffee-accent bg-gradient-to-r text-white shadow-lg'
+                                      ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
                                       : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
                                   }`}
                                   onClick={() => {
@@ -1254,7 +1254,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                   transition={{ delay: 0.9 + index * 0.02 }}
                                   className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                                     bookingData.endTime === slot.time
-                                      ? 'from-coffee-primary to-coffee-accent bg-gradient-to-r text-white shadow-lg'
+                                      ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
                                       : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
                                   }`}
                                   onClick={() =>
@@ -1324,7 +1324,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                         >
                           -
                         </motion.button>
-                        <span className="text-coffee-accent min-w-[4rem] text-center text-4xl font-bold">
+                        <span className="text-coffee-accent min-w-16 text-center text-4xl font-bold">
                           {bookingData.duration}
                         </span>
                         <motion.button
@@ -1460,7 +1460,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                 transition={{ delay: 0.8 + index * 0.02 }}
                                 className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                                   bookingData.startTime === slot.time
-                                    ? 'from-coffee-primary to-coffee-accent bg-gradient-to-r text-white shadow-lg'
+                                    ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
                                     : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
                                 }`}
                                 onClick={() =>
@@ -1494,7 +1494,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           >
                             -
                           </motion.button>
-                          <span className="text-coffee-accent min-w-[4rem] text-center text-4xl font-bold">
+                          <span className="text-coffee-accent min-w-16 text-center text-4xl font-bold">
                             {bookingData.duration}
                           </span>
                           <motion.button
@@ -1537,7 +1537,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                 transition={{ delay: 0.8 + index * 0.02 }}
                                 className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                                   bookingData.startTime === slot.time
-                                    ? 'from-coffee-primary to-coffee-accent bg-gradient-to-r text-white shadow-lg'
+                                    ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
                                     : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
                                 }`}
                                 onClick={() =>
@@ -1565,7 +1565,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.8 }}
-                      className="from-coffee-primary/10 to-coffee-accent/10 border-coffee-primary/20 mt-10 w-full rounded-2xl border bg-gradient-to-r p-6 backdrop-blur-sm"
+                      className="from-coffee-primary/10 to-coffee-accent/10 border-coffee-primary/20 mt-10 w-full rounded-2xl border bg-linear-to-r p-6 backdrop-blur-sm"
                     >
                       <div className="text-center">
                         <p className="text-coffee-accent/70 mb-2 text-sm font-medium">
@@ -1605,7 +1605,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       bookingData.date &&
                       (bookingData.durationType !== 'hour' ||
                         (bookingData.startTime && bookingData.endTime))
-                        ? 'from-coffee-primary via-coffee-primary to-coffee-accent bg-gradient-to-r hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]'
+                        ? 'from-coffee-primary via-coffee-primary to-coffee-accent bg-linear-to-r hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]'
                         : 'cursor-not-allowed bg-gray-300'
                     }`}
                     disabled={
@@ -1706,7 +1706,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           >
                             -
                           </motion.button>
-                          <span className="text-coffee-accent min-w-[4rem] text-center text-4xl font-bold">
+                          <span className="text-coffee-accent min-w-16 text-center text-4xl font-bold">
                             {bookingData.guests}
                           </span>
                           <motion.button
@@ -1833,7 +1833,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7 }}
-                    className="from-coffee-primary via-coffee-primary to-coffee-accent mt-8 flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+                    className="from-coffee-primary via-coffee-primary to-coffee-accent mt-8 flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl bg-linear-to-r py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
                     onClick={nextStep}
                     whileHover={{
                       boxShadow: '0 25px 50px -12px rgba(255, 140, 0, 0.25)',
@@ -1882,7 +1882,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                         type: 'spring',
                         stiffness: 200,
                       }}
-                      className="from-coffee-primary to-coffee-accent mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r shadow-lg"
+                      className="from-coffee-primary to-coffee-accent mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-r shadow-lg"
                     >
                       <Check className="h-10 w-10 text-white" />
                     </motion.div>
@@ -2089,7 +2089,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.1 }}
-                    className="from-coffee-primary via-coffee-primary to-coffee-accent mt-8 flex min-h-[64px] w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r py-5 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+                    className="from-coffee-primary via-coffee-primary to-coffee-accent mt-8 flex min-h-[64px] w-full items-center justify-center gap-3 rounded-2xl bg-linear-to-r py-5 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
                     whileHover={{
                       boxShadow: '0 25px 50px -12px rgba(255, 140, 0, 0.4)',
                     }}

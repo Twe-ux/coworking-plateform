@@ -93,9 +93,12 @@ export async function closeConnection(): Promise<void> {
     const connectedClient = await clientPromise
     await connectedClient.close()
     dbCache.clear()
-    console.log('Connexion MongoDB fermée proprement')
+    // Log réduit pour le développement
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MongoDB: Connexion fermée')
+    }
   } catch (error) {
-    console.error('Erreur lors de la fermeture de la connexion MongoDB:', error)
+    console.error('Erreur MongoDB:', error)
   }
 }
 
@@ -156,17 +159,23 @@ export async function createIndexes(db: Db): Promise<void> {
 
 // Gestion propre de l'arrêt de l'application
 if (typeof process !== 'undefined') {
-  process.on('SIGINT', async () => {
-    console.log('Signal SIGINT reçu, fermeture de la connexion MongoDB...')
+  // Flag pour éviter les logs multiples
+  let shutdownInitiated = false
+  
+  const gracefulShutdown = async (signal: string) => {
+    if (shutdownInitiated) return
+    shutdownInitiated = true
+    
+    // Uniquement en développement pour réduire les logs
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`MongoDB: Connexion fermée (${signal})`)
+    }
     await closeConnection()
     process.exit(0)
-  })
+  }
 
-  process.on('SIGTERM', async () => {
-    console.log('Signal SIGTERM reçu, fermeture de la connexion MongoDB...')
-    await closeConnection()
-    process.exit(0)
-  })
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 }
 
 export default clientPromise

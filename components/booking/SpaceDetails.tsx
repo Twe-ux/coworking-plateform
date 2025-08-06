@@ -88,10 +88,10 @@ const SPACE_DETAILS: SpaceDetail = {
   reviewCount: 47,
   description: 'Notre salle verrière offre un environnement de travail exceptionnel baigné de lumière naturelle. Parfaite pour les sessions de travail concentré ou les petites réunions, elle combine le confort moderne avec l\'atmosphère chaleureuse d\'un café artisanal.',
   images: [
-    'bg-gradient-to-br from-blue-400 to-indigo-600',
-    'bg-gradient-to-br from-cyan-400 to-blue-600',
-    'bg-gradient-to-br from-indigo-400 to-purple-600',
-    'bg-gradient-to-br from-purple-400 to-pink-600'
+    'bg-linear-to-br from-blue-400 to-indigo-600',
+    'bg-linear-to-br from-cyan-400 to-blue-600',
+    'bg-linear-to-br from-indigo-400 to-purple-600',
+    'bg-linear-to-br from-purple-400 to-pink-600'
   ],
   features: [
     {
@@ -485,7 +485,7 @@ export default function SpaceDetails({ onBack, onBook }: {
           <div className="space-y-2">
             {SPACE_DETAILS.rules.map((rule, index) => (
               <div key={index} className="flex items-start gap-3">
-                <Info className="w-4 h-4 text-coffee-primary mt-0.5 flex-shrink-0" />
+                <Info className="w-4 h-4 text-coffee-primary mt-0.5 shrink-0" />
                 <span className="text-sm text-gray-700">{rule}</span>
               </div>
             ))}
@@ -575,7 +575,7 @@ export default function SpaceDetails({ onBack, onBook }: {
           </div>
           
           <motion.button
-            className="flex-2 bg-gradient-to-r from-coffee-primary to-coffee-accent text-white py-4 px-8 rounded-xl font-semibold shadow-lg"
+            className="flex-2 bg-linear-to-r from-coffee-primary to-coffee-accent text-white py-4 px-8 rounded-xl font-semibold shadow-lg"
             onClick={onBook}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

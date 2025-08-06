@@ -9,7 +9,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { UserRole } from '@/types/auth'
-import { hasRole, hasRouteAccess, getRedirectPath } from '@/lib/auth-utils'
+import { hasRole, hasRouteAccess, getRedirectPath, extractSessionInfo } from '@/lib/auth-utils-client'
 
 export interface AuthState {
   user: {

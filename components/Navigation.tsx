@@ -42,7 +42,7 @@ export default function Navigation() {
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="mx-auto max-w-screen-xl px-4">
+      <div className="mx-auto max-w-(--breakpoint-xl) px-4">
         <div className="flex h-24 items-center justify-between">
           {/* Logo */}
           <Link
@@ -92,7 +92,7 @@ export default function Navigation() {
               {isLoggedIn ? (
                 <Link href="/dashboard">
                   <motion.button
-                    className="from-coffee-primary to-coffee-accent rounded-full bg-gradient-to-r px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg"
+                    className="from-coffee-primary to-coffee-accent rounded-full bg-linear-to-r px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg"
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -103,7 +103,7 @@ export default function Navigation() {
               ) : (
                 <Link href="/auth/login">
                   <motion.button
-                    className="from-coffee-primary to-coffee-accent rounded-full bg-gradient-to-r px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg"
+                    className="from-coffee-primary to-coffee-accent rounded-full bg-linear-to-r px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg"
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -172,7 +172,7 @@ export default function Navigation() {
               {isLoggedIn ? (
                 <Link href="/dashboard">
                   <motion.button
-                    className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-gradient-to-r px-6 py-3 font-semibold text-white"
+                    className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-linear-to-r px-6 py-3 font-semibold text-white"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 }}
@@ -185,7 +185,7 @@ export default function Navigation() {
               ) : (
                 <Link href="/auth/login">
                   <motion.button
-                    className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-gradient-to-r px-6 py-3 font-semibold text-white"
+                    className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-linear-to-r px-6 py-3 font-semibold text-white"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 }}

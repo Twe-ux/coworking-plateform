@@ -167,7 +167,7 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-coffee-secondary/20 to-white">
+    <div className="min-h-screen bg-linear-to-br from-coffee-secondary/20 to-white">
       {/* Mobile Header */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -197,7 +197,7 @@ export default function UserDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="bg-gradient-to-r from-coffee-primary to-coffee-accent rounded-2xl p-6 text-white mb-6">
+          <div className="bg-linear-to-r from-coffee-primary to-coffee-accent rounded-2xl p-6 text-white mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-bold">Bonjour, {MOCK_USER.name.split(' ')[0]}!</h2>
@@ -433,7 +433,7 @@ export default function UserDashboard() {
                       : 'Vous n\'avez pas encore de réservation'}
                   </p>
                   <motion.button
-                    className="px-6 py-3 bg-gradient-to-r from-coffee-primary to-coffee-accent text-white rounded-xl font-semibold"
+                    className="px-6 py-3 bg-linear-to-r from-coffee-primary to-coffee-accent text-white rounded-xl font-semibold"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >

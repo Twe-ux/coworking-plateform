@@ -21,7 +21,7 @@ export default function ThemeToggle() {
       whileTap={{ scale: 0.95 }}
       aria-label={`Passer au mode ${theme === 'light' ? 'sombre' : 'clair'}`}
     >
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-coffee-primary/10 to-coffee-accent/10 opacity-50" />
+      <div className="absolute inset-0 rounded-full bg-linear-to-br from-coffee-primary/10 to-coffee-accent/10 opacity-50" />
       
       <motion.div
         initial={false}
