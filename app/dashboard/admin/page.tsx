@@ -3,6 +3,8 @@
  * Protection au niveau admin uniquement
  */
 
+'use client'
+
 import { AdminGuard } from '@/components/auth/route-guard'
 import { SecurityStatus } from '@/components/auth/security-status'
 import React from 'react'
@@ -142,7 +144,7 @@ export default function AdminDashboard() {
             <div className="mt-8">
               <div className="rounded-lg bg-white shadow">
                 <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
                     Tests de sécurité
                   </h3>
                   <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -179,7 +181,7 @@ function TestSecureApiButton() {
     try {
       const { secureApi } = await import('@/lib/secure-fetch')
 
-      const response = await secureApi.get('/api/auth/csrf')
+      const response = await secureApi.get('/api/csrf')
 
       if (response.ok) {
         setStatus('✅ API sécurisée fonctionnelle')
@@ -201,7 +203,7 @@ function TestSecureApiButton() {
       </p>
       <button
         onClick={testSecureApi}
-        className="mt-3 inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="mt-3 inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-2 text-sm leading-4 font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
       >
         Tester
       </button>
@@ -249,7 +251,7 @@ function TestCSRFProtectionButton() {
       </p>
       <button
         onClick={testCSRFProtection}
-        className="mt-3 inline-flex items-center rounded-md border border-transparent bg-green-600 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+        className="mt-3 inline-flex items-center rounded-md border border-transparent bg-green-600 px-3 py-2 text-sm leading-4 font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
       >
         Tester
       </button>

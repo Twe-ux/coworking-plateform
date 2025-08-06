@@ -15,9 +15,8 @@ import {
  * Vérifie si un utilisateur a un rôle spécifique ou supérieur
  */
 export function hasRole(userRole: UserRole, requiredRole: UserRole): boolean {
-  const userLevel = ROLE_HIERARCHY[userRole] || 0
-  const requiredLevel = ROLE_HIERARCHY[requiredRole] || 0
-  return userLevel >= requiredLevel
+  const allowedRoles = ROLE_HIERARCHY[userRole]
+  return allowedRoles ? allowedRoles.includes(requiredRole) : false
 }
 
 /**
@@ -50,13 +49,13 @@ export function hasRouteAccess(userRole: UserRole | undefined, route: string): b
  */
 export function getRedirectPath(role: UserRole): string {
   switch (role) {
-    case 'admin':
+    case UserRole.ADMIN:
       return '/dashboard/admin'
-    case 'manager':
+    case UserRole.MANAGER:
       return '/dashboard/manager'
-    case 'staff':
+    case UserRole.STAFF:
       return '/dashboard/staff'
-    case 'client':
+    case UserRole.CLIENT:
       return '/dashboard'
     default:
       return '/dashboard'

@@ -1,15 +1,9 @@
-"use client"
+'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Eye, EyeOff, Loader2, Check, X } from 'lucide-react'
 import {
+  Alert,
+  AlertDescription,
   Button,
-  Input,
   CardContent,
   CardDescription,
   CardHeader,
@@ -20,40 +14,48 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Alert,
-  AlertDescription
+  Input,
 } from '@/components/ui'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, Eye, EyeOff, Loader2, X } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 // Schéma de validation Zod
-const registerSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, "Le prénom est requis")
-    .min(2, "Le prénom doit contenir au moins 2 caractères")
-    .max(50, "Le prénom ne peut pas dépasser 50 caractères"),
-  lastName: z
-    .string()
-    .min(1, "Le nom est requis")
-    .min(2, "Le nom doit contenir au moins 2 caractères")
-    .max(50, "Le nom ne peut pas dépasser 50 caractères"),
-  email: z
-    .string()
-    .min(1, "L'email est requis")
-    .email("Veuillez entrer une adresse email valide"),
-  password: z
-    .string()
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
-    .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
-    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
-  confirmPassword: z.string().min(1, "Veuillez confirmer votre mot de passe"),
-  acceptTerms: z.boolean().refine(val => val === true, {
-    message: "Vous devez accepter les conditions d'utilisation"
+const registerSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, 'Le prénom est requis')
+      .min(2, 'Le prénom doit contenir au moins 2 caractères')
+      .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
+    lastName: z
+      .string()
+      .min(1, 'Le nom est requis')
+      .min(2, 'Le nom doit contenir au moins 2 caractères')
+      .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+    email: z
+      .string()
+      .min(1, "L'email est requis")
+      .email('Veuillez entrer une adresse email valide'),
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+      .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+      .regex(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
+      .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre'),
+    confirmPassword: z.string().min(1, 'Veuillez confirmer votre mot de passe'),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: "Vous devez accepter les conditions d'utilisation",
+    }),
   })
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-})
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  })
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
@@ -93,7 +95,7 @@ export default function RegisterPage() {
     setSuccess(null)
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,38 +109,42 @@ export default function RegisterPage() {
       })
 
       if (response.ok) {
-        setSuccess('Compte créé avec succès ! Vous allez être redirigé vers la page de connexion.')
+        setSuccess(
+          'Compte créé avec succès ! Vous allez être redirigé vers la page de connexion.'
+        )
         setTimeout(() => {
-          router.push('/auth/login')
+          router.push('/login')
         }, 2000)
       } else {
         const errorData = await response.json()
-        setError(errorData.message || 'Une erreur est survenue lors de la création du compte.')
+        setError(
+          errorData.message ||
+            'Une erreur est survenue lors de la création du compte.'
+        )
       }
     } catch (err) {
-      setError('Une erreur inattendue s\'est produite. Veuillez réessayer.')
+      setError("Une erreur inattendue s'est produite. Veuillez réessayer.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const ValidationIcon = ({ isValid }: { isValid: boolean }) => (
+  const ValidationIcon = ({ isValid }: { isValid: boolean }) =>
     isValid ? (
       <Check className="h-3 w-3 text-green-600" />
     ) : (
       <X className="h-3 w-3 text-red-500" />
     )
-  )
 
   return (
     <>
-      <CardHeader className="space-y-1 text-center pb-4">
+      <CardHeader className="space-y-1 pb-4 text-center">
         <CardTitle className="text-2xl font-bold">Créer un compte</CardTitle>
         <CardDescription>
           Rejoignez notre communauté de coworking
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
@@ -237,7 +243,7 @@ export default function RegisterPage() {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
                       >
@@ -249,31 +255,59 @@ export default function RegisterPage() {
                       </Button>
                     </div>
                   </FormControl>
-                  
+
                   {/* Indicateurs de validation du mot de passe */}
                   {password && (
                     <div className="mt-2 space-y-1 text-xs">
                       <div className="flex items-center gap-2">
                         <ValidationIcon isValid={passwordValidation.length} />
-                        <span className={passwordValidation.length ? 'text-green-600' : 'text-red-500'}>
+                        <span
+                          className={
+                            passwordValidation.length
+                              ? 'text-green-600'
+                              : 'text-red-500'
+                          }
+                        >
                           Au moins 8 caractères
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ValidationIcon isValid={passwordValidation.uppercase} />
-                        <span className={passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}>
+                        <ValidationIcon
+                          isValid={passwordValidation.uppercase}
+                        />
+                        <span
+                          className={
+                            passwordValidation.uppercase
+                              ? 'text-green-600'
+                              : 'text-red-500'
+                          }
+                        >
                           Une lettre majuscule
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ValidationIcon isValid={passwordValidation.lowercase} />
-                        <span className={passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}>
+                        <ValidationIcon
+                          isValid={passwordValidation.lowercase}
+                        />
+                        <span
+                          className={
+                            passwordValidation.lowercase
+                              ? 'text-green-600'
+                              : 'text-red-500'
+                          }
+                        >
                           Une lettre minuscule
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <ValidationIcon isValid={passwordValidation.number} />
-                        <span className={passwordValidation.number ? 'text-green-600' : 'text-red-500'}>
+                        <span
+                          className={
+                            passwordValidation.number
+                              ? 'text-green-600'
+                              : 'text-red-500'
+                          }
+                        >
                           Un chiffre
                         </span>
                       </div>
@@ -304,8 +338,10 @@ export default function RegisterPage() {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         disabled={isLoading}
                       >
                         {showConfirmPassword ? (
@@ -325,7 +361,7 @@ export default function RegisterPage() {
               control={form.control}
               name="acceptTerms"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem className="flex flex-row items-start space-y-0 space-x-3">
                   <FormControl>
                     <input
                       type="checkbox"
@@ -340,7 +376,7 @@ export default function RegisterPage() {
                       J'accepte les{' '}
                       <Link
                         href="/terms"
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                        className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         target="_blank"
                       >
                         conditions d'utilisation
@@ -348,7 +384,7 @@ export default function RegisterPage() {
                       et la{' '}
                       <Link
                         href="/privacy"
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                        className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         target="_blank"
                       >
                         politique de confidentialité
@@ -360,11 +396,7 @@ export default function RegisterPage() {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full h-11"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="h-11 w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -382,8 +414,8 @@ export default function RegisterPage() {
             Déjà un compte ?{' '}
           </span>
           <Link
-            href="/auth/login"
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-medium"
+            href="/login"
+            className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
           >
             Se connecter
           </Link>

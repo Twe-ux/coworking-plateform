@@ -1,14 +1,9 @@
-"use client"
+'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { ArrowLeft, Loader2, Mail } from 'lucide-react'
 import {
+  Alert,
+  AlertDescription,
   Button,
-  Input,
   CardContent,
   CardDescription,
   CardHeader,
@@ -19,16 +14,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Alert,
-  AlertDescription
+  Input,
 } from '@/components/ui'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Loader2, Mail } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 // Schéma de validation Zod
 const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, "L'email est requis")
-    .email("Veuillez entrer une adresse email valide"),
+    .email('Veuillez entrer une adresse email valide'),
 })
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
     setSuccess(null)
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch('/api/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,10 +66,12 @@ export default function ForgotPasswordPage() {
         form.reset()
       } else {
         const errorData = await response.json()
-        setError(errorData.message || 'Une erreur est survenue. Veuillez réessayer.')
+        setError(
+          errorData.message || 'Une erreur est survenue. Veuillez réessayer.'
+        )
       }
     } catch (err) {
-      setError('Une erreur inattendue s\'est produite. Veuillez réessayer.')
+      setError("Une erreur inattendue s'est produite. Veuillez réessayer.")
     } finally {
       setIsLoading(false)
     }
@@ -77,13 +79,15 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <CardHeader className="space-y-1 text-center pb-4">
-        <CardTitle className="text-2xl font-bold">Mot de passe oublié</CardTitle>
+      <CardHeader className="space-y-1 pb-4 text-center">
+        <CardTitle className="text-2xl font-bold">
+          Mot de passe oublié
+        </CardTitle>
         <CardDescription>
           Entrez votre adresse email pour recevoir un lien de réinitialisation
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
@@ -124,7 +128,7 @@ export default function ForgotPasswordPage() {
 
               <Button
                 type="submit"
-                className="w-full h-11"
+                className="h-11 w-full"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -146,16 +150,16 @@ export default function ForgotPasswordPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+              <span className="bg-background text-muted-foreground px-2">
                 Ou
               </span>
             </div>
           </div>
 
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <Link
-              href="/auth/login"
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+              href="/login"
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour à la connexion
@@ -167,8 +171,8 @@ export default function ForgotPasswordPage() {
               Pas encore de compte ?{' '}
             </span>
             <Link
-              href="/auth/register"
-              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-medium"
+              href="/register"
+              className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
             >
               Créer un compte
             </Link>
@@ -176,9 +180,9 @@ export default function ForgotPasswordPage() {
         </div>
 
         {success && (
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div className="mt-6 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
             <div className="text-sm text-blue-800 dark:text-blue-200">
-              <p className="font-medium mb-2">Que faire ensuite ?</p>
+              <p className="mb-2 font-medium">Que faire ensuite ?</p>
               <ul className="space-y-1 text-xs">
                 <li>• Vérifiez votre boîte email (y compris les spams)</li>
                 <li>• Cliquez sur le lien dans l'email reçu</li>

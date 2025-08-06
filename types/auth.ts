@@ -7,9 +7,9 @@ import { DefaultSession } from 'next-auth'
 
 export enum UserRole {
   ADMIN = 'admin',
-  MANAGER = 'manager', 
+  MANAGER = 'manager',
   STAFF = 'staff',
-  CLIENT = 'client'
+  CLIENT = 'client',
 }
 
 export interface User {
@@ -54,49 +54,64 @@ export interface SecurityAuditLog {
 
 // Hiérarchie des rôles - un rôle supérieur hérite des permissions inférieures
 export const ROLE_HIERARCHY: Record<UserRole, UserRole[]> = {
-  [UserRole.ADMIN]: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT],
+  [UserRole.ADMIN]: [
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.STAFF,
+    UserRole.CLIENT,
+  ],
   [UserRole.MANAGER]: [UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT],
   [UserRole.STAFF]: [UserRole.STAFF, UserRole.CLIENT],
-  [UserRole.CLIENT]: [UserRole.CLIENT]
+  [UserRole.CLIENT]: [UserRole.CLIENT],
 }
 
 // Configuration des routes protégées
 export const PROTECTED_ROUTES: RoutePermission[] = [
   {
     path: '/admin',
-    allowedRoles: [UserRole.ADMIN]
+    allowedRoles: [UserRole.ADMIN],
   },
   {
     path: '/dashboard/admin',
-    allowedRoles: [UserRole.ADMIN]
+    allowedRoles: [UserRole.ADMIN],
   },
   {
     path: '/dashboard/manager',
-    allowedRoles: [UserRole.ADMIN, UserRole.MANAGER]
+    allowedRoles: [UserRole.ADMIN, UserRole.MANAGER],
   },
   {
     path: '/dashboard/staff',
-    allowedRoles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF]
+    allowedRoles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF],
   },
   {
     path: '/dashboard/client',
-    allowedRoles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT]
+    allowedRoles: [
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+      UserRole.CLIENT,
+    ],
   },
   {
     path: '/dashboard',
-    allowedRoles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT]
-  }
+    allowedRoles: [
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+      UserRole.CLIENT,
+    ],
+  },
 ]
 
 // Routes publiques qui ne nécessitent pas d'authentification
 export const PUBLIC_ROUTES = [
   '/',
-  '/auth/login',
-  '/auth/register',
-  '/auth/forgot-password',
-  '/auth/reset-password',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
   '/api/auth',
-  '/api/health'
+  '/api/health',
 ]
 
 // Extensions de types pour NextAuth

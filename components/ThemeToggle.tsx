@@ -1,9 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Sun, Moon } from 'lucide-react'
-import { useThemeSafe } from './providers/theme-provider'
-
 export default function ThemeToggle() {
   // Theme toggle is temporarily disabled
   // Return null to hide the component entirely

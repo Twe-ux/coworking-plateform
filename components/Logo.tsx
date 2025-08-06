@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useThemeSafe } from './providers/theme-provider'
+import Image from 'next/image'
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -31,8 +31,6 @@ export default function Logo({
   animated = true,
   variant = 'default',
 }: LogoProps) {
-  const { theme } = useThemeSafe()
-
   const LogoWrapper = animated ? motion.div : 'div'
   const logoProps = animated
     ? {
@@ -56,11 +54,22 @@ export default function Logo({
       className={`flex items-center gap-3 ${className}`}
       {...logoProps}
     >
-      <img
+      <Image
         src="/logo-circle.webp"
         alt="Cow or King Café"
-        className={`${sizeClasses[size]} object-contain ${logoVariants[effectiveVariant]}`}
-        loading="eager"
+        width={
+          size === 'xl' ? 80 : size === 'lg' ? 48 : size === 'md' ? 40 : 32
+        }
+        height={
+          size === 'xl' ? 80 : size === 'lg' ? 48 : size === 'md' ? 40 : 32
+        }
+        className={`object-contain ${logoVariants[effectiveVariant]}`}
+        priority={true}
+        onError={(e) => {
+          console.error('Erreur de chargement du logo:', e)
+          console.log('Tentative de chargement:', '/logo-circle.webp')
+        }}
+        // onLoad={() => console.log('Logo chargé avec succès')}
       />
       {showText && (
         <span

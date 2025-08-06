@@ -1,11 +1,12 @@
 'use client'
 
+import AuthButtons from '@/components/auth/auth-buttons'
 import ClientOnly from '@/components/ClientOnly'
 import Footer from '@/components/Footer'
 import Logo from '@/components/Logo'
+
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { ArrowRight, Coffee, MapPin, Star, Users } from 'lucide-react'
-import Link from 'next/link'
+import { Coffee, MapPin, Star, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function Home() {
@@ -14,11 +15,26 @@ export default function Home() {
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%'])
 
   useEffect(() => {
+    let animationFrameId: number
+    
     const updateMousePosition = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
+      // Throttle avec requestAnimationFrame pour éviter trop de re-renders
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+      }
+      
+      animationFrameId = requestAnimationFrame(() => {
+        setMousePosition({ x: e.clientX, y: e.clientY })
+      })
     }
+    
     window.addEventListener('mousemove', updateMousePosition)
-    return () => window.removeEventListener('mousemove', updateMousePosition)
+    return () => {
+      window.removeEventListener('mousemove', updateMousePosition)
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+      }
+    }
   }, [])
 
   const containerVariants = {
@@ -122,28 +138,8 @@ export default function Home() {
             réservation.
           </motion.p>
 
-          <motion.div
-            variants={itemVariants}
-            className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
-          >
-            <Link href="/reservation">
-              <motion.button
-                className="from-coffee-primary to-coffee-accent group flex min-h-[56px] items-center gap-2 rounded-full bg-linear-to-r px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Explorer les espaces
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </motion.button>
-            </Link>
-
-            <motion.button
-              className="border-coffee-accent text-coffee-accent hover:bg-coffee-accent rounded-full border-2 px-8 py-4 font-semibold transition-all duration-300 hover:text-white"
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Comment ça marche
-            </motion.button>
+          <motion.div variants={itemVariants}>
+            <AuthButtons variant="homepage" size="lg" />
           </motion.div>
 
           <motion.div

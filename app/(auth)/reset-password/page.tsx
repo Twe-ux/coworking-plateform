@@ -1,15 +1,9 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Eye, EyeOff, Loader2, Check, X, AlertTriangle } from 'lucide-react'
 import {
+  Alert,
+  AlertDescription,
   Button,
-  Input,
   CardContent,
   CardDescription,
   CardHeader,
@@ -20,23 +14,31 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Alert,
-  AlertDescription
+  Input,
 } from '@/components/ui'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AlertTriangle, Check, Eye, EyeOff, Loader2, X } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 // Schéma de validation Zod
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
-    .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
-    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
-  confirmPassword: z.string().min(1, "Veuillez confirmer votre mot de passe"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-})
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+      .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+      .regex(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
+      .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre'),
+    confirmPassword: z.string().min(1, 'Veuillez confirmer votre mot de passe'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  })
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
@@ -44,7 +46,7 @@ export default function ResetPasswordPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
-  
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -80,14 +82,16 @@ export default function ResetPasswordPage() {
       }
 
       try {
-        const response = await fetch(`/api/auth/verify-reset-token?token=${token}`)
-        
+        const response = await fetch(`/api/verify-reset-token?token=${token}`)
+
         if (response.ok) {
           setIsValidToken(true)
         } else {
           setIsValidToken(false)
           const errorData = await response.json()
-          setError(errorData.message || 'Token de réinitialisation invalide ou expiré.')
+          setError(
+            errorData.message || 'Token de réinitialisation invalide ou expiré.'
+          )
         }
       } catch (err) {
         setIsValidToken(false)
@@ -109,7 +113,7 @@ export default function ResetPasswordPage() {
     setSuccess(null)
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch('/api/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,45 +125,49 @@ export default function ResetPasswordPage() {
       })
 
       if (response.ok) {
-        setSuccess('Votre mot de passe a été réinitialisé avec succès ! Vous allez être redirigé vers la page de connexion.')
+        setSuccess(
+          'Votre mot de passe a été réinitialisé avec succès ! Vous allez être redirigé vers la page de connexion.'
+        )
         setTimeout(() => {
-          router.push('/auth/login')
+          router.push('/login')
         }, 3000)
       } else {
         const errorData = await response.json()
-        setError(errorData.message || 'Une erreur est survenue lors de la réinitialisation.')
+        setError(
+          errorData.message ||
+            'Une erreur est survenue lors de la réinitialisation.'
+        )
       }
     } catch (err) {
-      setError('Une erreur inattendue s\'est produite. Veuillez réessayer.')
+      setError("Une erreur inattendue s'est produite. Veuillez réessayer.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const ValidationIcon = ({ isValid }: { isValid: boolean }) => (
+  const ValidationIcon = ({ isValid }: { isValid: boolean }) =>
     isValid ? (
       <Check className="h-3 w-3 text-green-600" />
     ) : (
       <X className="h-3 w-3 text-red-500" />
     )
-  )
 
   // Affichage pendant la vérification du token
   if (isValidToken === null) {
     return (
       <>
-        <CardHeader className="space-y-1 text-center pb-4">
-          <CardTitle className="text-2xl font-bold">Réinitialisation du mot de passe</CardTitle>
+        <CardHeader className="space-y-1 pb-4 text-center">
+          <CardTitle className="text-2xl font-bold">
+            Réinitialisation du mot de passe
+          </CardTitle>
           <CardDescription>
             Vérification du lien de réinitialisation...
           </CardDescription>
         </CardHeader>
-        
-        <CardContent className="text-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
-          <p className="mt-4 text-sm text-gray-600">
-            Vérification en cours...
-          </p>
+
+        <CardContent className="py-8 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
+          <p className="mt-4 text-sm text-gray-600">Vérification en cours...</p>
         </CardContent>
       </>
     )
@@ -169,32 +177,31 @@ export default function ResetPasswordPage() {
   if (!isValidToken) {
     return (
       <>
-        <CardHeader className="space-y-1 text-center pb-4">
+        <CardHeader className="space-y-1 pb-4 text-center">
           <CardTitle className="text-2xl font-bold">Lien invalide</CardTitle>
           <CardDescription>
             Ce lien de réinitialisation n'est pas valide
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
 
-          <div className="text-center space-y-4">
+          <div className="space-y-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Le lien de réinitialisation est peut-être expiré ou a déjà été utilisé.
+              Le lien de réinitialisation est peut-être expiré ou a déjà été
+              utilisé.
             </p>
-            
+
             <div className="space-y-2">
-              <Link href="/auth/forgot-password">
-                <Button className="w-full">
-                  Demander un nouveau lien
-                </Button>
+              <Link href="/forgot-password">
+                <Button className="w-full">Demander un nouveau lien</Button>
               </Link>
-              
-              <Link href="/auth/login">
+
+              <Link href="/login">
                 <Button variant="outline" className="w-full">
                   Retour à la connexion
                 </Button>
@@ -208,13 +215,15 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <CardHeader className="space-y-1 text-center pb-4">
-        <CardTitle className="text-2xl font-bold">Nouveau mot de passe</CardTitle>
+      <CardHeader className="space-y-1 pb-4 text-center">
+        <CardTitle className="text-2xl font-bold">
+          Nouveau mot de passe
+        </CardTitle>
         <CardDescription>
           Créez un nouveau mot de passe sécurisé pour votre compte
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
@@ -252,7 +261,7 @@ export default function ResetPasswordPage() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading}
                         >
@@ -264,31 +273,59 @@ export default function ResetPasswordPage() {
                         </Button>
                       </div>
                     </FormControl>
-                    
+
                     {/* Indicateurs de validation du mot de passe */}
                     {password && (
                       <div className="mt-2 space-y-1 text-xs">
                         <div className="flex items-center gap-2">
                           <ValidationIcon isValid={passwordValidation.length} />
-                          <span className={passwordValidation.length ? 'text-green-600' : 'text-red-500'}>
+                          <span
+                            className={
+                              passwordValidation.length
+                                ? 'text-green-600'
+                                : 'text-red-500'
+                            }
+                          >
                             Au moins 8 caractères
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <ValidationIcon isValid={passwordValidation.uppercase} />
-                          <span className={passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}>
+                          <ValidationIcon
+                            isValid={passwordValidation.uppercase}
+                          />
+                          <span
+                            className={
+                              passwordValidation.uppercase
+                                ? 'text-green-600'
+                                : 'text-red-500'
+                            }
+                          >
                             Une lettre majuscule
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <ValidationIcon isValid={passwordValidation.lowercase} />
-                          <span className={passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}>
+                          <ValidationIcon
+                            isValid={passwordValidation.lowercase}
+                          />
+                          <span
+                            className={
+                              passwordValidation.lowercase
+                                ? 'text-green-600'
+                                : 'text-red-500'
+                            }
+                          >
                             Une lettre minuscule
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <ValidationIcon isValid={passwordValidation.number} />
-                          <span className={passwordValidation.number ? 'text-green-600' : 'text-red-500'}>
+                          <span
+                            className={
+                              passwordValidation.number
+                                ? 'text-green-600'
+                                : 'text-red-500'
+                            }
+                          >
                             Un chiffre
                           </span>
                         </div>
@@ -319,8 +356,10 @@ export default function ResetPasswordPage() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           disabled={isLoading}
                         >
                           {showConfirmPassword ? (
@@ -338,7 +377,7 @@ export default function ResetPasswordPage() {
 
               <Button
                 type="submit"
-                className="w-full h-11"
+                className="h-11 w-full"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -357,8 +396,8 @@ export default function ResetPasswordPage() {
         {!success && (
           <div className="text-center">
             <Link
-              href="/auth/login"
-              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+              href="/login"
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
             >
               Retour à la connexion
             </Link>

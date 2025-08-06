@@ -24,25 +24,25 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   {
-    href: '/client',
+    href: '/dashboard',
     label: 'Dashboard Client',
     icon: Home,
     roles: ['client']
   },
   {
-    href: '/staff',
+    href: '/dashboard/staff',
     label: 'Dashboard Staff',
     icon: Building,
     roles: ['staff']
   },
   {
-    href: '/manager',
+    href: '/dashboard/manager',
     label: 'Dashboard Manager',
     icon: BarChart3,
     roles: ['manager']
   },
   {
-    href: '/admin',
+    href: '/dashboard/admin',
     label: 'Dashboard Admin',
     icon: Shield,
     roles: ['admin']
@@ -60,7 +60,7 @@ const sidebarItems: SidebarItem[] = [
     roles: ['client', 'staff', 'manager', 'admin']
   },
   {
-    href: '/admin/users',
+    href: '/dashboard/admin/users',
     label: 'Utilisateurs',
     icon: Users,
     roles: ['admin']
