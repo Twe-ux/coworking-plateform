@@ -1,9 +1,9 @@
 'use client'
 
+import { UserRole } from '@/types/auth'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, ReactNode } from 'react'
-import { UserRole } from '@/types/auth'
+import { ReactNode, useEffect } from 'react'
 
 interface RouteGuardProps {
   children: ReactNode
@@ -11,10 +11,10 @@ interface RouteGuardProps {
   redirectTo?: string
 }
 
-export function RouteGuard({ 
-  children, 
-  requiredRoles = [], 
-  redirectTo = '/auth/login' 
+export function RouteGuard({
+  children,
+  requiredRoles = [],
+  redirectTo = '/login',
 }: RouteGuardProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -27,7 +27,10 @@ export function RouteGuard({
       return
     }
 
-    if (requiredRoles.length > 0 && !requiredRoles.includes(session.user.role)) {
+    if (
+      requiredRoles.length > 0 &&
+      !requiredRoles.includes(session.user.role)
+    ) {
       router.push('/unauthorized')
       return
     }
@@ -40,8 +43,8 @@ export function RouteGuard({
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-blue-500"></div>
       </div>
     )
   }
@@ -63,11 +66,7 @@ export function RouteGuard({
 
 // Composants de protection spécifiques par rôle
 export function AdminGuard({ children }: { children: ReactNode }) {
-  return (
-    <RouteGuard requiredRoles={[UserRole.ADMIN]}>
-      {children}
-    </RouteGuard>
-  )
+  return <RouteGuard requiredRoles={[UserRole.ADMIN]}>{children}</RouteGuard>
 }
 
 export function ManagerGuard({ children }: { children: ReactNode }) {
@@ -80,7 +79,9 @@ export function ManagerGuard({ children }: { children: ReactNode }) {
 
 export function StaffGuard({ children }: { children: ReactNode }) {
   return (
-    <RouteGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF]}>
+    <RouteGuard
+      requiredRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF]}
+    >
       {children}
     </RouteGuard>
   )
@@ -88,7 +89,14 @@ export function StaffGuard({ children }: { children: ReactNode }) {
 
 export function ClientGuard({ children }: { children: ReactNode }) {
   return (
-    <RouteGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT]}>
+    <RouteGuard
+      requiredRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.STAFF,
+        UserRole.CLIENT,
+      ]}
+    >
       {children}
     </RouteGuard>
   )

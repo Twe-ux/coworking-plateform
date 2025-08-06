@@ -21,7 +21,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "clear-auth-cache": "node scripts/clear-auth-cache.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

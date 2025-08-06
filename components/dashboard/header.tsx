@@ -36,7 +36,7 @@ export function Header() {
                 <Button variant="ghost" className="relative w-8 h-8 rounded-full">
                   <Avatar className="w-8 h-8">
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {session.user.name?.[0]?.toUpperCase() || 'U'}
+                      {session.user.firstName?.[0]?.toUpperCase() || session.user.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                   </Avatar>
                 </Button>
@@ -45,7 +45,9 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {session.user.name}
+                      {session.user.firstName && session.user.lastName 
+                        ? `${session.user.firstName} ${session.user.lastName}`
+                        : session.user.email}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {session.user.email}

@@ -1,7 +1,7 @@
 import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { UserRole, PUBLIC_ROUTES, PROTECTED_ROUTES } from './types/auth'
+import { NextResponse } from 'next/server'
+import { PROTECTED_ROUTES, PUBLIC_ROUTES, UserRole } from './types/auth'
 
 /**
  * Middleware d'authentification et d'autorisation optimisé
@@ -19,19 +19,27 @@ export default withAuth(
 
     // Vérification de l'authentification
     if (!token) {
-      const loginUrl = new URL('/auth/login', req.url)
-      loginUrl.searchParams.set('callbackUrl', encodeURIComponent(pathname))
+      // Construire l'URL de login avec le bon host et port
+      const correctHost = 'localhost:3000'
+      const protocol = process.env.NODE_ENV === 'production' ? 'https:' : 'http:'
+      const loginUrl = new URL('/login', `${protocol}//${correctHost}`)
+      // Utiliser pathname relatif pour éviter les références de port incorrectes
+      loginUrl.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(loginUrl)
     }
 
     // Vérification du statut de l'utilisateur
-    if (!token.isActive || token.status === 'suspended' || token.status === 'banned') {
+    if (
+      !token.isActive ||
+      token.status === 'suspended' ||
+      token.status === 'banned'
+    ) {
       return NextResponse.redirect(new URL('/account-suspended', req.url))
     }
 
     // Vérification de l'expiration du token
     if (token.expiresAt && Date.now() > token.expiresAt) {
-      const loginUrl = new URL('/auth/login', req.url)
+      const loginUrl = new URL('/login', req.url)
       loginUrl.searchParams.set('error', 'SessionExpired')
       return NextResponse.redirect(loginUrl)
     }
@@ -41,8 +49,13 @@ export default withAuth(
     // Contrôle d'accès basé sur les rôles avec hiérarchie
     if (!hasRouteAccess(userRole, pathname)) {
       // Rediriger vers une page d'erreur appropriée selon le contexte
-      if (pathname.startsWith('/dashboard/admin') || pathname.startsWith('/admin')) {
-        return NextResponse.redirect(new URL('/unauthorized?reason=admin_required', req.url))
+      if (
+        pathname.startsWith('/dashboard/admin') ||
+        pathname.startsWith('/admin')
+      ) {
+        return NextResponse.redirect(
+          new URL('/unauthorized?reason=admin_required', req.url)
+        )
       }
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
@@ -59,9 +72,12 @@ export default withAuth(
     response.headers.set('X-Frame-Options', 'DENY')
     response.headers.set('X-XSS-Protection', '1; mode=block')
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-    
+
     // CSP pour les routes sensibles
-    if (pathname.startsWith('/admin') || pathname.startsWith('/dashboard/admin')) {
+    if (
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/dashboard/admin')
+    ) {
       response.headers.set(
         'Content-Security-Policy',
         "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
@@ -74,22 +90,22 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
-        
+
         // Routes publiques toujours autorisées
         if (isPublicRoute(pathname)) {
           return true
         }
-        
+
         // API routes d'authentification
         if (pathname.startsWith('/api/auth')) {
           return true
         }
-        
+
         // Routes de santé et statut
         if (pathname.startsWith('/api/health') || pathname === '/api/status') {
           return true
         }
-        
+
         // Toutes les autres routes nécessitent une authentification
         return !!token && !!token.isActive
       },
@@ -101,7 +117,7 @@ export default withAuth(
  * Vérifie si une route est publique
  */
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(route => {
+  return PUBLIC_ROUTES.some((route) => {
     if (route.endsWith('*')) {
       return pathname.startsWith(route.slice(0, -1))
     }
@@ -119,9 +135,9 @@ function hasRouteAccess(userRole: UserRole, pathname: string): boolean {
   }
 
   // Trouver la route protégée correspondante (la plus spécifique d'abord)
-  const matchingRoute = PROTECTED_ROUTES
-    .sort((a, b) => b.path.length - a.path.length)
-    .find(route => pathname.startsWith(route.path))
+  const matchingRoute = PROTECTED_ROUTES.sort(
+    (a, b) => b.path.length - a.path.length
+  ).find((route) => pathname.startsWith(route.path))
 
   if (!matchingRoute) {
     // Pour les routes non définies, appliquer des règles par défaut
@@ -134,7 +150,7 @@ function hasRouteAccess(userRole: UserRole, pathname: string): boolean {
   }
 
   // Vérifier la hiérarchie des rôles
-  return matchingRoute.allowedRoles.some(allowedRole => {
+  return matchingRoute.allowedRoles.some((allowedRole) => {
     return hasRoleHierarchy(userRole, allowedRole)
   })
 }
@@ -144,12 +160,17 @@ function hasRouteAccess(userRole: UserRole, pathname: string): boolean {
  */
 function hasRoleHierarchy(userRole: UserRole, requiredRole: UserRole): boolean {
   const hierarchy = {
-    [UserRole.ADMIN]: [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT],
+    [UserRole.ADMIN]: [
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+      UserRole.CLIENT,
+    ],
     [UserRole.MANAGER]: [UserRole.MANAGER, UserRole.STAFF, UserRole.CLIENT],
     [UserRole.STAFF]: [UserRole.STAFF, UserRole.CLIENT],
-    [UserRole.CLIENT]: [UserRole.CLIENT]
+    [UserRole.CLIENT]: [UserRole.CLIENT],
   }
-  
+
   return hierarchy[userRole]?.includes(requiredRole) ?? false
 }
 
@@ -178,11 +199,11 @@ export const config = {
      * - api (API routes - handled separately)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico, favicon.svg (favicon files)
-     * - public folder
+     * - favicon.ico, favicon.svg, logo.svg (static assets)
+     * - public folder assets
      * - manifest.json, robots.txt, sitemap.xml
      * - Service worker files
      */
-    '/((?!api|_next/static|_next/image|favicon\\.ico|favicon\\.svg|public|manifest\\.json|robots\\.txt|sitemap\\.xml|sw\\.js|workbox-.*\\.js).*)',
+    '/((?!api|_next/static|_next/image|favicon\\.ico|favicon\\.svg|logo\\.svg|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)|manifest\\.json|robots\\.txt|sitemap\\.xml|sw\\.js|workbox-.*\\.js).*)',
   ],
 }

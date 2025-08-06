@@ -5,11 +5,15 @@
 
 'use client'
 
+import {
+  getRedirectPath,
+  hasRole,
+  hasRouteAccess,
+} from '@/lib/auth-utils-client'
+import { UserRole } from '@/types/auth'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { UserRole } from '@/types/auth'
-import { hasRole, hasRouteAccess, getRedirectPath, extractSessionInfo } from '@/lib/auth-utils-client'
+import { useEffect } from 'react'
 
 export interface AuthState {
   user: {
@@ -38,43 +42,24 @@ export interface AuthActions {
 export function useAuth(): AuthState & AuthActions {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [csrfToken, setCsrfToken] = useState<string | null>(null)
 
-  // Récupérer le token CSRF du header ou du cookie
-  useEffect(() => {
-    const fetchCSRFToken = () => {
-      // Essayer de récupérer depuis les meta tags
-      const metaCSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-      if (metaCSRF) {
-        setCsrfToken(metaCSRF)
-        return
-      }
-
-      // Essayer de récupérer depuis un appel API
-      fetch('/api/auth/csrf')
-        .then(response => response.json())
-        .then(data => setCsrfToken(data.csrfToken))
-        .catch(console.error)
-    }
-
-    if (status === 'authenticated') {
-      fetchCSRFToken()
-    }
-  }, [status])
+  // NextAuth gère automatiquement les tokens CSRF
 
   const authState: AuthState = {
-    user: session?.user ? {
-      id: session.user.id,
-      email: session.user.email || '',
-      firstName: session.user.firstName || '',
-      lastName: session.user.lastName || '',
-      role: session.user.role,
-      permissions: session.user.permissions || [],
-      isActive: session.user.isActive
-    } : null,
+    user: session?.user
+      ? {
+          id: session.user.id,
+          email: session.user.email || '',
+          firstName: session.user.firstName || '',
+          lastName: session.user.lastName || '',
+          role: session.user.role,
+          permissions: session.user.permissions || [],
+          isActive: session.user.isActive,
+        }
+      : null,
     isLoading: status === 'loading',
     isAuthenticated: status === 'authenticated' && !!session?.user?.isActive,
-    csrfToken: session?.csrfToken || csrfToken
+    csrfToken: session?.csrfToken || null,
   }
 
   const authActions: AuthActions = {
@@ -95,13 +80,13 @@ export function useAuth(): AuthState & AuthActions {
 
     requireAuth: () => {
       if (!authState.isAuthenticated) {
-        router.push('/auth/login')
+        router.push('/login')
       }
     },
 
     requireRole: (requiredRole: UserRole) => {
       if (!authState.isAuthenticated) {
-        router.push('/auth/login')
+        router.push('/login')
         return
       }
 
@@ -116,9 +101,9 @@ export function useAuth(): AuthState & AuthActions {
         const redirectPath = getRedirectPath(authState.user.role)
         router.push(redirectPath)
       } else {
-        router.push('/auth/login')
+        router.push('/login')
       }
-    }
+    },
   }
 
   return { ...authState, ...authActions }

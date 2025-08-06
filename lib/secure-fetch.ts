@@ -43,7 +43,7 @@ export async function secureFetch<T = any>(
         return {
           status: 401,
           ok: false,
-          error: 'Non authentifié'
+          error: 'Non authentifié',
         }
       }
     }
@@ -51,11 +51,16 @@ export async function secureFetch<T = any>(
     // Préparer les headers sécurisés
     const secureHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...headers as Record<string, string>
+      ...(headers as Record<string, string>),
     }
 
     // Ajouter le token CSRF pour les requêtes de modification
-    if (includeCsrf && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(fetchOptions.method?.toUpperCase() || 'GET')) {
+    if (
+      includeCsrf &&
+      ['POST', 'PUT', 'PATCH', 'DELETE'].includes(
+        fetchOptions.method?.toUpperCase() || 'GET'
+      )
+    ) {
       const csrfToken = await getCSRFToken()
       if (csrfToken) {
         secureHeaders['X-CSRF-Token'] = csrfToken
@@ -64,7 +69,7 @@ export async function secureFetch<T = any>(
 
     // Ajouter des headers de sécurité supplémentaires
     secureHeaders['X-Requested-With'] = 'XMLHttpRequest'
-    
+
     // Créer un AbortController pour le timeout
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
@@ -74,7 +79,7 @@ export async function secureFetch<T = any>(
       ...fetchOptions,
       headers: secureHeaders,
       signal: controller.signal,
-      credentials: 'same-origin' // Inclure les cookies de session
+      credentials: 'same-origin', // Inclure les cookies de session
     })
 
     clearTimeout(timeoutId)
@@ -82,49 +87,51 @@ export async function secureFetch<T = any>(
     // Traiter la réponse
     let data: T | undefined
     const contentType = response.headers.get('content-type')
-    
+
     if (contentType?.includes('application/json')) {
       data = await response.json()
     } else if (contentType?.includes('text/')) {
-      data = await response.text() as any
+      data = (await response.text()) as any
     }
 
     if (!response.ok) {
       return {
         status: response.status,
         ok: false,
-        error: (data as any)?.error || (data as any)?.message || `Erreur HTTP ${response.status}`,
-        data
+        error:
+          (data as any)?.error ||
+          (data as any)?.message ||
+          `Erreur HTTP ${response.status}`,
+        data,
       }
     }
 
     return {
       status: response.status,
       ok: true,
-      data
+      data,
     }
-
   } catch (error) {
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
         return {
           status: 408,
           ok: false,
-          error: 'Timeout de la requête'
+          error: 'Timeout de la requête',
         }
       }
-      
+
       return {
         status: 0,
         ok: false,
-        error: error.message
+        error: error.message,
       }
     }
 
     return {
       status: 0,
       ok: false,
-      error: 'Erreur inconnue'
+      error: 'Erreur inconnue',
     }
   }
 }
@@ -142,26 +149,28 @@ async function getCSRFToken(): Promise<string | null> {
     }
 
     // Essayer de récupérer depuis les meta tags
-    const metaCSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    const metaCSRF = document
+      .querySelector('meta[name="csrf-token"]')
+      ?.getAttribute('content')
     if (metaCSRF) {
       csrfTokenCache = {
         token: metaCSRF,
-        expires: Date.now() + (60 * 60 * 1000) // 1 heure
+        expires: Date.now() + 60 * 60 * 1000, // 1 heure
       }
       return metaCSRF
     }
 
     // Récupérer depuis l'API
-    const response = await fetch('/api/auth/csrf', {
+    const response = await fetch('/api/csrf', {
       method: 'GET',
-      credentials: 'same-origin'
+      credentials: 'same-origin',
     })
 
     if (response.ok) {
       const data = await response.json()
       csrfTokenCache = {
         token: data.csrfToken,
-        expires: Date.now() + (60 * 60 * 1000) // 1 heure
+        expires: Date.now() + 60 * 60 * 1000, // 1 heure
       }
       return data.csrfToken
     }
@@ -180,35 +189,49 @@ export const secureApi = {
   get: <T = any>(url: string, options?: Omit<SecureFetchOptions, 'method'>) =>
     secureFetch<T>(url, { ...options, method: 'GET', includeCsrf: false }),
 
-  post: <T = any>(url: string, data?: any, options?: Omit<SecureFetchOptions, 'method' | 'body'>) =>
+  post: <T = any>(
+    url: string,
+    data?: any,
+    options?: Omit<SecureFetchOptions, 'method' | 'body'>
+  ) =>
     secureFetch<T>(url, {
       ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined
+      body: data ? JSON.stringify(data) : undefined,
     }),
 
-  put: <T = any>(url: string, data?: any, options?: Omit<SecureFetchOptions, 'method' | 'body'>) =>
+  put: <T = any>(
+    url: string,
+    data?: any,
+    options?: Omit<SecureFetchOptions, 'method' | 'body'>
+  ) =>
     secureFetch<T>(url, {
       ...options,
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined
+      body: data ? JSON.stringify(data) : undefined,
     }),
 
-  patch: <T = any>(url: string, data?: any, options?: Omit<SecureFetchOptions, 'method' | 'body'>) =>
+  patch: <T = any>(
+    url: string,
+    data?: any,
+    options?: Omit<SecureFetchOptions, 'method' | 'body'>
+  ) =>
     secureFetch<T>(url, {
       ...options,
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined
+      body: data ? JSON.stringify(data) : undefined,
     }),
 
-  delete: <T = any>(url: string, options?: Omit<SecureFetchOptions, 'method'>) =>
-    secureFetch<T>(url, { ...options, method: 'DELETE' })
+  delete: <T = any>(
+    url: string,
+    options?: Omit<SecureFetchOptions, 'method'>
+  ) => secureFetch<T>(url, { ...options, method: 'DELETE' }),
 }
 
 /**
  * Hook React pour les requêtes sécurisées
  */
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface UseSecureFetchState<T> {
   data: T | null
@@ -233,7 +256,7 @@ export function useSecureFetch<T = any>(
 
     try {
       const response = await secureFetch<T>(url, options)
-      
+
       if (response.ok) {
         setData(response.data || null)
       } else {
@@ -254,7 +277,7 @@ export function useSecureFetch<T = any>(
     data,
     loading,
     error,
-    refetch: fetchData
+    refetch: fetchData,
   }
 }
 

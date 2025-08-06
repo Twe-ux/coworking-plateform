@@ -1,18 +1,19 @@
 'use client'
 
+import { useAuth } from '@/lib/hooks/use-auth'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LayoutDashboard, Menu, User, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import ClientOnly from './ClientOnly'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
+import AuthButtons from './auth/auth-buttons'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  // TODO: Replace with real authentication state
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,7 +28,7 @@ export default function Navigation() {
     { name: 'Tarifs', href: '#tarifs' },
     { name: 'Contact', href: '#contact' },
     { name: 'À propos', href: '#apropos' },
-    ...(isLoggedIn ? [{ name: 'Dashboard', href: '/dashboard' }] : []),
+    ...(isAuthenticated ? [{ name: 'Dashboard', href: '/dashboard' }] : []),
   ]
 
   return (
@@ -35,7 +36,7 @@ export default function Navigation() {
       id="navigation"
       role="navigation"
       aria-label="Navigation principale"
-      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
         scrolled ? 'bg-white/90 shadow-lg backdrop-blur-md' : 'bg-transparent'
       }`}
       initial={{ y: -100 }}
@@ -47,7 +48,7 @@ export default function Navigation() {
           {/* Logo */}
           <Link
             href="/"
-            className="focus:outline-none focus:ring-0 focus:ring-offset-0"
+            className="focus:ring-0 focus:ring-offset-0 focus:outline-none"
           >
             <ClientOnly>
               <Logo size="xl" animated={true} variant="auto" showText={false} />
@@ -85,39 +86,19 @@ export default function Navigation() {
                 )
               )}
             </div>
-            <div>
+            <div className="flex items-center gap-4">
               <ClientOnly>
                 <ThemeToggle />
               </ClientOnly>
-              {isLoggedIn ? (
-                <Link href="/dashboard">
-                  <motion.button
-                    className="from-coffee-primary to-coffee-accent rounded-full bg-linear-to-r px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <LayoutDashboard className="mr-2 inline h-4 w-4" />
-                    Dashboard
-                  </motion.button>
-                </Link>
-              ) : (
-                <Link href="/auth/login">
-                  <motion.button
-                    className="from-coffee-primary to-coffee-accent rounded-full bg-linear-to-r px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <User className="mr-2 inline h-4 w-4" />
-                    Connexion
-                  </motion.button>
-                </Link>
-              )}
+              <div className="hidden md:block">
+                <AuthButtons variant="navigation" size="sm" />
+              </div>
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="text-coffee-accent focus:ring-coffee-primary rounded-md p-2 focus:outline-none focus:ring-2 md:hidden"
+            className="text-coffee-accent focus:ring-coffee-primary rounded-md p-2 focus:ring-2 focus:outline-none md:hidden"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             aria-expanded={isOpen}
@@ -133,7 +114,7 @@ export default function Navigation() {
         {isOpen && (
           <motion.div
             id="mobile-menu"
-            className="absolute left-0 right-0 top-full bg-white/95 shadow-lg backdrop-blur-md md:hidden"
+            className="absolute top-full right-0 left-0 bg-white/95 shadow-lg backdrop-blur-md md:hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -169,33 +150,18 @@ export default function Navigation() {
                   </Link>
                 )
               )}
-              {isLoggedIn ? (
-                <Link href="/dashboard">
-                  <motion.button
-                    className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-linear-to-r px-6 py-3 font-semibold text-white"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.4 }}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <LayoutDashboard className="mr-2 inline h-4 w-4" />
-                    Dashboard
-                  </motion.button>
-                </Link>
-              ) : (
-                <Link href="/auth/login">
-                  <motion.button
-                    className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-linear-to-r px-6 py-3 font-semibold text-white"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.4 }}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <User className="mr-2 inline h-4 w-4" />
-                    Connexion
-                  </motion.button>
-                </Link>
-              )}
+              <motion.div
+                className="border-t border-gray-200 pt-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <AuthButtons
+                  variant="homepage"
+                  size="md"
+                  onMobileMenuClose={() => setIsOpen(false)}
+                />
+              </motion.div>
             </div>
           </motion.div>
         )}
