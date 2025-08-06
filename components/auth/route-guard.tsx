@@ -4,6 +4,7 @@ import { UserRole } from '@/types/auth'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { ReactNode, useEffect } from 'react'
+import { Loading } from '@/components/ui/loading'
 
 interface RouteGuardProps {
   children: ReactNode
@@ -43,9 +44,12 @@ export function RouteGuard({
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-blue-500"></div>
-      </div>
+      <Loading
+        size="lg"
+        variant="spinner"
+        text="Vérification des permissions..."
+        fullScreen
+      />
     )
   }
 

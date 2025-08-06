@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -17,6 +19,44 @@ import {
   Users,
 } from 'lucide-react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { memo } from 'react'
+
+// Memoized components for better performance
+const QuickActionCard = memo(
+  ({ icon: Icon, title, children, className = '' }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={className}
+    >
+      <Card className="cursor-pointer transition-shadow hover:shadow-lg">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <Icon className="h-4 w-4 text-blue-500" />
+          </div>
+        </CardHeader>
+        <CardContent>{children}</CardContent>
+      </Card>
+    </motion.div>
+  )
+)
+
+QuickActionCard.displayName = 'QuickActionCard'
+
+const StatCard = memo(({ icon: Icon, label, value, color }) => (
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-2">
+      <Icon className={`h-4 w-4 ${color}`} />
+      <span className="text-sm">{label}</span>
+    </div>
+    <span className="font-semibold">{value}</span>
+  </div>
+))
+
+StatCard.displayName = 'StatCard'
 
 export default function DashboardPage() {
   return (
@@ -31,68 +71,33 @@ export default function DashboardPage() {
       </div>
 
       {/* Actions rapides */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="cursor-pointer transition-shadow hover:shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">
-                Réserver un espace
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-blue-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Link href="/reservation">
-              <Button className="w-full">Nouvelle réservation</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <motion.div
+        className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ staggerChildren: 0.1 }}
+      >
+        <QuickActionCard icon={Calendar} title="Réserver un espace">
+          <Link href="/reservation">
+            <Button className="w-full">Nouvelle réservation</Button>
+          </Link>
+        </QuickActionCard>
 
-        <Card className="transition-shadow hover:shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">
-                Mes réservations
-              </CardTitle>
-              <Clock className="h-4 w-4 text-green-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-muted-foreground text-xs">
-              Réservations actives
-            </p>
-          </CardContent>
-        </Card>
+        <QuickActionCard icon={Clock} title="Mes réservations">
+          <div className="text-2xl font-bold">3</div>
+          <p className="text-muted-foreground text-xs">Réservations actives</p>
+        </QuickActionCard>
 
-        <Card className="transition-shadow hover:shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">
-                Espaces disponibles
-              </CardTitle>
-              <MapPin className="h-4 w-4 text-orange-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-muted-foreground text-xs">Aujourd&apos;hui</p>
-          </CardContent>
-        </Card>
+        <QuickActionCard icon={MapPin} title="Espaces disponibles">
+          <div className="text-2xl font-bold">12</div>
+          <p className="text-muted-foreground text-xs">Aujourd&apos;hui</p>
+        </QuickActionCard>
 
-        <Card className="transition-shadow hover:shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Communauté</CardTitle>
-              <Users className="h-4 w-4 text-purple-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">47</div>
-            <p className="text-muted-foreground text-xs">Membres actifs</p>
-          </CardContent>
-        </Card>
-      </div>
+        <QuickActionCard icon={Users} title="Communauté">
+          <div className="text-2xl font-bold">47</div>
+          <p className="text-muted-foreground text-xs">Membres actifs</p>
+        </QuickActionCard>
+      </motion.div>
 
       {/* Vue d'ensemble */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -106,27 +111,24 @@ export default function DashboardPage() {
             <CardDescription>Votre activité ce mois</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Coffee className="text-coffee-primary h-4 w-4" />
-                <span className="text-sm">Heures réservées</span>
-              </div>
-              <span className="font-semibold">24h</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-blue-500" />
-                <span className="text-sm">Réservations</span>
-              </div>
-              <span className="font-semibold">8</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm">Points fidélité</span>
-              </div>
-              <span className="font-semibold">150</span>
-            </div>
+            <StatCard
+              icon={Coffee}
+              label="Heures réservées"
+              value="24h"
+              color="text-coffee-primary"
+            />
+            <StatCard
+              icon={Calendar}
+              label="Réservations"
+              value="8"
+              color="text-blue-500"
+            />
+            <StatCard
+              icon={Star}
+              label="Points fidélité"
+              value="150"
+              color="text-yellow-500"
+            />
           </CardContent>
         </Card>
 
@@ -147,7 +149,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-sm font-medium">Réservation confirmée</p>
                     <p className="text-xs text-gray-600">
-                      Salle Verrière - Aujourd'hui
+                      Salle Verrière - Aujourd&apos;hui
                     </p>
                   </div>
                 </div>

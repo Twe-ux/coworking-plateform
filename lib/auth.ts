@@ -1,5 +1,6 @@
 import { UserRole } from '@/types/auth'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import {
@@ -9,6 +10,7 @@ import {
   logSecurityEvent,
   recordFailedLogin,
   resetLoginAttempts,
+  validateCSRFToken,
 } from './auth-utils'
 import { connectToDatabase } from './mongodb'
 
@@ -22,19 +24,114 @@ export const authOptions: NextAuthOptions = {
         csrfToken: { label: 'CSRF Token', type: 'hidden' },
       },
       async authorize(credentials, req) {
-        console.log('NextAuth authorize - début:', {
-          hasEmail: !!credentials?.email,
-          hasPassword: !!credentials?.password,
-          email: credentials?.email
-        })
-        
+        // SECURITY FIX: Pas de log des credentials en production
+        if (process.env.NODE_ENV === 'development') {
+          console.log('NextAuth authorize - début:', {
+            hasEmail: !!credentials?.email,
+            hasPassword: !!credentials?.password,
+            email: credentials?.email,
+          })
+        }
+
         if (!credentials?.email || !credentials?.password) {
-          console.log('NextAuth authorize - credentials manquants')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('NextAuth authorize - credentials manquants')
+          }
           return null
         }
 
+        // SECURITY: Validation et sanitisation des entrées
+        const { validateEmail, validatePasswordInput, checkRateLimit } =
+          await import('./validation')
+
+        // Get IP and user agent FIRST before using them
         const ip = getRealIP(req as any) || 'unknown'
         const userAgent = req?.headers?.['user-agent'] || 'unknown'
+
+        // Rate limiting par IP
+        if (!checkRateLimit(ip, 20, 2)) {
+          // 20 tentatives max, 2 par seconde
+          await logSecurityEvent({
+            userId: undefined,
+            action: 'RATE_LIMIT_EXCEEDED',
+            resource: 'auth',
+            ip,
+            userAgent,
+            success: false,
+            details: { reason: 'too_many_requests' },
+          })
+          return null
+        }
+
+        // Validation email
+        const emailValidation = validateEmail(credentials.email)
+        if (!emailValidation.isValid) {
+          await logSecurityEvent({
+            userId: undefined,
+            action: 'INVALID_EMAIL_FORMAT',
+            resource: 'auth',
+            ip,
+            userAgent,
+            success: false,
+            details: { errors: emailValidation.errors },
+          })
+          return null
+        }
+
+        // Validation mot de passe (format uniquement, pas la force ici)
+        const passwordValidation = validatePasswordInput(credentials.password)
+        if (!passwordValidation.isValid) {
+          await logSecurityEvent({
+            userId: undefined,
+            action: 'INVALID_PASSWORD_FORMAT',
+            resource: 'auth',
+            ip,
+            userAgent,
+            success: false,
+            details: { errors: passwordValidation.errors },
+          })
+          return null
+        }
+
+        // SECURITY: CSRF validation (disabled in development for quick fix)
+        if (process.env.NODE_ENV === 'production') {
+          const sessionToken =
+            req?.headers?.['x-csrf-token'] ||
+            req?.body?.csrfToken ||
+            credentials.csrfToken
+
+          if (!sessionToken) {
+            await logSecurityEvent({
+              userId: undefined,
+              action: 'CSRF_TOKEN_MISSING',
+              resource: 'auth',
+              ip: getRealIP(req as any) || 'unknown',
+              userAgent: req?.headers?.['user-agent'] || 'unknown',
+              success: false,
+              details: { reason: 'csrf_token_required' },
+            })
+            return null
+          }
+
+          // Validation stricte du token CSRF
+          if (
+            !validateCSRFToken(
+              sessionToken,
+              process.env.NEXTAUTH_SECRET + sessionToken
+            )
+          ) {
+            await logSecurityEvent({
+              userId: undefined,
+              action: 'CSRF_VALIDATION_FAILED',
+              resource: 'auth',
+              ip: getRealIP(req as any) || 'unknown',
+              userAgent: req?.headers?.['user-agent'] || 'unknown',
+              success: false,
+              details: { reason: 'invalid_csrf_token' },
+            })
+            return null
+          }
+        }
 
         // Vérifier les tentatives de brute force
         const bruteForceCheck = checkBruteForce(ip)
@@ -55,45 +152,70 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          console.log('NextAuth authorize - connexion à la DB...')
-          const { db } = await connectToDatabase()
-          console.log('NextAuth authorize - DB connectée, recherche utilisateur')
-
-          const user = await db.collection('users').findOne({
-            email: credentials.email,
-          })
-          
-          console.log('NextAuth authorize - utilisateur trouvé:', !!user)
-
-          if (!user) {
-            recordFailedLogin(ip)
+          // SECURITY: Validation de la force du mot de passe même à la connexion
+          const { validatePasswordStrength } = await import('./auth-utils')
+          const passwordValidation = validatePasswordStrength(
+            credentials.password
+          )
+          if (!passwordValidation.isValid && passwordValidation.score < 3) {
+            // Log de tentative avec mot de passe faible
             await logSecurityEvent({
               userId: undefined,
-              action: 'LOGIN_FAILED',
+              action: 'WEAK_PASSWORD_ATTEMPT',
               resource: 'auth',
               ip,
               userAgent,
               success: false,
-              details: { reason: 'user_not_found', email: credentials.email },
+              details: {
+                email: credentials.email,
+                passwordScore: passwordValidation.score,
+                errors: passwordValidation.errors,
+              },
             })
-            return null
+            // En production, on peut choisir de bloquer ou d'alerter l'utilisateur
           }
 
+          if (process.env.NODE_ENV === 'development') {
+            console.log('NextAuth authorize - connexion à la DB...')
+          }
+          const { db } = await connectToDatabase()
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'NextAuth authorize - DB connectée, recherche utilisateur'
+            )
+          }
+
+          const user = await db.collection('users').findOne({
+            email: emailValidation.sanitized, // Utiliser l'email sanitisé
+          })
+
+          console.log('NextAuth authorize - utilisateur trouvé:', !!user)
+
+          // SECURITY: Protection contre les timing attacks
+          // On effectue toujours le hash même si l'utilisateur n'existe pas
+          const dummyPassword =
+            '$2a$10$dummypasswordhashtopreventtimingattacks.dummy'
+          const userPassword = user?.password || dummyPassword
+
           const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.password
+            passwordValidation.sanitized || credentials.password,
+            userPassword
           )
 
-          if (!isPasswordValid) {
-            recordFailedLogin(ip)
+          // Vérification de l'utilisateur ET du mot de passe en même temps
+          if (!user || !isPasswordValid) {
+            await recordFailedLogin(ip)
             await logSecurityEvent({
-              userId: user._id.toString(),
+              userId: user?._id?.toString(),
               action: 'LOGIN_FAILED',
               resource: 'auth',
               ip,
               userAgent,
               success: false,
-              details: { reason: 'invalid_password' },
+              details: {
+                reason: !user ? 'user_not_found' : 'invalid_password',
+                email: emailValidation.sanitized,
+              },
             })
             return null
           }
@@ -146,7 +268,7 @@ export const authOptions: NextAuthOptions = {
             id: user._id.toString(),
             email: user.email,
             role: user.role,
-            isActive: user.isActive
+            isActive: user.isActive,
           })
 
           return {
@@ -159,7 +281,7 @@ export const authOptions: NextAuthOptions = {
             isActive: user.isActive ?? true,
           }
         } catch (error) {
-          console.error("NextAuth authorize - erreur:", error)
+          console.error('NextAuth authorize - erreur:', error)
           await logSecurityEvent({
             userId: undefined,
             action: 'LOGIN_ERROR',
@@ -180,6 +302,8 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 24 * 60 * 60, // 24 heures
     updateAge: 60 * 60, // Mettre à jour la session toutes les heures
+    // SECURITY: Régénération des sessions pour éviter la fixation
+    generateSessionToken: () => crypto.randomUUID(),
   },
   jwt: {
     maxAge: 24 * 60 * 60, // 24 heures
@@ -221,8 +345,9 @@ export const authOptions: NextAuthOptions = {
       // Sécurité : vérifier que l'URL de redirection est sûre
       try {
         // Forcer l'utilisation du bon baseUrl (port 3000)
-        const correctBaseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-        
+        const correctBaseUrl =
+          process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
         // Si l'URL est relative, la construire avec le bon baseUrl
         if (url.startsWith('/')) {
           return `${correctBaseUrl}${url}`
@@ -232,21 +357,26 @@ export const authOptions: NextAuthOptions = {
         const correctBaseUrlObj = new URL(correctBaseUrl)
 
         // Autoriser seulement les redirections vers la même origine avec le bon port
-        if (redirectUrl.hostname !== correctBaseUrlObj.hostname || 
-            redirectUrl.port !== correctBaseUrlObj.port) {
-          console.warn(`Redirection bloquée vers ${url}, redirection vers ${correctBaseUrl}/dashboard`)
+        if (
+          redirectUrl.hostname !== correctBaseUrlObj.hostname ||
+          redirectUrl.port !== correctBaseUrlObj.port
+        ) {
+          console.warn(
+            `Redirection bloquée vers ${url}, redirection vers ${correctBaseUrl}/dashboard`
+          )
           return `${correctBaseUrl}/dashboard`
         }
 
         // Forcer le bon port dans l'URL de redirection
         redirectUrl.port = correctBaseUrlObj.port
         redirectUrl.protocol = correctBaseUrlObj.protocol
-        
+
         return redirectUrl.toString()
       } catch (error) {
         // En cas d'erreur de parsing d'URL, rediriger vers le dashboard avec le bon port
         console.error('Erreur de redirection:', error)
-        const correctBaseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+        const correctBaseUrl =
+          process.env.NEXTAUTH_URL || 'http://localhost:3000'
         return `${correctBaseUrl}/dashboard`
       }
     },

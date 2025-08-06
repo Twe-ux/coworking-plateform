@@ -23,7 +23,7 @@ import { CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { getSession, signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -98,16 +98,16 @@ export default function EnhancedLoginForm() {
     }
   }, [errorParam, toast])
 
-  // Update field states for enhanced UX
-  const updateFieldState = (
-    fieldName: string,
-    updates: Partial<FormFieldState>
-  ) => {
-    setFieldStates((prev) => ({
-      ...prev,
-      [fieldName]: { ...prev[fieldName], ...updates },
-    }))
-  }
+  // Update field states for enhanced UX (optimized with useCallback)
+  const updateFieldState = useCallback(
+    (fieldName: string, updates: Partial<FormFieldState>) => {
+      setFieldStates((prev) => ({
+        ...prev,
+        [fieldName]: { ...prev[fieldName], ...updates },
+      }))
+    },
+    []
+  )
 
   // Watch form values to update field states
   const emailValue = form.watch('email')
@@ -119,7 +119,7 @@ export default function EnhancedLoginForm() {
       hasValue: !!emailValue,
       isValid: emailValid,
     })
-  }, [emailValue])
+  }, [emailValue, updateFieldState])
 
   useEffect(() => {
     const passwordValid = passwordValue && passwordValue.length >= 6
@@ -127,7 +127,7 @@ export default function EnhancedLoginForm() {
       hasValue: !!passwordValue,
       isValid: !!passwordValid,
     })
-  }, [passwordValue])
+  }, [passwordValue, updateFieldState])
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true)
@@ -181,12 +181,17 @@ export default function EnhancedLoginForm() {
         })
 
         // Redirection vers callbackUrl ou dashboard par défaut
-        console.log('Connexion réussie, redirection vers:', 
-          callbackUrl && callbackUrl !== '/' && !callbackUrl.includes('http') ? callbackUrl : '/dashboard')
-        setTimeout(() => {
-          const redirectTo = callbackUrl && callbackUrl !== '/' && !callbackUrl.includes('http') 
-            ? callbackUrl 
+        console.log(
+          'Connexion réussie, redirection vers:',
+          callbackUrl && callbackUrl !== '/' && !callbackUrl.includes('http')
+            ? callbackUrl
             : '/dashboard'
+        )
+        setTimeout(() => {
+          const redirectTo =
+            callbackUrl && callbackUrl !== '/' && !callbackUrl.includes('http')
+              ? callbackUrl
+              : '/dashboard'
           console.log('Exécution de la redirection vers:', redirectTo)
           window.location.href = redirectTo
         }, 1500)
@@ -205,22 +210,29 @@ export default function EnhancedLoginForm() {
     }
   }
 
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.1,
+  // Memoize animation variants for performance
+  const containerVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 20 },
+      visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+          duration: 0.6,
+          staggerChildren: 0.1,
+        },
       },
-    },
-  }
+    }),
+    []
+  )
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  }
+  const itemVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0 },
+    }),
+    []
+  )
 
   return (
     <motion.div

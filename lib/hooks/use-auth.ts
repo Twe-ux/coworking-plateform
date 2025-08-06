@@ -13,7 +13,7 @@ import {
 import { UserRole } from '@/types/auth'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useCallback, useMemo } from 'react'
 
 export interface AuthState {
   user: {
@@ -43,68 +43,83 @@ export function useAuth(): AuthState & AuthActions {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  // NextAuth gère automatiquement les tokens CSRF
+  // Memoize auth state for performance
+  const authState: AuthState = useMemo(
+    () => ({
+      user: session?.user
+        ? {
+            id: session.user.id,
+            email: session.user.email || '',
+            firstName: session.user.firstName || '',
+            lastName: session.user.lastName || '',
+            role: session.user.role,
+            permissions: session.user.permissions || [],
+            isActive: session.user.isActive,
+          }
+        : null,
+      isLoading: status === 'loading',
+      isAuthenticated: status === 'authenticated' && !!session?.user?.isActive,
+      csrfToken: session?.csrfToken || null,
+    }),
+    [session, status]
+  )
 
-  const authState: AuthState = {
-    user: session?.user
-      ? {
-          id: session.user.id,
-          email: session.user.email || '',
-          firstName: session.user.firstName || '',
-          lastName: session.user.lastName || '',
-          role: session.user.role,
-          permissions: session.user.permissions || [],
-          isActive: session.user.isActive,
+  // Memoize auth actions to prevent unnecessary re-renders
+  const authActions: AuthActions = useMemo(
+    () => ({
+      hasRole: (requiredRole: UserRole) => {
+        if (!authState.user) return false
+        return hasRole(authState.user.role, requiredRole)
+      },
+
+      hasPermission: (permission: string) => {
+        if (!authState.user) return false
+        return authState.user.permissions.includes(permission)
+      },
+
+      hasRouteAccess: (pathname: string) => {
+        if (!authState.user) return false
+        return hasRouteAccess(authState.user.role, pathname)
+      },
+
+      requireAuth: () => {
+        if (!authState.isAuthenticated) {
+          const currentUrl = window.location.pathname + window.location.search
+          const loginUrl =
+            currentUrl !== '/login'
+              ? `/login?callbackUrl=${encodeURIComponent(currentUrl)}`
+              : '/login'
+          router.push(loginUrl)
         }
-      : null,
-    isLoading: status === 'loading',
-    isAuthenticated: status === 'authenticated' && !!session?.user?.isActive,
-    csrfToken: session?.csrfToken || null,
-  }
+      },
 
-  const authActions: AuthActions = {
-    hasRole: (requiredRole: UserRole) => {
-      if (!authState.user) return false
-      return hasRole(authState.user.role, requiredRole)
-    },
+      requireRole: (requiredRole: UserRole) => {
+        if (!authState.isAuthenticated) {
+          const currentUrl = window.location.pathname + window.location.search
+          const loginUrl = `/login?callbackUrl=${encodeURIComponent(currentUrl)}`
+          router.push(loginUrl)
+          return
+        }
 
-    hasPermission: (permission: string) => {
-      if (!authState.user) return false
-      return authState.user.permissions.includes(permission)
-    },
+        if (!authState.user || !hasRole(authState.user.role, requiredRole)) {
+          const redirectPath = authState.user
+            ? getRedirectPath(authState.user.role)
+            : '/login'
+          router.push(redirectPath)
+        }
+      },
 
-    hasRouteAccess: (pathname: string) => {
-      if (!authState.user) return false
-      return hasRouteAccess(authState.user.role, pathname)
-    },
-
-    requireAuth: () => {
-      if (!authState.isAuthenticated) {
-        router.push('/login')
-      }
-    },
-
-    requireRole: (requiredRole: UserRole) => {
-      if (!authState.isAuthenticated) {
-        router.push('/login')
-        return
-      }
-
-      if (!authActions.hasRole(requiredRole)) {
-        const redirectPath = getRedirectPath(authState.user!.role)
-        router.push(redirectPath)
-      }
-    },
-
-    redirectToDashboard: () => {
-      if (authState.user) {
-        const redirectPath = getRedirectPath(authState.user.role)
-        router.push(redirectPath)
-      } else {
-        router.push('/login')
-      }
-    },
-  }
+      redirectToDashboard: () => {
+        if (authState.user) {
+          const redirectPath = getRedirectPath(authState.user.role)
+          router.push(redirectPath)
+        } else {
+          router.push('/login')
+        }
+      },
+    }),
+    [authState, router]
+  )
 
   return { ...authState, ...authActions }
 }
@@ -119,7 +134,7 @@ export function useRequireRole(requiredRole: UserRole) {
     if (!auth.isLoading) {
       auth.requireRole(requiredRole)
     }
-  }, [auth.isLoading, auth.isAuthenticated, requiredRole])
+  }, [auth, requiredRole])
 
   return auth
 }
@@ -134,7 +149,7 @@ export function useRequireAuth() {
     if (!auth.isLoading) {
       auth.requireAuth()
     }
-  }, [auth.isLoading, auth.isAuthenticated])
+  }, [auth])
 
   return auth
 }

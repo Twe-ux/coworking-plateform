@@ -1,7 +1,7 @@
 import { MongoClient, Db, MongoClientOptions } from 'mongodb'
 
 if (!process.env.MONGODB_URI) {
-  throw new Error('Variable d\'environnement MONGODB_URI manquante')
+  throw new Error("Variable d'environnement MONGODB_URI manquante")
 }
 
 const uri = process.env.MONGODB_URI
@@ -38,7 +38,7 @@ if (process.env.NODE_ENV === 'development') {
   if (!globalWithMongo._mongoDbCache) {
     globalWithMongo._mongoDbCache = new Map<string, Db>()
   }
-  
+
   clientPromise = globalWithMongo._mongoClientPromise
 } else {
   // En production, il est préférable de ne pas utiliser de variable globale.
@@ -51,11 +51,13 @@ if (process.env.NODE_ENV === 'development') {
  * @param dbName - Nom de la base de données (optionnel, utilise MONGODB_DB par défaut)
  * @returns Promise contenant le client et la base de données
  */
-export async function connectToDatabase(dbName?: string): Promise<{ client: MongoClient; db: Db }> {
+export async function connectToDatabase(
+  dbName?: string
+): Promise<{ client: MongoClient; db: Db }> {
   try {
     const connectedClient = await clientPromise
     const targetDbName = dbName || databaseName
-    
+
     // Utiliser le cache pour éviter les reconnexions inutiles
     let db: Db
     if (process.env.NODE_ENV === 'development') {
@@ -76,11 +78,13 @@ export async function connectToDatabase(dbName?: string): Promise<{ client: Mong
         db = dbCache.get(targetDbName)!
       }
     }
-    
+
     return { client: connectedClient, db }
   } catch (error) {
     console.error('Erreur de connexion MongoDB:', error)
-    throw new Error(`Impossible de se connecter à MongoDB: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
+    throw new Error(
+      `Impossible de se connecter à MongoDB: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+    )
   }
 }
 
@@ -124,13 +128,20 @@ export async function checkMongoHealth(): Promise<boolean> {
  */
 export async function createIndexes(db: Db): Promise<void> {
   try {
-    // Index pour la collection users
+    // Index pour la collection users avec optimisations de sécurité
     await db.collection('users').createIndexes([
       { key: { email: 1 }, unique: true, name: 'email_unique' },
-      { key: { role: 1 }, name: 'role_index' },
-      { key: { isActive: 1 }, name: 'active_index' },
+      { key: { role: 1, isActive: 1 }, name: 'role_active_compound' },
+      { key: { isActive: 1, lastLoginAt: -1 }, name: 'active_login_compound' },
       { key: { createdAt: -1 }, name: 'created_desc' },
-      { key: { lastLoginAt: -1 }, name: 'last_login_desc' }
+      // Index partiel pour les utilisateurs actifs uniquement (meilleure performance)
+      {
+        key: { email: 1, role: 1 },
+        partialFilterExpression: { isActive: true },
+        name: 'active_users_compound',
+      },
+      // Index sparse pour éviter d'indexer les valeurs nulles
+      { key: { lastLoginAt: -1 }, sparse: true, name: 'last_login_sparse' },
     ])
 
     // Index pour la collection security_logs (si utilisée)
@@ -140,13 +151,17 @@ export async function createIndexes(db: Db): Promise<void> {
       { key: { ip: 1, timestamp: -1 }, name: 'ip_timestamp' },
       { key: { timestamp: -1 }, name: 'timestamp_desc' },
       // TTL index pour auto-suppression après 90 jours
-      { key: { timestamp: 1 }, expireAfterSeconds: 90 * 24 * 60 * 60, name: 'ttl_90days' }
+      {
+        key: { timestamp: 1 },
+        expireAfterSeconds: 90 * 24 * 60 * 60,
+        name: 'ttl_90days',
+      },
     ])
 
     // Index pour la collection sessions (si utilisée)
     await db.collection('sessions').createIndexes([
       { key: { userId: 1 }, name: 'user_sessions' },
-      { key: { expiresAt: 1 }, expireAfterSeconds: 0, name: 'session_ttl' }
+      { key: { expiresAt: 1 }, expireAfterSeconds: 0, name: 'session_ttl' },
     ])
 
     console.log('Index MongoDB créés avec succès')
@@ -161,11 +176,11 @@ export async function createIndexes(db: Db): Promise<void> {
 if (typeof process !== 'undefined') {
   // Flag pour éviter les logs multiples
   let shutdownInitiated = false
-  
+
   const gracefulShutdown = async (signal: string) => {
     if (shutdownInitiated) return
     shutdownInitiated = true
-    
+
     // Uniquement en développement pour réduire les logs
     if (process.env.NODE_ENV === 'development') {
       console.log(`MongoDB: Connexion fermée (${signal})`)
