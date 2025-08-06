@@ -1,7 +1,0 @@
-{
-  "extends": "../../tools/typescript/base.json",
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": ["node_modules"]
-}

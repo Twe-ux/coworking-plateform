@@ -1,35 +1,26 @@
 import { defineConfig } from 'vitest/config'
-import { resolve } from 'path'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
+  plugins: [react()],
   test: {
     environment: 'jsdom',
-    globals: true,
+    setupFiles: ['./src/__tests__/setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
-        'dist/',
-        '.next/',
-        'coverage/',
+        'src/__tests__/',
         '**/*.d.ts',
         '**/*.config.{js,ts}',
-        '**/test/**',
-        '**/tests/**',
-        '**/__tests__/**'
-      ]
+      ],
     },
-    setupFiles: ['./test-setup.ts']
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '@coworking/ui': resolve(__dirname, './packages/ui'),
-      '@coworking/utils': resolve(__dirname, './packages/utils'),
-      '@coworking/config': resolve(__dirname, './packages/config'),
-      '@coworking/database': resolve(__dirname, './packages/database'),
-      '@coworking/auth': resolve(__dirname, './packages/auth')
-    }
-  }
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
 })

@@ -1,0 +1,32 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { AuthProvider } from '@/components/providers/auth-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
+import Navigation from '@/components/Navigation'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Cow or King Café - Coworking Strasbourg',
+  description: 'Votre espace de coworking au cœur de Strasbourg. Trois ambiances uniques dans un cadre exceptionnel.',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="fr" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider>
+          <AuthProvider>
+            <Navigation />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
