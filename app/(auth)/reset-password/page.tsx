@@ -1,5 +1,12 @@
 'use client'
 
+import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { AlertTriangle, Check, Eye, EyeOff, Loader2 } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -16,15 +23,8 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertTriangle, Check, Eye, EyeOff, Loader2, X } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-// Schéma de validation Zod
+// Schema de validation Zod
 const resetPasswordSchema = z
   .object({
     password: z
@@ -62,15 +62,7 @@ export default function ResetPasswordPage() {
     },
   })
 
-  const password = form.watch('password')
 
-  // Validation de mot de passe en temps réel
-  const passwordValidation = {
-    length: password?.length >= 8,
-    uppercase: /[A-Z]/.test(password || ''),
-    lowercase: /[a-z]/.test(password || ''),
-    number: /[0-9]/.test(password || ''),
-  }
 
   // Vérifier la validité du token au chargement de la page
   useEffect(() => {
@@ -145,12 +137,7 @@ export default function ResetPasswordPage() {
     }
   }
 
-  const ValidationIcon = ({ isValid }: { isValid: boolean }) =>
-    isValid ? (
-      <Check className="h-3 w-3 text-green-600" />
-    ) : (
-      <X className="h-3 w-3 text-red-500" />
-    )
+
 
   // Affichage pendant la vérification du token
   if (isValidToken === null) {
@@ -166,7 +153,7 @@ export default function ResetPasswordPage() {
         </CardHeader>
 
         <CardContent className="py-8 text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-amber-500" />
           <p className="mt-4 text-sm text-gray-600">Vérification en cours...</p>
         </CardContent>
       </>
@@ -232,8 +219,8 @@ export default function ResetPasswordPage() {
         )}
 
         {success && (
-          <Alert className="border-green-200 bg-green-50 text-green-800">
-            <Check className="h-4 w-4" />
+          <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
+            <Check className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="ml-2">{success}</AlertDescription>
           </Alert>
         )}
@@ -246,7 +233,7 @@ export default function ResetPasswordPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nouveau mot de passe</FormLabel>
+                    <FormLabel className="text-gray-700">Nouveau mot de passe</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -266,71 +253,15 @@ export default function ResetPasswordPage() {
                           disabled={isLoading}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-gray-500" />
+                            <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                           ) : (
-                            <Eye className="h-4 w-4 text-gray-500" />
+                            <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                           )}
                         </Button>
                       </div>
                     </FormControl>
 
-                    {/* Indicateurs de validation du mot de passe */}
-                    {password && (
-                      <div className="mt-2 space-y-1 text-xs">
-                        <div className="flex items-center gap-2">
-                          <ValidationIcon isValid={passwordValidation.length} />
-                          <span
-                            className={
-                              passwordValidation.length
-                                ? 'text-green-600'
-                                : 'text-red-500'
-                            }
-                          >
-                            Au moins 8 caractères
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <ValidationIcon
-                            isValid={passwordValidation.uppercase}
-                          />
-                          <span
-                            className={
-                              passwordValidation.uppercase
-                                ? 'text-green-600'
-                                : 'text-red-500'
-                            }
-                          >
-                            Une lettre majuscule
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <ValidationIcon
-                            isValid={passwordValidation.lowercase}
-                          />
-                          <span
-                            className={
-                              passwordValidation.lowercase
-                                ? 'text-green-600'
-                                : 'text-red-500'
-                            }
-                          >
-                            Une lettre minuscule
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <ValidationIcon isValid={passwordValidation.number} />
-                          <span
-                            className={
-                              passwordValidation.number
-                                ? 'text-green-600'
-                                : 'text-red-500'
-                            }
-                          >
-                            Un chiffre
-                          </span>
-                        </div>
-                      </div>
-                    )}
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -341,7 +272,7 @@ export default function ResetPasswordPage() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirmer le nouveau mot de passe</FormLabel>
+                    <FormLabel className="text-gray-700">Confirmer le nouveau mot de passe</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -363,9 +294,9 @@ export default function ResetPasswordPage() {
                           disabled={isLoading}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-gray-500" />
+                            <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                           ) : (
-                            <Eye className="h-4 w-4 text-gray-500" />
+                            <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                           )}
                         </Button>
                       </div>
@@ -397,7 +328,7 @@ export default function ResetPasswordPage() {
           <div className="text-center">
             <Link
               href="/login"
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+              className="text-sm text-amber-600 hover:text-orange-600 hover:underline"
             >
               Retour à la connexion
             </Link>

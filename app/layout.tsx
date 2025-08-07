@@ -5,13 +5,14 @@ import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ToastProvider } from '@/components/ui/toast'
 import Navigation from '@/components/Navigation'
-
+import Footer from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Cow or King Café - Coworking Strasbourg',
-  description: 'Votre espace de coworking au cœur de Strasbourg. Trois ambiances uniques dans un cadre exceptionnel.',
+  description:
+    'Votre espace de coworking au cœur de Strasbourg. Trois ambiances uniques dans un cadre exceptionnel.',
 }
 
 export default function RootLayout({
@@ -27,6 +28,7 @@ export default function RootLayout({
             <ToastProvider>
               <Navigation />
               {children}
+              <Footer />
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

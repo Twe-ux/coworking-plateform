@@ -34,11 +34,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Vérifier les préférences système et localStorage
+    // Pour le coworking café, forcer le thème clair par défaut (plus adapté à l'ambiance chaleureuse)
     const savedTheme = localStorage.getItem('theme') as Theme
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    
-    setTheme(savedTheme || systemTheme)
+    // Privilégier toujours le thème clair sauf si explicitement choisi en sombre
+    setTheme(savedTheme || 'light')
     setMounted(true)
   }, [])
 
