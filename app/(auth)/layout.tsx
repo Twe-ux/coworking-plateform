@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
+import { Coffee } from 'lucide-react'
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -8,34 +9,44 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4 py-8">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 px-4 py-8 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-200/20 rounded-full blur-3xl"></div>
+      </div>
+      <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Logo/Brand */}
         <div className="text-center">
-          <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              CaféWork
+          <Link href="/" className="inline-block group">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 group-hover:scale-105 transition-transform">
+                <Coffee className="h-6 w-6 text-white" />
+              </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Votre espace de coworking
+            <div className="text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent">
+              Cow or King Café
+            </div>
+            <p className="text-sm text-amber-700 mt-1">
+              Coworking à Strasbourg
             </p>
           </Link>
         </div>
 
         {/* Main Auth Content */}
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+        <Card className="shadow-lg border border-amber-200/50 bg-white/90 backdrop-blur-sm">
           {children}
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-slate-600 dark:text-slate-400">
+        <div className="text-center text-sm text-amber-700">
           <p>
             En continuant, vous acceptez nos{' '}
-            <Link href="/terms" className="underline hover:text-slate-900 dark:hover:text-slate-100">
+            <Link href="/terms" className="underline hover:text-amber-900">
               conditions d'utilisation
             </Link>{' '}
             et notre{' '}
-            <Link href="/privacy" className="underline hover:text-slate-900 dark:hover:text-slate-100">
+            <Link href="/privacy" className="underline hover:text-amber-900">
               politique de confidentialité
             </Link>
             .

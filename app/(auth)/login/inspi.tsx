@@ -25,7 +25,7 @@ import {
   AlertDescription,
 } from '@/components/ui'
 
-// Schema de validation Zod
+// Schéma de validation Zod
 const loginSchema = z.object({
   email: z
     .string()
@@ -99,7 +99,7 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Email</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -120,7 +120,7 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Mot de passe</FormLabel>
+                  <FormLabel>Mot de passe</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -140,9 +140,9 @@ export default function LoginPage() {
                         disabled={isLoading}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                          <EyeOff className="h-4 w-4 text-gray-500" />
                         ) : (
-                          <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                          <Eye className="h-4 w-4 text-gray-500" />
                         )}
                       </Button>
                     </div>
@@ -154,8 +154,8 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <Link
-                href="/forgot-password"
-                className="text-amber-600 hover:text-orange-600 hover:underline"
+                href="/auth/forgot-password"
+                className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Mot de passe oublié ?
               </Link>
@@ -188,8 +188,8 @@ export default function LoginPage() {
             Pas encore de compte ?{' '}
           </span>
           <Link
-            href="/register"
-            className="font-medium text-amber-600 hover:text-orange-600 hover:underline"
+            href="/auth/register"
+            className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
           >
             Créer un compte
           </Link>

@@ -67,7 +67,7 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+    <main className="from-coffee-secondary to-coffee-muted relative min-h-screen overflow-hidden bg-gradient-to-br via-white">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -266,7 +266,7 @@ export default function Home() {
       {/* Spaces Gallery Section */}
       <section
         id="espaces"
-        className="relative bg-gradient-to-b from-orange-50/30 to-amber-50 px-4 py-24"
+        className="from-coffee-muted/20 relative bg-gradient-to-b to-white px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-7xl"
@@ -435,7 +435,7 @@ export default function Home() {
       {/* Pricing Section */}
       <section
         id="tarifs"
-        className="relative bg-gradient-to-b from-amber-50 to-orange-50/30 px-4 py-24"
+        className="to-coffee-secondary/30 relative bg-gradient-to-b from-white px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-6xl"
@@ -680,7 +680,7 @@ export default function Home() {
       {/* Member Program Section */}
       <section
         id="membres"
-        className="relative bg-gradient-to-b from-orange-50/20 to-amber-50 px-4 py-24"
+        className="from-coffee-secondary/20 relative bg-gradient-to-b to-white px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-6xl"
@@ -901,7 +901,7 @@ export default function Home() {
       {/* Drinks Menu Section */}
       <section
         id="boissons"
-        className="relative bg-gradient-to-b from-amber-50 to-orange-50/30 px-4 py-24"
+        className="to-coffee-secondary/30 relative bg-gradient-to-b from-white px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-7xl"

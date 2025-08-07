@@ -1,5 +1,11 @@
 'use client'
 
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { ArrowLeft, Loader2, Mail } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -16,14 +22,8 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Loader2, Mail } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-// Schéma de validation Zod
+// Schema de validation Zod
 const forgotPasswordSchema = z.object({
   email: z
     .string()
@@ -96,8 +96,8 @@ export default function ForgotPasswordPage() {
         )}
 
         {success && (
-          <Alert className="border-green-200 bg-green-50 text-green-800">
-            <Mail className="h-4 w-4" />
+          <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
+            <Mail className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="ml-2">{success}</AlertDescription>
           </Alert>
         )}
@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Adresse email</FormLabel>
+                    <FormLabel className="text-gray-700">Adresse email</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -159,7 +159,7 @@ export default function ForgotPasswordPage() {
           <div className="space-y-2 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+              className="inline-flex items-center text-sm text-amber-600 hover:text-orange-600 hover:underline"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour à la connexion
@@ -172,7 +172,7 @@ export default function ForgotPasswordPage() {
             </span>
             <Link
               href="/register"
-              className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+              className="font-medium text-amber-600 hover:text-orange-600 hover:underline"
             >
               Créer un compte
             </Link>
@@ -180,8 +180,8 @@ export default function ForgotPasswordPage() {
         </div>
 
         {success && (
-          <div className="mt-6 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-            <div className="text-sm text-blue-800 dark:text-blue-200">
+          <div className="mt-6 rounded-lg bg-amber-50 p-4 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/30">
+            <div className="text-sm text-amber-800 dark:text-amber-200">
               <p className="mb-2 font-medium">Que faire ensuite ?</p>
               <ul className="space-y-1 text-xs">
                 <li>• Vérifiez votre boîte email (y compris les spams)</li>

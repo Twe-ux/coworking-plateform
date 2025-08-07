@@ -1,5 +1,12 @@
 'use client'
 
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -16,27 +23,18 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, Eye, EyeOff, Loader2, X } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-// Schéma de validation Zod
+// Schema de validation Zod
 const registerSchema = z
   .object({
     firstName: z
       .string()
       .min(1, 'Le prénom est requis')
-      .min(2, 'Le prénom doit contenir au moins 2 caractères')
-      .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
+      .min(2, 'Le prénom doit contenir au moins 2 caractères'),
     lastName: z
       .string()
       .min(1, 'Le nom est requis')
-      .min(2, 'Le nom doit contenir au moins 2 caractères')
-      .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+      .min(2, 'Le nom doit contenir au moins 2 caractères'),
     email: z
       .string()
       .min(1, "L'email est requis")
@@ -79,16 +77,6 @@ export default function RegisterPage() {
     },
   })
 
-  const password = form.watch('password')
-
-  // Validation de mot de passe en temps réel
-  const passwordValidation = {
-    length: password?.length >= 8,
-    uppercase: /[A-Z]/.test(password || ''),
-    lowercase: /[a-z]/.test(password || ''),
-    number: /[0-9]/.test(password || ''),
-  }
-
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true)
     setError(null)
@@ -129,13 +117,6 @@ export default function RegisterPage() {
     }
   }
 
-  const ValidationIcon = ({ isValid }: { isValid: boolean }) =>
-    isValid ? (
-      <Check className="h-3 w-3 text-green-600" />
-    ) : (
-      <X className="h-3 w-3 text-red-500" />
-    )
-
   return (
     <>
       <CardHeader className="space-y-1 pb-4 text-center">
@@ -153,7 +134,7 @@ export default function RegisterPage() {
         )}
 
         {success && (
-          <Alert className="border-green-200 bg-green-50 text-green-800">
+          <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
             <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
@@ -166,7 +147,7 @@ export default function RegisterPage() {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prénom</FormLabel>
+                    <FormLabel className="text-gray-700">Prénom</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -186,7 +167,7 @@ export default function RegisterPage() {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nom</FormLabel>
+                    <FormLabel className="text-gray-700">Nom</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -207,7 +188,7 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-gray-700">Email</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -228,7 +209,7 @@ export default function RegisterPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mot de passe</FormLabel>
+                  <FormLabel className="text-gray-700">Mot de passe</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -248,71 +229,13 @@ export default function RegisterPage() {
                         disabled={isLoading}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-500" />
+                          <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                         ) : (
-                          <Eye className="h-4 w-4 text-gray-500" />
+                          <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                         )}
                       </Button>
                     </div>
                   </FormControl>
-
-                  {/* Indicateurs de validation du mot de passe */}
-                  {password && (
-                    <div className="mt-2 space-y-1 text-xs">
-                      <div className="flex items-center gap-2">
-                        <ValidationIcon isValid={passwordValidation.length} />
-                        <span
-                          className={
-                            passwordValidation.length
-                              ? 'text-green-600'
-                              : 'text-red-500'
-                          }
-                        >
-                          Au moins 8 caractères
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ValidationIcon
-                          isValid={passwordValidation.uppercase}
-                        />
-                        <span
-                          className={
-                            passwordValidation.uppercase
-                              ? 'text-green-600'
-                              : 'text-red-500'
-                          }
-                        >
-                          Une lettre majuscule
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ValidationIcon
-                          isValid={passwordValidation.lowercase}
-                        />
-                        <span
-                          className={
-                            passwordValidation.lowercase
-                              ? 'text-green-600'
-                              : 'text-red-500'
-                          }
-                        >
-                          Une lettre minuscule
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ValidationIcon isValid={passwordValidation.number} />
-                        <span
-                          className={
-                            passwordValidation.number
-                              ? 'text-green-600'
-                              : 'text-red-500'
-                          }
-                        >
-                          Un chiffre
-                        </span>
-                      </div>
-                    </div>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -323,7 +246,7 @@ export default function RegisterPage() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirmer le mot de passe</FormLabel>
+                  <FormLabel className="text-gray-700">Confirmer le mot de passe</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -345,9 +268,9 @@ export default function RegisterPage() {
                         disabled={isLoading}
                       >
                         {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-500" />
+                          <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                         ) : (
-                          <Eye className="h-4 w-4 text-gray-500" />
+                          <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
                         )}
                       </Button>
                     </div>
@@ -376,7 +299,7 @@ export default function RegisterPage() {
                       J'accepte les{' '}
                       <Link
                         href="/terms"
-                        className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                        className="text-amber-600 hover:text-orange-600 hover:underline"
                         target="_blank"
                       >
                         conditions d'utilisation
@@ -384,7 +307,7 @@ export default function RegisterPage() {
                       et la{' '}
                       <Link
                         href="/privacy"
-                        className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                        className="text-amber-600 hover:text-orange-600 hover:underline"
                         target="_blank"
                       >
                         politique de confidentialité
@@ -415,7 +338,7 @@ export default function RegisterPage() {
           </span>
           <Link
             href="/login"
-            className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+            className="font-medium text-amber-600 hover:text-orange-600 hover:underline"
           >
             Se connecter
           </Link>
