@@ -1,8 +1,8 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, ReactNode } from 'react'
 
-type Theme = 'light' | 'dark'
+type Theme = 'light'
 
 interface ThemeContextType {
   theme: Theme
@@ -19,7 +19,7 @@ export function useTheme() {
   return context
 }
 
-// Hook sécurisé qui ne lance pas d'erreur
+// Hook sécurisé qui ne lance pas d'erreur - toujours en thème clair
 export function useThemeSafe() {
   const context = useContext(ThemeContext)
   return context || { theme: 'light' as Theme, toggleTheme: () => {} }
@@ -30,34 +30,19 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>('light')
-  const [mounted, setMounted] = useState(false)
-
+  // Thème fixe pour le café coworking - ambiance chaleureuse
+  const theme: Theme = 'light'
+  
   useEffect(() => {
-    // Pour le coworking café, forcer le thème clair par défaut (plus adapté à l'ambiance chaleureuse)
-    const savedTheme = localStorage.getItem('theme') as Theme
-    // Privilégier toujours le thème clair sauf si explicitement choisi en sombre
-    setTheme(savedTheme || 'light')
-    setMounted(true)
+    // S'assurer que le thème sombre n'est jamais appliqué
+    document.documentElement.classList.remove('dark')
+    // Nettoyer le localStorage des anciens thèmes
+    localStorage.removeItem('theme')
   }, [])
 
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('theme', theme)
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    }
-  }, [theme, mounted])
-
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light')
-  }
-
-  if (!mounted) {
-    return <div>{children}</div>
+    // Ne fait rien - le thème est fixe
+    console.log('Theme toggle désactivé - thème café fixe')
   }
 
   return (

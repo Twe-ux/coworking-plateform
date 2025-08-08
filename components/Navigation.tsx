@@ -28,7 +28,7 @@ export default function Navigation() {
     { name: 'Tarifs', href: '#tarifs' },
     { name: 'Contact', href: '#contact' },
     { name: 'À propos', href: '#apropos' },
-    ...(isAuthenticated ? [{ name: 'Dashboard', href: '/dashboard' }] : []),
+    ...(isAuthenticated ? [{ name: 'Messenger App', href: '/dashboard' }] : []),
   ]
 
   return (
@@ -87,9 +87,9 @@ export default function Navigation() {
               )}
             </div>
             <div className="flex items-center gap-4">
-              <ClientOnly>
+              {/* <ClientOnly>
                 <ThemeToggle />
-              </ClientOnly>
+              </ClientOnly> */}
               <div className="hidden md:block">
                 <AuthButtons variant="navigation" size="sm" />
               </div>
@@ -98,7 +98,7 @@ export default function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="text-coffee-accent focus:ring-coffee-primary rounded-md p-2 focus:ring-2 focus:outline-none md:hidden"
+            className="text-coffee-accent focus:ring-coffee-accent rounded-md p-2 focus:ring-2 focus:outline-none md:hidden"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             aria-expanded={isOpen}

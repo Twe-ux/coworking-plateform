@@ -155,7 +155,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <Link
                 href="/auth/forgot-password"
-                className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-blue-600 hover:text-blue-800 hover:underline"
               >
                 Mot de passe oublié ?
               </Link>
@@ -184,12 +184,12 @@ export default function LoginPage() {
         </div>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">
+          <span className="text-gray-600">
             Pas encore de compte ?{' '}
           </span>
           <Link
             href="/auth/register"
-            className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+            className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
           >
             Créer un compte
           </Link>

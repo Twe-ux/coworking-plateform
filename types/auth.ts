@@ -101,6 +101,15 @@ export const PROTECTED_ROUTES: RoutePermission[] = [
       UserRole.CLIENT,
     ],
   },
+  {
+    path: '/reservation',
+    allowedRoles: [
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+      UserRole.CLIENT,
+    ],
+  },
 ]
 
 // Routes publiques qui ne nécessitent pas d'authentification
@@ -110,6 +119,8 @@ export const PUBLIC_ROUTES = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/payment/success',
+  '/payment/cancel',
   '/api/auth',
   '/api/health',
 ]

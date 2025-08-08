@@ -13,7 +13,8 @@ import {
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 interface AuthButtonsProps {
   variant?: 'homepage' | 'navigation'
@@ -61,6 +62,10 @@ export default function AuthButtons({
   const { isAuthenticated, isLoading, redirectToDashboard } = useAuth()
   const { toast } = useToast()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const pathname = usePathname()
+  
+  // Version simplifiée pour éviter les problèmes
+  const [showSkeleton, setShowSkeleton] = useState(false)
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -95,7 +100,22 @@ export default function AuthButtons({
     onMobileMenuClose?.()
   }
 
-  // Show skeleton while loading
+  // Générer l'URL de login avec le callbackUrl pour préserver la page actuelle
+  const loginUrl = `/login${pathname !== '/' ? `?callbackUrl=${encodeURIComponent(pathname)}` : ''}`
+
+  // Transition simple lors des changements d'état
+  useEffect(() => {
+    if (!isLoading) {
+      // Très brève transition pour éviter le flash
+      const timer = setTimeout(() => {
+        setShowSkeleton(false)
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [isAuthenticated, isLoading])
+
+
+  // Show skeleton only during initial loading
   if (isLoading) {
     return <AuthButtonsSkeleton variant={variant} size={size} />
   }
@@ -124,13 +144,13 @@ export default function AuthButtons({
         : 'h-4 w-4'
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
         key={isAuthenticated ? 'authenticated' : 'unauthenticated'}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.3 }}
+        exit={{ opacity: 0, y: -5 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
         className={
           variant === 'homepage'
             ? 'mx-auto mb-8 flex max-w-sm flex-col items-center justify-center gap-3 sm:mb-12 sm:max-w-none sm:flex-row sm:gap-4'
@@ -142,7 +162,7 @@ export default function AuthButtons({
           <>
             <motion.button
               onClick={handleDashboardClick}
-              className={buttonClasses.primary}
+              className={`flex items-center gap-2 ${buttonClasses.primary}`}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               disabled={isLoggingOut}
@@ -161,7 +181,7 @@ export default function AuthButtons({
 
             <motion.button
               onClick={handleLogout}
-              className={buttonClasses.secondary}
+              className={`flex items-center gap-2 ${buttonClasses.secondary}`}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               disabled={isLoggingOut}
@@ -189,7 +209,7 @@ export default function AuthButtons({
         ) : (
           // Non-authenticated user buttons
           <>
-            <Link href="/login" onClick={onMobileMenuClose}>
+            <Link href={loginUrl} onClick={onMobileMenuClose}>
               <motion.button
                 className={`flex items-center gap-2 ${buttonClasses.primary}`}
                 whileHover={{ scale: 1.05, y: -2 }}
@@ -209,7 +229,7 @@ export default function AuthButtons({
               </motion.button>
             </Link>
 
-            <Link href="/reservation" onClick={onMobileMenuClose}>
+            {/* <Link href="/reservation" onClick={onMobileMenuClose}>
               <motion.button
                 className={buttonClasses.secondary}
                 whileHover={{ scale: 1.05, y: -2 }}
@@ -219,7 +239,7 @@ export default function AuthButtons({
               >
                 <span>Explorer les espaces</span>
               </motion.button>
-            </Link>
+            </Link> */}
           </>
         )}
       </motion.div>

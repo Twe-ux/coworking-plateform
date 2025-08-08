@@ -24,12 +24,33 @@
   --color-card-foreground: hsl(var(--card-foreground));
 
   /* Coffee theme colors */
-  --color-coffee-primary: #ff8c00;
+  /* --color-coffee-primary: #ff8c00;
   --color-coffee-secondary: #fffaf0;
   --color-coffee-accent: #2d1b0e;
   --color-coffee-muted: #e8ddd4;
   --color-coffee-light: #faebd7;
+  --color-coffee-dark: #654321; */
+
+  /* Cow or king theme colors */
+  --color-coffee-primary: #a1d6a6;
+  --color-coffee-secondary: #f1e97e;
+  --color-coffee-accent: #1f4735;
+  --color-coffee-muted: #c13080;
+  --color-coffee-light: #faebd7;
   --color-coffee-dark: #654321;
+
+  --color-vert-foret: #1f4735;
+  --color-vert-doux: #a1d6a6;
+  --color-bordeaux: #661940;
+  --color-fushia: #c13080;
+  --color-jaune: #f1e97e;
+
+  /* --color-coffee-primary: #1f4735;
+  --color-coffee-secondary: #a1d6a6;
+  --color-coffee-accent: #c13080;
+  --color-coffee-muted: #444444;
+  --color-coffee-light: #e5e5e5;
+  --color-coffee-dark: #a3a3a3; */
 
   /* Border radius */
   --radius-lg: var(--radius);

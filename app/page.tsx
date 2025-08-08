@@ -59,7 +59,7 @@ export default function Home() {
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         damping: 20,
         stiffness: 100,
       },
@@ -67,7 +67,7 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+    <main className="from-coffee-light via-coffee-light/80 to-coffee-light/60 relative min-h-screen overflow-hidden bg-gradient-to-br">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -112,7 +112,7 @@ export default function Home() {
                 />
               </ClientOnly>
             </div>
-            <span className="bg-coffee-primary/10 text-coffee-accent inline-flex items-center rounded-full px-4 py-2 text-sm font-medium">
+            <span className="bg-coffee-primary/10 text-coffee-primary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium">
               ☕ Coworking à Strasbourg
             </span>
           </motion.div> */}
@@ -183,10 +183,10 @@ export default function Home() {
                 key={index}
                 className="text-center"
                 whileHover={{ scale: 1.1 }}
-                transition={{ type: 'spring', stiffness: 300 }}
+                transition={{ type: 'spring' as const, stiffness: 300 }}
               >
-                <stat.icon className="text-coffee-primary mx-auto mb-2 h-8 w-8" />
-                <div className="text-coffee-accent text-2xl font-bold">
+                <stat.icon className="text-coffee-accent mx-auto mb-2 h-8 w-8" />
+                <div className="text-coffee-primary text-2xl font-bold">
                   {stat.label}
                 </div>
                 <div className="text-sm text-gray-600">{stat.value}</div>
@@ -197,7 +197,7 @@ export default function Home() {
 
         {/* Scroll Indicator */}
         <motion.div
-          className="text-coffee-accent absolute bottom-8 left-1/2 flex -translate-x-1/2 transform flex-col items-center"
+          className="text-coffee-primary absolute bottom-8 left-1/2 flex -translate-x-1/2 transform flex-col items-center"
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
@@ -216,12 +216,12 @@ export default function Home() {
           viewport={{ once: true }}
         >
           <div className="mb-16 text-center">
-            <h2 className="text-coffee-accent mb-4 text-4xl font-bold md:text-5xl">
+            <h2 className="text-coffee-primary mb-4 text-4xl font-bold md:text-5xl">
               Pourquoi choisir nos espaces ?
             </h2>
             <p className="mx-auto max-w-2xl text-xl text-gray-700">
-              Une expérience de coworking réinventée dans l'atmosphère unique
-              des cafés
+              Une expérience de coworking réinventée dans l&paos;atmosphère
+              unique des cafés
             </p>
           </div>
 
@@ -250,10 +250,10 @@ export default function Home() {
                 key={index}
                 className="space-card group cursor-pointer"
                 whileHover={{ y: -10, scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 300 }}
+                transition={{ type: 'spring' as const, stiffness: 300 }}
               >
-                <feature.icon className="text-coffee-primary mb-4 h-12 w-12 transition-transform group-hover:scale-110" />
-                <h3 className="text-coffee-accent mb-2 text-xl font-semibold">
+                <feature.icon className="text-coffee-accent mb-4 h-12 w-12 transition-transform group-hover:scale-110" />
+                <h3 className="text-coffee-primary mb-2 text-xl font-semibold">
                   {feature.title}
                 </h3>
                 <p className="text-gray-600">{feature.description}</p>
@@ -266,7 +266,7 @@ export default function Home() {
       {/* Spaces Gallery Section */}
       <section
         id="espaces"
-        className="relative bg-gradient-to-b from-orange-50/30 to-amber-50 px-4 py-24"
+        className="from-coffee-light/30 to-coffee-light relative bg-gradient-to-b px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-7xl"
@@ -293,28 +293,13 @@ export default function Home() {
               viewport={{ once: true }}
             >
               Trois ambiances uniques dans notre établissement de Strasbourg.
-              Choisissez l'espace qui correspond le mieux à votre façon de
+              Choisissez l&apos;espace qui correspond le mieux à votre façon de
               travailler.
             </motion.p>
           </div>
 
           <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
             {[
-              {
-                id: 'places',
-                name: 'Places',
-                location: 'Rez-de-chaussée',
-                image: 'bg-gradient-to-br from-amber-400 to-orange-600',
-                capacity: '12 places',
-                specialty: 'Ambiance café conviviale',
-                rating: 4.8,
-                features: [
-                  'WiFi Fibre',
-                  'Prises à chaque place',
-                  'Vue sur rue',
-                  'Accès boissons',
-                ],
-              },
               {
                 id: 'verriere',
                 name: 'Salle Verrière',
@@ -331,10 +316,25 @@ export default function Home() {
                 ],
               },
               {
+                id: 'places',
+                name: 'Places',
+                location: 'Rez-de-chaussée',
+                image: 'bg-gradient-to-br from-coffee-accent to-coffee-primary',
+                capacity: '12 places',
+                specialty: 'Ambiance café conviviale',
+                rating: 4.8,
+                features: [
+                  'WiFi Fibre',
+                  'Prises à chaque place',
+                  'Vue sur rue',
+                  'Accès boissons',
+                ],
+              },
+              {
                 id: 'etage',
                 name: 'Étage',
                 location: 'Premier étage',
-                image: 'bg-gradient-to-br from-yellow-400 to-amber-700',
+                image: 'bg-gradient-to-br from-coffee-primary to-coffee-accent',
                 capacity: '15 places',
                 specialty: 'Calme et concentration',
                 rating: 4.7,
@@ -376,7 +376,7 @@ export default function Home() {
                 {/* Content */}
                 <div className="bg-white p-6">
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="text-coffee-primary font-semibold">
+                    <span className="text-coffee-accent font-semibold">
                       {space.capacity}
                     </span>
                     <span className="text-sm text-gray-600">
@@ -421,7 +421,7 @@ export default function Home() {
           >
             <Link href="#contact">
               <motion.button
-                className="border-coffee-accent text-coffee-accent hover:bg-coffee-accent rounded-full border-2 bg-white px-8 py-4 font-semibold shadow-lg transition-all duration-300 hover:text-white"
+                className="border-coffee-accent text-coffee-primary hover:bg-coffee-accent rounded-full border-2 bg-white px-8 py-4 font-semibold shadow-lg transition-all duration-300 hover:text-white"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -435,7 +435,7 @@ export default function Home() {
       {/* Pricing Section */}
       <section
         id="tarifs"
-        className="relative bg-gradient-to-b from-amber-50 to-orange-50/30 px-4 py-24"
+        className="from-coffee-light to-coffee-light/30 relative bg-gradient-to-b px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-6xl"
@@ -462,7 +462,7 @@ export default function Home() {
               viewport={{ once: true }}
             >
               Choisissez la formule qui correspond à votre rythme de travail.
-              Pas d'engagement, maximum de flexibilité.
+              Pas d&apos;engagement, maximum de flexibilité.
             </motion.p>
           </div>
 
@@ -561,7 +561,7 @@ export default function Home() {
                       <plan.icon className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-coffee-accent text-2xl font-bold">
+                      <h3 className="text-coffee-primary text-2xl font-bold">
                         {plan.name}
                       </h3>
                       <p className="text-sm text-gray-600">
@@ -572,7 +572,7 @@ export default function Home() {
 
                   <div className="mb-6">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-coffee-accent text-4xl font-bold">
+                      <span className="text-coffee-primary text-4xl font-bold">
                         {plan.price}
                       </span>
                       <span className="text-gray-600">{plan.period}</span>
@@ -600,7 +600,7 @@ export default function Home() {
                       className={`w-full rounded-xl py-4 font-semibold transition-all duration-300 ${
                         plan.popular
                           ? 'from-coffee-primary to-coffee-accent bg-gradient-to-r text-white shadow-lg'
-                          : 'border-coffee-accent text-coffee-accent hover:bg-coffee-accent border-2 hover:text-white'
+                          : 'border-coffee-accent text-coffee-primary hover:bg-coffee-accent border-2 hover:text-white'
                       }`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -623,7 +623,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-coffee-accent mb-6 text-center text-2xl font-bold">
+            <h3 className="text-coffee-primary mb-6 text-center text-2xl font-bold">
               Services Additionnels
             </h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -659,11 +659,11 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <div className="rounded-xl bg-white p-4 shadow-md">
-                    <service.icon className="text-coffee-primary mx-auto mb-3 h-8 w-8" />
-                    <h4 className="text-coffee-accent mb-1 font-semibold">
+                    <service.icon className="text-coffee-accent mx-auto mb-3 h-8 w-8" />
+                    <h4 className="text-coffee-primary mb-1 font-semibold">
                       {service.title}
                     </h4>
-                    <p className="text-coffee-primary mb-2 font-bold">
+                    <p className="text-coffee-accent mb-2 font-bold">
                       {service.price}
                     </p>
                     <p className="text-sm text-gray-600">
@@ -680,7 +680,7 @@ export default function Home() {
       {/* Member Program Section */}
       <section
         id="membres"
-        className="relative bg-gradient-to-b from-orange-50/20 to-amber-50 px-4 py-24"
+        className="to-coffee-light relative bg-gradient-to-b from-orange-50/20 px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-6xl"
@@ -706,7 +706,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              Rejoignez notre communauté exclusive et profitez d'avantages
+              Rejoignez notre communauté exclusive et profitez d&apos;avantages
               uniques. Plus vous venez, plus vous économisez et plus vous
               bénéficiez de privilèges.
             </motion.p>
@@ -717,7 +717,7 @@ export default function Home() {
               {
                 title: 'Fidélité Café',
                 icon: Crown,
-                gradient: 'from-amber-400 to-yellow-600',
+                gradient: 'from-coffee-primary to-coffee-accent',
                 benefits: [
                   '10ème café offert',
                   'Accès aux blends premium',
@@ -787,7 +787,7 @@ export default function Home() {
                       <program.icon className="h-8 w-8" />
                     </div>
                     <div>
-                      <h3 className="text-coffee-accent text-2xl font-bold">
+                      <h3 className="text-coffee-primary text-2xl font-bold">
                         {program.title}
                       </h3>
                       <p className="text-sm text-gray-600">
@@ -798,7 +798,7 @@ export default function Home() {
 
                   <div className="mb-6">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-coffee-accent text-3xl font-bold">
+                      <span className="text-coffee-primary text-3xl font-bold">
                         {program.price}
                       </span>
                       {program.period && (
@@ -828,7 +828,7 @@ export default function Home() {
                       className={`w-full rounded-xl py-4 font-semibold transition-all duration-300 ${
                         program.popular
                           ? 'from-coffee-primary to-coffee-accent bg-gradient-to-r text-white shadow-lg'
-                          : 'border-coffee-accent text-coffee-accent hover:bg-coffee-accent border-2 hover:text-white'
+                          : 'border-coffee-accent text-coffee-primary hover:bg-coffee-accent border-2 hover:text-white'
                       }`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -851,7 +851,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-coffee-accent mb-8 text-center text-2xl font-bold">
+            <h3 className="text-coffee-primary mb-8 text-center text-2xl font-bold">
               Avantages Membres Exclusifs
             </h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -883,8 +883,8 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <div className="rounded-xl bg-white p-6 shadow-md">
-                    <benefit.icon className="text-coffee-primary mx-auto mb-4 h-10 w-10" />
-                    <h4 className="text-coffee-accent mb-2 font-semibold">
+                    <benefit.icon className="text-coffee-accent mx-auto mb-4 h-10 w-10" />
+                    <h4 className="text-coffee-primary mb-2 font-semibold">
                       {benefit.title}
                     </h4>
                     <p className="text-sm text-gray-600">
@@ -901,7 +901,7 @@ export default function Home() {
       {/* Drinks Menu Section */}
       <section
         id="boissons"
-        className="relative bg-gradient-to-b from-amber-50 to-orange-50/30 px-4 py-24"
+        className="from-coffee-light to-coffee-light/30 relative bg-gradient-to-b px-4 py-24"
       >
         <motion.div
           className="mx-auto max-w-7xl"
@@ -927,7 +927,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              Des boissons d'exception préparées avec passion. Chaque tasse
+              Des boissons d&apos;exception préparées avec passion. Chaque tasse
               raconte une histoire, chaque gorgée est une expérience unique.
             </motion.p>
           </div>
@@ -946,8 +946,8 @@ export default function Home() {
                 <div className="from-coffee-primary to-coffee-accent rounded-xl bg-gradient-to-br p-3 text-white">
                   <Coffee className="h-8 w-8" />
                 </div>
-                <h3 className="text-coffee-accent text-3xl font-bold">
-                  Cafés d'Exception
+                <h3 className="text-coffee-primary text-3xl font-bold">
+                  Cafés d&apos;Exception
                 </h3>
               </div>
 
@@ -987,11 +987,11 @@ export default function Home() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="mb-2 flex items-center gap-2">
-                          <h4 className="text-coffee-accent text-lg font-semibold">
+                          <h4 className="text-coffee-primary text-lg font-semibold">
                             {drink.name}
                           </h4>
                           {drink.specialty && (
-                            <div className="rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 px-2 py-1">
+                            <div className="from-coffee-primary to-coffee-accent rounded-full bg-gradient-to-r px-2 py-1">
                               <Star className="h-3 w-3 text-white" />
                             </div>
                           )}
@@ -1000,7 +1000,7 @@ export default function Home() {
                           {drink.description}
                         </p>
                       </div>
-                      <div className="text-coffee-primary ml-4 text-xl font-bold">
+                      <div className="text-coffee-accent ml-4 text-xl font-bold">
                         {drink.price}
                       </div>
                     </div>
@@ -1023,7 +1023,7 @@ export default function Home() {
                   <div className="rounded-xl bg-gradient-to-br from-red-400 to-orange-600 p-3 text-white">
                     <Flame className="h-8 w-8" />
                   </div>
-                  <h3 className="text-coffee-accent text-2xl font-bold">
+                  <h3 className="text-coffee-primary text-2xl font-bold">
                     Boissons Chaudes
                   </h3>
                 </div>
@@ -1053,14 +1053,14 @@ export default function Home() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-coffee-accent mb-1 font-semibold">
+                          <h4 className="text-coffee-primary mb-1 font-semibold">
                             {drink.name}
                           </h4>
                           <p className="text-sm text-gray-600">
                             {drink.description}
                           </p>
                         </div>
-                        <div className="text-coffee-primary ml-4 font-bold">
+                        <div className="text-coffee-accent ml-4 font-bold">
                           {drink.price}
                         </div>
                       </div>
@@ -1075,7 +1075,7 @@ export default function Home() {
                   <div className="rounded-xl bg-gradient-to-br from-blue-400 to-cyan-600 p-3 text-white">
                     <Snowflake className="h-8 w-8" />
                   </div>
-                  <h3 className="text-coffee-accent text-2xl font-bold">
+                  <h3 className="text-coffee-primary text-2xl font-bold">
                     Boissons Fraîches
                   </h3>
                 </div>
@@ -1105,14 +1105,14 @@ export default function Home() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-coffee-accent mb-1 font-semibold">
+                          <h4 className="text-coffee-primary mb-1 font-semibold">
                             {drink.name}
                           </h4>
                           <p className="text-sm text-gray-600">
                             {drink.description}
                           </p>
                         </div>
-                        <div className="text-coffee-primary ml-4 font-bold">
+                        <div className="text-coffee-accent ml-4 font-bold">
                           {drink.price}
                         </div>
                       </div>
@@ -1133,15 +1133,15 @@ export default function Home() {
           >
             <div className="from-coffee-primary/10 to-coffee-accent/10 rounded-2xl bg-gradient-to-br p-8">
               <div className="mb-4 flex items-center gap-3">
-                <Gift className="text-coffee-primary h-8 w-8" />
-                <h3 className="text-coffee-accent text-2xl font-bold">
+                <Gift className="text-coffee-accent h-8 w-8" />
+                <h3 className="text-coffee-primary text-2xl font-bold">
                   Happy Hour
                 </h3>
               </div>
               <p className="mb-4 text-gray-700">
                 De 15h à 17h, profitez de -20% sur toutes nos boissons chaudes.
               </p>
-              <div className="text-coffee-primary text-sm font-semibold">
+              <div className="text-coffee-accent text-sm font-semibold">
                 Tous les jours de la semaine
               </div>
             </div>
@@ -1149,7 +1149,7 @@ export default function Home() {
             <div className="rounded-2xl bg-gradient-to-br from-green-400/10 to-emerald-600/10 p-8">
               <div className="mb-4 flex items-center gap-3">
                 <Droplets className="h-8 w-8 text-green-600" />
-                <h3 className="text-coffee-accent text-2xl font-bold">
+                <h3 className="text-coffee-primary text-2xl font-bold">
                   Formule Détox
                 </h3>
               </div>
@@ -1420,12 +1420,12 @@ export default function Home() {
                 whileHover={{ scale: 1.02 }}
               >
                 <h4 className="mb-2 text-lg font-bold">
-                  Besoin d'aide immédiate ?
+                  Besoin d&apos;aide immédiate ?
                 </h4>
-                <p className="text-coffee-accent mb-4 text-sm">
+                <p className="text-coffee-primary mb-4 text-sm">
                   Notre équipe est disponible pour vous aider
                 </p>
-                <button className="text-coffee-accent w-full rounded-lg bg-white py-3 font-semibold transition-colors hover:bg-gray-100">
+                <button className="text-coffee-primary w-full rounded-lg bg-white py-3 font-semibold transition-colors hover:bg-gray-100">
                   Chat en direct
                 </button>
               </motion.div>

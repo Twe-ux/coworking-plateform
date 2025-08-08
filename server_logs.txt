@@ -1,0 +1,52 @@
+
+> coworking-platform@0.1.0 dev
+> npm --loglevel=error run dev:start
+
+
+> coworking-platform@0.1.0 dev:start
+> next dev
+
+   ▲ Next.js 14.0.0
+   - Local:        http://localhost:3000
+   - Environments: .env.local
+
+ ✓ Ready in 1322ms
+ ✓ Compiled /api/forgot-password/route in 217ms (48 modules)
+==================================================
+🔑 TOKEN DE RÉINITIALISATION (DEV ONLY)
+==================================================
+Email: nouveau@example.com
+Token: 5f3e5bef1d69d92e2d188d29bf6c903e998062fe04c68fac174ab48da8a20555
+Lien: http://localhost:3000/reset-password?token=5f3e5bef1d69d92e2d188d29bf6c903e998062fe04c68fac174ab48da8a20555
+Expire: 08/08/2025 09:11:05
+==================================================
+ ✓ Compiled /api/verify-reset-token/route in 37ms (50 modules)
+ ✓ Compiled /api/reset-password/route in 50ms (55 modules)
+ ✓ Compiled /middleware in 134ms (159 modules)
+ ○ Compiling /(auth)/forgot-password/page ...
+ ✓ Compiled /(auth)/forgot-password/page in 2.6s (1789 modules)
+ ✓ Compiled in 252ms (858 modules)
+ ✓ Compiled /(auth)/reset-password/page in 242ms (1778 modules)
+ ✓ Compiled /(auth)/register/page in 148ms (1786 modules)
+ ✓ Compiled /page in 236ms (1778 modules)
+ ✓ Compiled /(auth)/login/page in 196ms (1775 modules)
+ ✓ Compiled /(auth)/forgot-password/page in 198ms (907 modules)
+ ✓ Compiled /not-found in 354ms (1786 modules)
+ ○ Compiling /api/auth/[...nextauth]/route ...
+ ✓ Compiled /api/auth/[...nextauth]/route in 801ms (1243 modules)
+MongoDB: Connexion fermée (SIGTERM)
+ ✓ Compiled /page in 98ms (1265 modules)
+MongoDB: Connexion fermée (SIGTERM)
+MongoDB: Connexion fermée
+MongoDB: Connexion fermée (SIGTERM)
+MongoDB: Connexion fermée
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 561ms (2299 modules)
+ ✓ Compiled in 682ms (1800 modules)
+ ✓ Compiled /api/auth/[...nextauth]/route in 134ms (1142 modules)
+ ✓ Compiled /(auth)/login/page in 84ms (1294 modules)
+MongoDB: Connexion fermée (SIGTERM)
+ ✓ Compiled /api/spaces/route in 207ms (1158 modules)
+ ✓ Compiled /api/auth/[...nextauth]/route in 81ms (1160 modules)
+ ✓ Compiled /(auth)/login/page in 76ms (1312 modules)
+[?25h

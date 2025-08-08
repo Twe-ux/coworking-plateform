@@ -18,16 +18,8 @@ export default withAuth(
     }
 
     // Vérification de l'authentification
-    if (!token) {
-      // Construire l'URL de login avec le bon host et port
-      const correctHost = 'localhost:3000'
-      const protocol =
-        process.env.NODE_ENV === 'production' ? 'https:' : 'http:'
-      const loginUrl = new URL('/login', `${protocol}//${correctHost}`)
-      // Utiliser pathname relatif pour éviter les références de port incorrectes
-      loginUrl.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
+    // Note: withAuth gère automatiquement la redirection vers la page de login
+    // avec le callbackUrl approprié. Pas besoin de redirection manuelle ici.
 
     // Vérification du statut de l'utilisateur
     if (

@@ -1,11 +1,5 @@
 'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { ArrowLeft, Loader2, Mail } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -22,6 +16,12 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Loader2, Mail } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 // Schema de validation Zod
 const forgotPasswordSchema = z.object({
@@ -110,7 +110,9 @@ export default function ForgotPasswordPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700">Adresse email</FormLabel>
+                    <FormLabel className="text-gray-700">
+                      Adresse email
+                    </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -159,7 +161,7 @@ export default function ForgotPasswordPage() {
           <div className="space-y-2 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center text-sm text-amber-600 hover:text-orange-600 hover:underline"
+              className="text-coffee-accent hover:text-coffee-primary inline-flex items-center text-sm hover:underline"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour à la connexion
@@ -167,12 +169,10 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="text-center text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
-              Pas encore de compte ?{' '}
-            </span>
+            <span className="text-gray-600">Pas encore de compte ? </span>
             <Link
               href="/register"
-              className="font-medium text-amber-600 hover:text-orange-600 hover:underline"
+              className="text-coffee-accent hover:text-coffee-primary font-medium hover:underline"
             >
               Créer un compte
             </Link>
@@ -180,12 +180,12 @@ export default function ForgotPasswordPage() {
         </div>
 
         {success && (
-          <div className="mt-6 rounded-lg bg-amber-50 p-4 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/30">
-            <div className="text-sm text-amber-800 dark:text-amber-200">
+          <div className="border-coffee-primary/20 bg-coffee-primary/5 mt-6 rounded-lg border p-4">
+            <div className="text-coffee-accent text-sm">
               <p className="mb-2 font-medium">Que faire ensuite ?</p>
               <ul className="space-y-1 text-xs">
                 <li>• Vérifiez votre boîte email (y compris les spams)</li>
-                <li>• Cliquez sur le lien dans l'email reçu</li>
+                <li>• Cliquez sur le lien dans l&apos;email reçu</li>
                 <li>• Créez un nouveau mot de passe sécurisé</li>
                 <li>• Le lien expire dans 24 heures</li>
               </ul>

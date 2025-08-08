@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { motion } from 'framer-motion'
 import {
   Activity,
   Calendar,
@@ -19,12 +20,21 @@ import {
   Users,
 } from 'lucide-react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { memo } from 'react'
 
 // Memoized components for better performance
 const QuickActionCard = memo(
-  ({ icon: Icon, title, children, className = '' }) => (
+  ({
+    icon: Icon,
+    title,
+    children,
+    className = '',
+  }: {
+    icon: any
+    title: string
+    children: React.ReactNode
+    className?: string
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -46,7 +56,7 @@ const QuickActionCard = memo(
 
 QuickActionCard.displayName = 'QuickActionCard'
 
-const StatCard = memo(({ icon: Icon, label, value, color }) => (
+const StatCard = memo(({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: string }) => (
   <div className="flex items-center justify-between">
     <div className="flex items-center gap-2">
       <Icon className={`h-4 w-4 ${color}`} />
@@ -62,12 +72,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Tableau de bord
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Bienvenue sur votre espace coworking
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
+        <p className="text-gray-600">Bienvenue sur votre espace coworking</p>
       </div>
 
       {/* Actions rapides */}
@@ -115,7 +121,7 @@ export default function DashboardPage() {
               icon={Coffee}
               label="Heures réservées"
               value="24h"
-              color="text-coffee-primary"
+              color="text-coffee-accent"
             />
             <StatCard
               icon={Calendar}
@@ -192,7 +198,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+            <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
                 <MapPin className="h-6 w-6 text-blue-600" />
               </div>
@@ -206,9 +212,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+            <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50">
               <div className="bg-coffee-secondary/30 flex h-12 w-12 items-center justify-center rounded-lg">
-                <Coffee className="text-coffee-primary h-6 w-6" />
+                <Coffee className="text-coffee-accent h-6 w-6" />
               </div>
               <div>
                 <h3 className="font-semibold">Places</h3>
@@ -220,7 +226,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+            <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
                 <Users className="h-6 w-6 text-purple-600" />
               </div>

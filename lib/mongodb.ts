@@ -7,14 +7,18 @@ if (!process.env.MONGODB_URI) {
 const uri = process.env.MONGODB_URI
 const databaseName = process.env.MONGODB_DB || 'coworking-platform'
 
-// Configuration optimisée pour la production
+// Configuration optimisée pour la production avec timeouts plus généreux
 const options: MongoClientOptions = {
   maxPoolSize: 10, // Maintenir jusqu'à 10 connexions socket
-  serverSelectionTimeoutMS: 5000, // Garder un timeout raisonnable
-  socketTimeoutMS: 45000, // Fermer les sockets après 45 secondes d'inactivité
+  serverSelectionTimeoutMS: 30000, // 30 secondes pour la sélection du serveur
+  socketTimeoutMS: 120000, // 120 secondes pour les sockets
+  connectTimeoutMS: 30000, // 30 secondes pour la connexion initiale
   family: 4, // Utiliser IPv4, ignorer IPv6
-  maxIdleTimeMS: 30000, // Fermer les connexions après 30 secondes d'inactivité
+  maxIdleTimeMS: 300000, // 5 minutes d'inactivité avant fermeture
   compressors: ['zlib'], // Compression pour réduire la bande passante
+  retryWrites: true, // Retry automatique des écritures
+  retryReads: true, // Retry automatique des lectures
+  maxConnecting: 2, // Maximum 2 connexions simultanées en cours d'établissement
 }
 
 let client: MongoClient
@@ -54,38 +58,58 @@ if (process.env.NODE_ENV === 'development') {
 export async function connectToDatabase(
   dbName?: string
 ): Promise<{ client: MongoClient; db: Db }> {
-  try {
-    const connectedClient = await clientPromise
-    const targetDbName = dbName || databaseName
+  let retryCount = 0
+  const maxRetries = 3
+  
+  while (retryCount < maxRetries) {
+    try {
+      const connectedClient = await clientPromise
+      
+      // Test la connexion avec un ping
+      await connectedClient.db().admin().ping()
+      
+      const targetDbName = dbName || databaseName
 
-    // Utiliser le cache pour éviter les reconnexions inutiles
-    let db: Db
-    if (process.env.NODE_ENV === 'development') {
-      const globalWithMongo = global as typeof globalThis & {
-        _mongoDbCache?: Map<string, Db>
-      }
-      if (!globalWithMongo._mongoDbCache?.has(targetDbName)) {
-        db = connectedClient.db(targetDbName)
-        globalWithMongo._mongoDbCache?.set(targetDbName, db)
+      // Utiliser le cache pour éviter les reconnexions inutiles
+      let db: Db
+      if (process.env.NODE_ENV === 'development') {
+        const globalWithMongo = global as typeof globalThis & {
+          _mongoDbCache?: Map<string, Db>
+        }
+        if (!globalWithMongo._mongoDbCache?.has(targetDbName)) {
+          db = connectedClient.db(targetDbName)
+          globalWithMongo._mongoDbCache?.set(targetDbName, db)
+        } else {
+          db = globalWithMongo._mongoDbCache.get(targetDbName)!
+        }
       } else {
-        db = globalWithMongo._mongoDbCache.get(targetDbName)!
+        if (!dbCache.has(targetDbName)) {
+          db = connectedClient.db(targetDbName)
+          dbCache.set(targetDbName, db)
+        } else {
+          db = dbCache.get(targetDbName)!
+        }
       }
-    } else {
-      if (!dbCache.has(targetDbName)) {
-        db = connectedClient.db(targetDbName)
-        dbCache.set(targetDbName, db)
-      } else {
-        db = dbCache.get(targetDbName)!
+
+      return { client: connectedClient, db }
+      
+    } catch (error) {
+      retryCount++
+      console.error(`Tentative de connexion MongoDB ${retryCount}/${maxRetries} échouée:`, error)
+      
+      if (retryCount >= maxRetries) {
+        throw new Error(
+          `Impossible de se connecter à MongoDB après ${maxRetries} tentatives: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+        )
       }
+      
+      // Attendre avant la prochaine tentative (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
     }
-
-    return { client: connectedClient, db }
-  } catch (error) {
-    console.error('Erreur de connexion MongoDB:', error)
-    throw new Error(
-      `Impossible de se connecter à MongoDB: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
-    )
   }
+  
+  // Cette ligne ne devrait jamais être atteinte, mais TypeScript l'exige
+  throw new Error('Erreur inattendue lors de la connexion MongoDB')
 }
 
 /**
@@ -173,7 +197,7 @@ export async function createIndexes(db: Db): Promise<void> {
 }
 
 // Gestion propre de l'arrêt de l'application
-if (typeof process !== 'undefined') {
+if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
   // Flag pour éviter les logs multiples
   let shutdownInitiated = false
 
@@ -181,10 +205,7 @@ if (typeof process !== 'undefined') {
     if (shutdownInitiated) return
     shutdownInitiated = true
 
-    // Uniquement en développement pour réduire les logs
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`MongoDB: Connexion fermée (${signal})`)
-    }
+    console.log(`MongoDB: Connexion fermée (${signal})`)
     await closeConnection()
     process.exit(0)
   }
