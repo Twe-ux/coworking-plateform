@@ -1,12 +1,5 @@
 'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -23,6 +16,13 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 // Schema de validation Zod
 const registerSchema = z
@@ -229,9 +229,9 @@ export default function RegisterPage() {
                         disabled={isLoading}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                          <EyeOff className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                         ) : (
-                          <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                          <Eye className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                         )}
                       </Button>
                     </div>
@@ -246,7 +246,9 @@ export default function RegisterPage() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Confirmer le mot de passe</FormLabel>
+                  <FormLabel className="text-gray-700">
+                    Confirmer le mot de passe
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -268,9 +270,9 @@ export default function RegisterPage() {
                         disabled={isLoading}
                       >
                         {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                          <EyeOff className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                         ) : (
-                          <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                          <Eye className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                         )}
                       </Button>
                     </div>
@@ -295,19 +297,19 @@ export default function RegisterPage() {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel className="text-sm font-normal">
-                      J'accepte les{' '}
+                    <FormLabel className="text-sm font-normal text-black">
+                      J&apos;accepte les{' '}
                       <Link
                         href="/terms"
-                        className="text-amber-600 hover:text-orange-600 hover:underline"
+                        className="text-coffee-accent hover:text-coffee-primary hover:underline"
                         target="_blank"
                       >
-                        conditions d'utilisation
+                        conditions d&apos;utilisation
                       </Link>{' '}
                       et la{' '}
                       <Link
                         href="/privacy"
-                        className="text-amber-600 hover:text-orange-600 hover:underline"
+                        className="text-coffee-accent hover:text-coffee-primary hover:underline"
                         target="_blank"
                       >
                         politique de confidentialité
@@ -333,12 +335,10 @@ export default function RegisterPage() {
         </Form>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">
-            Déjà un compte ?{' '}
-          </span>
+          <span className="text-gray-600">Déjà un compte ? </span>
           <Link
             href="/login"
-            className="font-medium text-amber-600 hover:text-orange-600 hover:underline"
+            className="text-coffee-accent hover:text-coffee-primary font-medium hover:underline"
           >
             Se connecter
           </Link>

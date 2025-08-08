@@ -47,7 +47,7 @@ export default function Logo({
 
   // Classes de texte selon le variant
   const textColorClass =
-    effectiveVariant === 'white' ? 'text-white' : 'text-coffee-accent'
+    effectiveVariant === 'white' ? 'text-white' : 'text-coffee-primary'
 
   return (
     <LogoWrapper

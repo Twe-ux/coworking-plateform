@@ -87,12 +87,12 @@ export function Sidebar() {
   )
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+    <div className="w-64 bg-white border-r border-gray-200">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-gray-900">
           Coworking Platform
         </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-300 capitalize">
+        <p className="text-sm text-gray-600 capitalize">
           {userRole}
         </p>
       </div>
@@ -110,8 +110,8 @@ export function Sidebar() {
                   className={cn(
                     'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
                   )}
                 >
                   <Icon className="mr-3 h-5 w-5" />

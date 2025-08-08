@@ -25,7 +25,7 @@ export default function ThemeToggle() {
         transition={{ duration: 0.4, ease: "easeInOut" }}
         className="relative z-10"
       >
-        <Sun className="w-5 h-5 text-coffee-accent drop-shadow-sm" />
+        <Sun className="w-5 h-5 text-coffee-primary drop-shadow-sm" />
       </motion.div>
     </motion.button>
   )

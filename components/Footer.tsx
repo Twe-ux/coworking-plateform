@@ -55,8 +55,8 @@ export default function Footer() {
     <footer className="from-coffee-accent via-coffee-accent relative overflow-hidden bg-linear-to-br to-black text-white">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="bg-coffee-primary absolute left-10 top-10 h-32 w-32 rounded-full blur-3xl" />
-        <div className="bg-coffee-primary absolute bottom-20 right-20 h-40 w-40 rounded-full blur-3xl" />
+        <div className="bg-coffee-primary absolute top-10 left-10 h-32 w-32 rounded-full blur-3xl" />
+        <div className="bg-coffee-primary absolute right-20 bottom-20 h-40 w-40 rounded-full blur-3xl" />
       </div>
 
       <div className="relative">
@@ -113,7 +113,7 @@ export default function Footer() {
                       <li key={linkIndex}>
                         <motion.a
                           href="#"
-                          className="hover:text-coffee-primary group flex items-center gap-1 text-gray-300 transition-colors duration-200"
+                          className="hover:text-coffee-accent group flex items-center gap-1 text-gray-300 transition-colors duration-200"
                           whileHover={{ x: 5 }}
                         >
                           {link}
@@ -142,10 +142,10 @@ export default function Footer() {
                 <input
                   type="email"
                   placeholder="Votre email"
-                  className="focus:ring-coffee-primary flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none focus:ring-2"
+                  className="focus:ring-coffee-primary flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 backdrop-blur-sm focus:ring-2 focus:outline-none"
                 />
                 <motion.button
-                  className="from-coffee-primary to-coffee-secondary whitespace-nowrap rounded-xl bg-linear-to-r px-6 py-3 font-semibold text-white"
+                  className="from-coffee-primary to-coffee-secondary rounded-xl bg-linear-to-r px-6 py-3 font-semibold whitespace-nowrap text-white"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -168,7 +168,7 @@ export default function Footer() {
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="flex items-center gap-2 text-gray-300">
                 <span>© 2024 Cow or King Café. Fait avec</span>
-                <Heart className="text-coffee-primary h-4 w-4 fill-current" />
+                <Heart className="text-coffee-accent h-4 w-4 fill-current" />
                 <span>à Strasbourg</span>
               </div>
 
@@ -177,7 +177,7 @@ export default function Footer() {
                   <motion.a
                     key={index}
                     href={social.href}
-                    className="bg-coffee-primary/20 text-coffee-primary hover:bg-coffee-primary flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 hover:text-white"
+                    className="bg-coffee-primary/20 text-coffee-secondary hover:bg-coffee-primary flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 hover:text-white"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.9 }}
                     aria-label={social.label}

@@ -1,12 +1,5 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { AlertTriangle, Check, Eye, EyeOff, Loader2 } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -23,6 +16,13 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AlertTriangle, Check, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 // Schema de validation Zod
 const resetPasswordSchema = z
@@ -61,8 +61,6 @@ export default function ResetPasswordPage() {
       confirmPassword: '',
     },
   })
-
-
 
   // Vérifier la validité du token au chargement de la page
   useEffect(() => {
@@ -137,8 +135,6 @@ export default function ResetPasswordPage() {
     }
   }
 
-
-
   // Affichage pendant la vérification du token
   if (isValidToken === null) {
     return (
@@ -153,7 +149,7 @@ export default function ResetPasswordPage() {
         </CardHeader>
 
         <CardContent className="py-8 text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-amber-500" />
+          <Loader2 className="text-coffee-accent mx-auto h-8 w-8 animate-spin" />
           <p className="mt-4 text-sm text-gray-600">Vérification en cours...</p>
         </CardContent>
       </>
@@ -167,7 +163,7 @@ export default function ResetPasswordPage() {
         <CardHeader className="space-y-1 pb-4 text-center">
           <CardTitle className="text-2xl font-bold">Lien invalide</CardTitle>
           <CardDescription>
-            Ce lien de réinitialisation n'est pas valide
+            Ce lien de réinitialisation n&apos;est pas valide
           </CardDescription>
         </CardHeader>
 
@@ -178,7 +174,7 @@ export default function ResetPasswordPage() {
           </Alert>
 
           <div className="space-y-4 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600">
               Le lien de réinitialisation est peut-être expiré ou a déjà été
               utilisé.
             </p>
@@ -233,7 +229,9 @@ export default function ResetPasswordPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700">Nouveau mot de passe</FormLabel>
+                    <FormLabel className="text-gray-700">
+                      Nouveau mot de passe
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -253,15 +251,13 @@ export default function ResetPasswordPage() {
                           disabled={isLoading}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                            <EyeOff className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                           ) : (
-                            <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                            <Eye className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                           )}
                         </Button>
                       </div>
                     </FormControl>
-
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -272,7 +268,9 @@ export default function ResetPasswordPage() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700">Confirmer le nouveau mot de passe</FormLabel>
+                    <FormLabel className="text-gray-700">
+                      Confirmer le nouveau mot de passe
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -294,9 +292,9 @@ export default function ResetPasswordPage() {
                           disabled={isLoading}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                            <EyeOff className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                           ) : (
-                            <Eye className="h-4 w-4 text-amber-600 hover:text-orange-600" />
+                            <Eye className="text-coffee-accent hover:text-coffee-primary h-4 w-4" />
                           )}
                         </Button>
                       </div>
@@ -328,7 +326,7 @@ export default function ResetPasswordPage() {
           <div className="text-center">
             <Link
               href="/login"
-              className="text-sm text-amber-600 hover:text-orange-600 hover:underline"
+              className="text-coffee-accent hover:text-coffee-primary text-sm hover:underline"
             >
               Retour à la connexion
             </Link>

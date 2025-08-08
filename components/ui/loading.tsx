@@ -1,9 +1,9 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 interface LoadingProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -37,7 +37,7 @@ export function Loading({
     >
       {variant === 'spinner' && (
         <Loader2
-          className={cn('animate-spin text-blue-600', sizeClasses[size])}
+          className={cn('text-coffee-accent animate-spin', sizeClasses[size])}
         />
       )}
 
@@ -46,7 +46,7 @@ export function Loading({
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className={cn('rounded-full bg-blue-600', {
+              className={cn('bg-coffee-primary rounded-full', {
                 'h-2 w-2': size === 'sm',
                 'h-3 w-3': size === 'md',
                 'h-4 w-4': size === 'lg',
@@ -69,7 +69,7 @@ export function Loading({
 
       {variant === 'pulse' && (
         <motion.div
-          className={cn('rounded-full bg-blue-600', sizeClasses[size])}
+          className={cn('bg-coffee-primary rounded-full', sizeClasses[size])}
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.5, 1, 0.5],
@@ -92,7 +92,7 @@ export function Loading({
 
       {text && (
         <motion.p
-          className="text-sm text-gray-600 dark:text-gray-400"
+          className="text-sm text-gray-600"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -105,7 +105,7 @@ export function Loading({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
         {content}
       </div>
     )
@@ -139,7 +139,7 @@ export function FormLoading({
 }) {
   return (
     <div className="flex items-center justify-center gap-2 p-4">
-      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+      <Loader2 className="text-coffee-accent h-4 w-4 animate-spin" />
       <span className="text-sm text-gray-600">{text}</span>
     </div>
   )

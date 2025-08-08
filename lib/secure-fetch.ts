@@ -7,13 +7,13 @@
 
 import { getSession } from 'next-auth/react'
 
-interface SecureFetchOptions extends RequestInit {
+interface SecureFetchOptions extends Omit<RequestInit, 'cache'> {
   requireAuth?: boolean
   includeCsrf?: boolean
   timeout?: number
   retries?: number
   retryDelay?: number
-  cache?: boolean
+  useCache?: boolean
   cacheKey?: string
   cacheDuration?: number
 }
@@ -42,7 +42,7 @@ export async function secureFetch<T = any>(
     timeout = 10000,
     retries = 3,
     retryDelay = 1000,
-    cache = false,
+    useCache = false,
     cacheKey,
     cacheDuration = 5 * 60 * 1000, // 5 minutes
     headers = {},
@@ -53,7 +53,7 @@ export async function secureFetch<T = any>(
   const method = fetchOptions.method?.toUpperCase() || 'GET'
   const finalCacheKey = cacheKey || `${method}:${url}`
 
-  if (cache && method === 'GET') {
+  if (useCache && method === 'GET') {
     const cached = fetchCache.get(finalCacheKey)
     if (cached && cached.expires > Date.now()) {
       return {
@@ -159,7 +159,7 @@ export async function secureFetch<T = any>(
     }
 
     // Mettre en cache si demandé
-    if (cache && method === 'GET' && data) {
+    if (useCache && method === 'GET' && data) {
       fetchCache.set(finalCacheKey, {
         data,
         expires: Date.now() + cacheDuration,
@@ -168,11 +168,13 @@ export async function secureFetch<T = any>(
       // Nettoyer le cache périodiquement
       if (fetchCache.size > 100) {
         const now = Date.now()
-        for (const [key, value] of fetchCache.entries()) {
+        const keysToDelete: string[] = []
+        fetchCache.forEach((value, key) => {
           if (value.expires <= now) {
-            fetchCache.delete(key)
+            keysToDelete.push(key)
           }
-        }
+        })
+        keysToDelete.forEach(key => fetchCache.delete(key))
       }
     }
 

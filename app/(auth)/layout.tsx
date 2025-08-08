@@ -1,7 +1,7 @@
-import React from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
+import { Card } from '@/components/ui'
 import { Coffee } from 'lucide-react'
+import Link from 'next/link'
+import React from 'react'
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -9,44 +9,47 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 px-4 py-8 relative overflow-hidden">
+    <div className="from-coffee-light via-coffee-light/80 to-coffee-light/60 relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br px-4 py-8">
       {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-200/20 rounded-full blur-3xl"></div>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="bg-coffee-primary/10 absolute -top-40 -right-40 h-80 w-80 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-orange-200/20 blur-3xl"></div>
       </div>
-      <div className="w-full max-w-md space-y-6 relative z-10">
+      <div className="relative z-10 w-full max-w-md space-y-6">
         {/* Logo/Brand */}
         <div className="text-center">
-          <Link href="/" className="inline-block group">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="p-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 group-hover:scale-105 transition-transform">
+          <Link href="/" className="group inline-block">
+            <div className="mb-2 flex items-center justify-center gap-3">
+              <div className="from-coffee-primary to-coffee-accent rounded-full bg-gradient-to-r p-3 transition-transform group-hover:scale-105">
                 <Coffee className="h-6 w-6 text-white" />
               </div>
             </div>
-            <div className="text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent">
+            <div className="from-coffee-primary via-coffee-accent to-coffee-primary bg-gradient-to-r bg-clip-text text-3xl font-bold text-transparent">
               Cow or King Café
             </div>
-            <p className="text-sm text-amber-700 mt-1">
+            <p className="text-coffee-accent mt-1 text-sm">
               Coworking à Strasbourg
             </p>
           </Link>
         </div>
 
         {/* Main Auth Content */}
-        <Card className="shadow-lg border border-amber-200/50 bg-white/90 backdrop-blur-sm">
+        <Card className="border-coffee-primary/20 border bg-white/90 shadow-lg backdrop-blur-sm">
           {children}
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-amber-700">
+        <div className="text-coffee-accent text-center text-sm">
           <p>
             En continuant, vous acceptez nos{' '}
-            <Link href="/terms" className="underline hover:text-amber-900">
+            <Link href="/terms" className="hover:text-coffee-primary underline">
               conditions d'utilisation
             </Link>{' '}
             et notre{' '}
-            <Link href="/privacy" className="underline hover:text-amber-900">
+            <Link
+              href="/privacy"
+              className="hover:text-coffee-primary underline"
+            >
               politique de confidentialité
             </Link>
             .

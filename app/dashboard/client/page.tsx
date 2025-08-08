@@ -7,10 +7,10 @@ export default function ClientDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-gray-900">
           Dashboard Client
         </h1>
-        <p className="text-gray-600 dark:text-gray-300">
+        <p className="text-gray-600">
           Gérez vos réservations et découvrez nos espaces
         </p>
       </div>

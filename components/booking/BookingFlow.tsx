@@ -13,6 +13,7 @@ import {
 import { fr } from 'date-fns/locale'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Calendar,
@@ -27,6 +28,8 @@ import {
   Star,
   Users,
 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
 // Types for booking flow
@@ -62,6 +65,16 @@ interface BookingData {
   durationType: 'hour' | 'day' | 'week' | 'month'
   guests: number
   totalPrice: number
+  paymentMethod: string | null
+}
+
+interface PaymentMethod {
+  id: string
+  name: string
+  icon: any
+  description: string
+  popular?: boolean
+  available: boolean
 }
 
 const SPACES: Space[] = [
@@ -102,7 +115,7 @@ const SPACES: Space[] = [
       'Accès boissons',
       'Ambiance café',
     ],
-    image: 'bg-linear-to-br from-amber-400 to-orange-600',
+    image: 'bg-linear-to-br from-coffee-primary to-coffee-accent',
     available: true,
     rating: 4.8,
     specialty: 'Ambiance café conviviale',
@@ -312,7 +325,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     <div className="space-y-4">
       {/* Month Header */}
       <div className="text-center">
-        {/* <h3 className="text-coffee-accent text-lg font-semibold">
+        {/* <h3 className="text-coffee-primary text-lg font-semibold">
           {format(currentMonth, 'MMMM yyyy', { locale: fr })}
         </h3> */}
       </div>
@@ -320,7 +333,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
       {/* Date Cards */}
       <div
         ref={scrollContainerRef}
-        className="flex cursor-grab select-none gap-3 overflow-x-auto scroll-smooth px-2 py-4"
+        className="flex cursor-grab gap-3 overflow-x-auto scroll-smooth px-2 py-4 select-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -339,11 +352,11 @@ const DateSelector: React.FC<DateSelectorProps> = ({
             className="border-coffee-primary/50 bg-coffee-primary/10 hover:border-coffee-primary hover:bg-coffee-primary/20 min-w-[100px] shrink-0 rounded-xl border-2 p-4 text-center backdrop-blur-sm transition-all duration-200"
           >
             <div className="flex flex-col items-center">
-              <ChevronLeft className="text-coffee-primary mb-1 h-6 w-6" />
-              <div className="text-coffee-accent text-sm font-medium">
+              <ChevronLeft className="text-coffee-accent mb-1 h-6 w-6" />
+              <div className="text-coffee-primary text-sm font-medium">
                 {format(prevMonth, 'MMM', { locale: fr })}
               </div>
-              <div className="text-coffee-accent/70 text-xs">
+              <div className="text-coffee-primary/70 text-xs">
                 {format(prevMonth, 'yyyy')}
               </div>
             </div>
@@ -365,8 +378,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({
               whileTap={{ scale: 0.95 }}
               className={`min-w-[80px] shrink-0 rounded-xl border-2 p-4 text-center transition-all duration-200 ${
                 isSelected
-                  ? 'border-coffee-primary bg-coffee-primary/20 text-coffee-accent shadow-lg'
-                  : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent/80 border-white/30 bg-white/20 backdrop-blur-sm'
+                  ? 'border-coffee-primary bg-coffee-primary/20 text-coffee-primary shadow-lg'
+                  : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary/80 border-white/30 bg-white/20 backdrop-blur-sm'
               }`}
             >
               <div className="text-sm font-medium">
@@ -374,7 +387,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
               </div>
               <div className="mt-1 text-lg font-bold">{format(date, 'd')}</div>
               {isToday && (
-                <div className="text-coffee-primary mt-1 text-xs">
+                <div className="text-coffee-accent mt-1 text-xs">
                   Aujourd&apos;hui
                 </div>
               )}
@@ -390,11 +403,11 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           className="border-coffee-primary/50 bg-coffee-primary/10 hover:border-coffee-primary hover:bg-coffee-primary/20 min-w-[100px] shrink-0 rounded-xl border-2 p-4 text-center backdrop-blur-sm transition-all duration-200"
         >
           <div className="flex flex-col items-center">
-            <ChevronRight className="text-coffee-primary mb-1 h-6 w-6" />
-            <div className="text-coffee-accent text-sm font-medium">
+            <ChevronRight className="text-coffee-accent mb-1 h-6 w-6" />
+            <div className="text-coffee-primary text-sm font-medium">
               {format(nextMonth, 'MMM', { locale: fr })}
             </div>
-            <div className="text-coffee-accent/70 text-xs">
+            <div className="text-coffee-primary/70 text-xs">
               {format(nextMonth, 'yyyy')}
             </div>
           </div>
@@ -405,6 +418,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({
 }
 
 export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
+  const { data: session } = useSession()
+  const router = useRouter()
   const [step, setStep] = useState(preSelectedSpace ? 2 : 1) // Étape 1 si pas d'espace présélectionné
 
   const [bookingData, setBookingData] = useState<BookingData>({
@@ -416,6 +431,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
     durationType: 'hour',
     guests: 1,
     totalPrice: 0,
+    paymentMethod: 'onsite', // Pré-sélectionner la seule méthode disponible
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -423,6 +439,144 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
     [key: string]: boolean
   }>({})
   const [showConfetti, setShowConfetti] = useState(false)
+
+  // Définition des méthodes de paiement
+  const paymentMethods: PaymentMethod[] = [
+    {
+      id: 'onsite',
+      name: 'Paiement sur place',
+      icon: Coffee,
+      description: 'Réglez directement au café',
+      available: true,
+      popular: true
+    },
+    {
+      id: 'card',
+      name: 'Carte bancaire',
+      icon: CreditCard,
+      description: 'Paiement sécurisé par Stripe',
+      available: true
+    },
+    {
+      id: 'paypal',
+      name: 'PayPal',
+      icon: CreditCard,
+      description: 'Paiement via PayPal',
+      available: true
+    }
+  ]
+
+  // Fonction pour sélectionner une méthode de paiement
+  const selectPaymentMethod = (methodId: string) => {
+    const method = paymentMethods.find(m => m.id === methodId)
+    if (method && method.available) {
+      updateBookingData({ paymentMethod: methodId })
+    }
+  }
+
+  // Fonction pour confirmer la réservation
+  const handleConfirmBooking = async () => {
+    if (!session?.user) {
+      router.push('/login')
+      return
+    }
+
+    // Si les heures manquent, essayer de les définir automatiquement
+    if (bookingData.space && bookingData.date && (!bookingData.startTime || !bookingData.endTime)) {
+      const firstAvailableTime = getFirstAvailableTime(bookingData.date)
+      
+      if (firstAvailableTime) {
+        const [hours, minutes] = firstAvailableTime.split(':').map(Number)
+        let endHours = hours + 2
+        
+        // S'assurer que l'heure de fin ne dépasse pas les créneaux disponibles
+        const maxEndTime = TIME_SLOTS[TIME_SLOTS.length - 1].time
+        const [maxHours] = maxEndTime.split(':').map(Number)
+        
+        if (endHours > maxHours) {
+          endHours = maxHours
+        }
+        
+        const endTime = `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+        
+        updateBookingData({
+          startTime: bookingData.startTime || firstAvailableTime,
+          endTime: bookingData.endTime || endTime
+        })
+        
+        // Relancer la validation après la mise à jour
+        setTimeout(() => handleConfirmBooking(), 100)
+        return
+      }
+    }
+
+    if (
+      !bookingData.space ||
+      !bookingData.date ||
+      !bookingData.startTime ||
+      !bookingData.endTime ||
+      !bookingData.paymentMethod
+    ) {
+      setErrors({ general: 'Données de réservation incomplètes. Veuillez sélectionner une méthode de paiement.' })
+      return
+    }
+
+    setIsLoading(true)
+    setErrors({})
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin', // Inclure les cookies de session
+        body: JSON.stringify({
+          spaceId: bookingData.space.id,
+          date: bookingData.date.toISOString().split('T')[0], // YYYY-MM-DD
+          startTime: bookingData.startTime,
+          endTime: bookingData.endTime,
+          duration: bookingData.durationType === 'hour' && bookingData.startTime && bookingData.endTime
+            ? calculateDurationFromTimes(bookingData.startTime, bookingData.endTime)
+            : bookingData.duration,
+          durationType: bookingData.durationType,
+          guests: bookingData.guests,
+          paymentMethod: bookingData.paymentMethod,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || 'Erreur lors de la création de la réservation'
+        )
+      }
+
+      // Gérer la réponse selon le type de paiement
+      if (result.paymentUrl) {
+        // Paiement Stripe : rediriger vers la page de paiement
+        console.log('Redirection vers Stripe:', result.paymentUrl)
+        window.location.href = result.paymentUrl
+      } else {
+        // Paiement sur place : afficher les confettis puis rediriger vers la page de confirmation
+        setShowConfetti(true)
+        setTimeout(() => {
+          router.push(`/payment/success?booking_id=${result.booking.id}&payment_method=onsite`)
+        }, 2000)
+      }
+    } catch (error) {
+      console.error('Erreur confirmation:', error)
+      setErrors({
+        general:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur est survenue lors de la confirmation',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Initialiser la première heure disponible quand un espace est sélectionné et qu'on arrive à l'étape 2
   useEffect(() => {
@@ -737,13 +891,13 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
   return (
     <div className="from-coffee-secondary/20 to-coffee-secondary/10 relative min-h-screen overflow-hidden bg-linear-to-br via-white pt-24 sm:pt-24">
       {/* Navbar Transition Gradient */}
-      <div className="absolute left-0 right-0 top-0 h-32 bg-linear-to-b from-white/60 via-white/30 to-transparent backdrop-blur-sm" />
+      <div className="absolute top-0 right-0 left-0 h-32 bg-linear-to-b from-white/60 via-white/30 to-transparent backdrop-blur-sm" />
 
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="bg-coffee-primary/10 absolute -right-40 -top-40 h-80 w-80 rounded-full blur-3xl" />
+        <div className="bg-coffee-primary/10 absolute -top-40 -right-40 h-80 w-80 rounded-full blur-3xl" />
         <div className="bg-coffee-accent/10 absolute -bottom-40 -left-40 h-80 w-80 rounded-full blur-3xl" />
-        <div className="from-coffee-primary/5 to-coffee-accent/5 absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-linear-to-r blur-3xl" />
+        <div className="from-coffee-primary/5 to-coffee-accent/5 absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-linear-to-r blur-3xl" />
       </div>
 
       {/* Enhanced Header with Better Spacing */}
@@ -757,14 +911,14 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
               aria-label="Étape précédente"
             >
               <ArrowLeft
-                className={`h-6 w-6 ${step === 1 ? 'text-gray-300' : 'text-coffee-accent'}`}
+                className={`h-6 w-6 ${step === 1 ? 'text-gray-300' : 'text-coffee-primary'}`}
               />
             </button>
             <div className="flex-1 text-center">
-              <h1 className="text-coffee-accent mb-1 text-2xl font-bold">
+              <h1 className="text-coffee-primary mb-1 text-2xl font-bold">
                 Réservation Cow or King
               </h1>
-              <p className="text-coffee-accent/70 font-medium">
+              <p className="text-coffee-primary/70 font-medium">
                 {getStepTitle()}
               </p>
             </div>
@@ -790,7 +944,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
               {[1, 2, 3, 4].map((stepNum) => (
                 <motion.div
                   key={stepNum}
-                  className={`flex flex-col items-center ${stepNum <= step ? 'text-coffee-primary' : 'text-gray-400'}`}
+                  className={`flex flex-col items-center ${stepNum <= step ? 'text-coffee-accent' : 'text-gray-400'}`}
                   initial={{ scale: 0.8 }}
                   animate={{ scale: stepNum <= step ? 1.1 : 1 }}
                   transition={{ duration: 0.3 }}
@@ -837,7 +991,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-coffee-primary mt-6 flex items-center justify-center gap-3 rounded-xl bg-white/50 p-4 shadow-sm backdrop-blur-sm"
+              className="text-coffee-accent mt-6 flex items-center justify-center gap-3 rounded-xl bg-white/50 p-4 shadow-sm backdrop-blur-sm"
             >
               <div className="border-coffee-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
               <span className="font-medium">
@@ -849,7 +1003,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
       </div>
 
       {/* Main Content Area with Better Spacing */}
-      <div className="container relative z-10 mx-auto min-h-[calc(100vh-300px)] max-w-4xl px-4 py-8">
+      <div className="relative z-10 container mx-auto min-h-[calc(100vh-300px)] max-w-4xl px-4 py-8">
         <AnimatePresence mode="wait">
           {/* Step 1: Space Selection - Enhanced with Glass Cards */}
           {step === 1 && (
@@ -870,7 +1024,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="text-coffee-accent mb-3 text-3xl font-bold"
+                      className="text-coffee-primary mb-3 text-3xl font-bold"
                     >
                       Quel espace vous convient ?
                     </motion.h2>
@@ -878,7 +1032,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-coffee-accent/70 text-lg"
+                      className="text-coffee-primary/70 text-lg"
                     >
                       Choisissez l'ambiance parfaite pour votre travail
                     </motion.p>
@@ -908,7 +1062,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
                         {/* Popular Star Badge */}
                         {space.isPopular && (
-                          <div className="absolute right-3 top-3 z-10">
+                          <div className="absolute top-3 right-3 z-10">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r from-yellow-400 to-yellow-500 shadow-lg">
                               <Star className="h-4 w-4 fill-current text-white" />
                             </div>
@@ -921,7 +1075,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           <div className="mb-4 flex items-start justify-between">
                             <div className="flex-1">
                               <div className="mb-2 flex items-center gap-2">
-                                <h3 className="text-coffee-accent text-xl font-bold">
+                                <h3 className="text-coffee-primary text-xl font-bold">
                                   {space.name}
                                 </h3>
                                 <div className="flex items-center gap-1">
@@ -931,10 +1085,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                   </span>
                                 </div>
                               </div>
-                              <p className="text-coffee-accent/70 mb-1 text-sm">
+                              <p className="text-coffee-primary/70 mb-1 text-sm">
                                 {space.location}
                               </p>
-                              <p className="text-coffee-accent/60 text-xs font-medium">
+                              <p className="text-coffee-primary/60 text-xs font-medium">
                                 {space.capacity} places • {space.specialty}
                               </p>
                             </div>
@@ -958,7 +1112,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                               .map((feature, index) => (
                                 <span
                                   key={index}
-                                  className="bg-coffee-primary/10 text-coffee-accent border-coffee-primary/20 rounded-full border px-2 py-1 text-xs"
+                                  className="bg-coffee-primary/10 text-coffee-primary border-coffee-primary/20 rounded-full border px-2 py-1 text-xs"
                                 >
                                   {feature}
                                 </span>
@@ -973,18 +1127,18 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           {/* Pricing */}
                           <div className="border-coffee-primary/10 flex items-center justify-between border-t pt-4">
                             <div>
-                              <span className="text-coffee-primary text-2xl font-bold">
+                              <span className="text-coffee-accent text-2xl font-bold">
                                 {space.pricePerHour}€
                               </span>
-                              <span className="text-coffee-accent/60 text-sm">
+                              <span className="text-coffee-primary/60 text-sm">
                                 /heure
                               </span>
                             </div>
                             <div className="text-right">
-                              <div className="text-coffee-accent text-sm font-medium">
+                              <div className="text-coffee-primary text-sm font-medium">
                                 {space.pricePerDay}€/jour
                               </div>
-                              <div className="text-coffee-accent/60 text-xs">
+                              <div className="text-coffee-primary/60 text-xs">
                                 Dès {space.pricePerWeek}€/sem
                               </div>
                             </div>
@@ -1056,10 +1210,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
                     onClick={prevStep}
-                    className="absolute left-6 top-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
+                    className="absolute top-6 left-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
                     aria-label="Étape précédente"
                   >
-                    <ArrowLeft className="text-coffee-accent h-5 w-5" />
+                    <ArrowLeft className="text-coffee-primary h-5 w-5" />
                   </motion.button>
 
                   <div className="mb-8 text-center">
@@ -1067,7 +1221,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="text-coffee-accent mb-3 text-3xl font-bold"
+                      className="text-coffee-primary mb-3 text-3xl font-bold"
                     >
                       Quand voulez-vous venir ?
                     </motion.h2>
@@ -1075,7 +1229,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-coffee-accent/70 text-lg"
+                      className="text-coffee-primary/70 text-lg"
                     >
                       Sélectionnez votre durée et date de réservation
                     </motion.p>
@@ -1088,7 +1242,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                    <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                       Type de réservation
                     </label>
                     <div className="grid grid-cols-4 gap-3">
@@ -1122,15 +1276,15 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           <Icon
                             className={`mx-auto mb-2 h-7 w-7 ${
                               bookingData.durationType === type
-                                ? 'text-coffee-primary'
-                                : 'text-coffee-accent/60'
+                                ? 'text-coffee-accent'
+                                : 'text-coffee-primary/60'
                             }`}
                           />
                           <div
                             className={`text-sm font-medium ${
                               bookingData.durationType === type
-                                ? 'text-coffee-accent'
-                                : 'text-coffee-accent/70'
+                                ? 'text-coffee-primary'
+                                : 'text-coffee-primary/70'
                             }`}
                           >
                             {label}
@@ -1157,7 +1311,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
                   >
-                    <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                    <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                       {bookingData.durationType === 'hour'
                         ? null
                         : bookingData.durationType === 'day'
@@ -1175,41 +1329,44 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.7 }}
                         >
-                          <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                          <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                             Heure de début
                           </label>
                           <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
                             {TIME_SLOTS.filter((slot) => {
-                              return slot.available && isTimeSlotAvailable(slot.time, bookingData.date)
+                              return (
+                                slot.available &&
+                                isTimeSlotAvailable(slot.time, bookingData.date)
+                              )
                             }).map((slot, index) => (
-                                <motion.button
-                                  key={`start-${slot.time}`}
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: 0.8 + index * 0.02 }}
-                                  className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
-                                    bookingData.startTime === slot.time
-                                      ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
-                                      : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
-                                  }`}
-                                  onClick={() => {
-                                    updateBookingData({ startTime: slot.time })
-                                    // Reset endTime si elle est avant la nouvelle startTime
-                                    if (
-                                      bookingData.endTime &&
-                                      bookingData.endTime <= slot.time
-                                    ) {
-                                      updateBookingData({ endTime: '' })
-                                    }
-                                  }}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                >
-                                  {slot.time}
-                                  {slot.isPopular && (
-                                    <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-orange-500 shadow-lg"></div>
-                                  )}
-                                </motion.button>
+                              <motion.button
+                                key={`start-${slot.time}`}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.8 + index * 0.02 }}
+                                className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
+                                  bookingData.startTime === slot.time
+                                    ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
+                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
+                                }`}
+                                onClick={() => {
+                                  updateBookingData({ startTime: slot.time })
+                                  // Reset endTime si elle est avant la nouvelle startTime
+                                  if (
+                                    bookingData.endTime &&
+                                    bookingData.endTime <= slot.time
+                                  ) {
+                                    updateBookingData({ endTime: '' })
+                                  }
+                                }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                {slot.time}
+                                {slot.isPopular && (
+                                  <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500 shadow-lg"></div>
+                                )}
+                              </motion.button>
                             ))}
                           </div>
                         </motion.div>
@@ -1220,10 +1377,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.8 }}
                         >
-                          <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                          <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                             Heure de fin
                             {bookingData.startTime && (
-                              <span className="text-coffee-accent/60 ml-2 text-sm font-normal">
+                              <span className="text-coffee-primary/60 ml-2 text-sm font-normal">
                                 (minimum 1h après {bookingData.startTime})
                               </span>
                             )}
@@ -1242,31 +1399,33 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                               const isSlotAvailable =
                                 slot.available &&
                                 isTimeSlotAvailable(slot.time, bookingData.date)
-                              
-                              return isSlotAvailable &&
+
+                              return (
+                                isSlotAvailable &&
                                 bookingData.startTime &&
-                                slot.time >= getMinimumEndTime(bookingData.startTime)
-                            }).map((slot, index) => (
-                                <motion.button
-                                  key={`end-${slot.time}`}
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: 0.9 + index * 0.02 }}
-                                  className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
-                                    bookingData.endTime === slot.time
-                                      ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
-                                      : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
-                                  }`}
-                                  onClick={() =>
-                                    updateBookingData({ endTime: slot.time })
-                                  }
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                >
-                                  {slot.time}
-                                </motion.button>
+                                slot.time >=
+                                  getMinimumEndTime(bookingData.startTime)
                               )
-                            )}
+                            }).map((slot, index) => (
+                              <motion.button
+                                key={`end-${slot.time}`}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.9 + index * 0.02 }}
+                                className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
+                                  bookingData.endTime === slot.time
+                                    ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
+                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
+                                }`}
+                                onClick={() =>
+                                  updateBookingData({ endTime: slot.time })
+                                }
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                {slot.time}
+                              </motion.button>
+                            ))}
                           </div>
                         </motion.div>
 
@@ -1279,8 +1438,8 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             className="mt-6 text-center"
                           >
                             <div className="border-coffee-primary/30 bg-coffee-primary/10 inline-flex items-center gap-4 rounded-xl border px-6 py-3 backdrop-blur-sm">
-                              <Clock className="text-coffee-primary h-5 w-5" />
-                              <span className="text-coffee-accent font-semibold">
+                              <Clock className="text-coffee-accent h-5 w-5" />
+                              <span className="text-coffee-primary font-semibold">
                                 Durée:{' '}
                                 {calculateDurationFromTimes(
                                   bookingData.startTime,
@@ -1288,7 +1447,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                 )}
                                 h
                               </span>
-                              <span className="text-coffee-accent/70 text-sm">
+                              <span className="text-coffee-primary/70 text-sm">
                                 ({bookingData.startTime} → {bookingData.endTime}
                                 )
                               </span>
@@ -1296,7 +1455,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           </motion.div>
                         )}
 
-                        <p className="text-coffee-accent/60 mt-4 text-center text-xs">
+                        <p className="text-coffee-primary/60 mt-4 text-center text-xs">
                           • Point orange = créneau populaire
                           <br />• Sélectionnez d'abord l'heure de début, puis
                           l'heure de fin
@@ -1313,7 +1472,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     ) : (
                       <div className="flex items-center justify-center gap-6">
                         <motion.button
-                          className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
+                          className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-primary flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
                           onClick={() =>
                             updateBookingData({
                               duration: Math.max(1, bookingData.duration - 1),
@@ -1324,11 +1483,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                         >
                           -
                         </motion.button>
-                        <span className="text-coffee-accent min-w-16 text-center text-4xl font-bold">
+                        <span className="text-coffee-primary min-w-16 text-center text-4xl font-bold">
                           {bookingData.duration}
                         </span>
                         <motion.button
-                          className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
+                          className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-primary flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
                           onClick={() =>
                             updateBookingData({
                               duration: bookingData.duration + 1,
@@ -1352,7 +1511,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 }}
                     >
-                      <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                      <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                         Type de réservation
                       </label>
                       <div className="grid grid-cols-4 gap-3">
@@ -1386,15 +1545,15 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             <Icon
                               className={`mx-auto mb-2 h-7 w-7 ${
                                 bookingData.durationType === type
-                                  ? 'text-coffee-primary'
-                                  : 'text-coffee-accent/60'
+                                  ? 'text-coffee-accent'
+                                  : 'text-coffee-primary/60'
                               }`}
                             />
                             <div
                               className={`text-sm font-medium ${
                                 bookingData.durationType === type
-                                  ? 'text-coffee-accent'
-                                  : 'text-coffee-accent/70'
+                                  ? 'text-coffee-primary'
+                                  : 'text-coffee-primary/70'
                               }`}
                             >
                               {label}
@@ -1410,11 +1569,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
                       >
-                        <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                        <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                           Date sélectionnée
                         </label>
                         <div className="rounded-xl border border-white/30 bg-white/20 p-4 backdrop-blur-sm">
-                          <span className="text-coffee-accent font-medium">
+                          <span className="text-coffee-primary font-medium">
                             {bookingData.date
                               ? format(bookingData.date, 'EEEE d MMMM yyyy', {
                                   locale: fr,
@@ -1430,7 +1589,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.6 }}
                     >
-                      <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                      <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                         {bookingData.durationType === 'hour'
                           ? null
                           : bookingData.durationType === 'day'
@@ -1446,7 +1605,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.7 }}
                         >
-                          <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                          <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                             Heure de début
                           </label>
                           <div className="grid grid-cols-3 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
@@ -1461,7 +1620,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                 className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                                   bookingData.startTime === slot.time
                                     ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
-                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
+                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
                                 }`}
                                 onClick={() =>
                                   updateBookingData({ startTime: slot.time })
@@ -1476,14 +1635,14 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                               </motion.button>
                             ))}
                           </div>
-                          <p className="text-coffee-accent/60 mt-2 text-center text-xs">
+                          <p className="text-coffee-primary/60 mt-2 text-center text-xs">
                             • Point orange = créneau populaire
                           </p>
                         </motion.div>
                       ) : (
                         <div className="flex items-center justify-center gap-6">
                           <motion.button
-                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
+                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-primary flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
                             onClick={() =>
                               updateBookingData({
                                 duration: Math.max(1, bookingData.duration - 1),
@@ -1494,11 +1653,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           >
                             -
                           </motion.button>
-                          <span className="text-coffee-accent min-w-16 text-center text-4xl font-bold">
+                          <span className="text-coffee-primary min-w-16 text-center text-4xl font-bold">
                             {bookingData.duration}
                           </span>
                           <motion.button
-                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
+                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-primary flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300"
                             onClick={() =>
                               updateBookingData({
                                 duration: bookingData.duration + 1,
@@ -1523,7 +1682,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.7 }}
                         >
-                          <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                          <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                             Heure de début
                           </label>
                           <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
@@ -1538,7 +1697,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                 className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
                                   bookingData.startTime === slot.time
                                     ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
-                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-accent border border-white/30 bg-white/40'
+                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
                                 }`}
                                 onClick={() =>
                                   updateBookingData({ startTime: slot.time })
@@ -1553,7 +1712,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                               </motion.button>
                             ))}
                           </div>
-                          <p className="text-coffee-accent/60 mt-2 text-center text-xs">
+                          <p className="text-coffee-primary/60 mt-2 text-center text-xs">
                             • Point orange = créneau populaire
                           </p>
                         </motion.div>
@@ -1568,13 +1727,13 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       className="from-coffee-primary/10 to-coffee-accent/10 border-coffee-primary/20 mt-10 w-full rounded-2xl border bg-linear-to-r p-6 backdrop-blur-sm"
                     >
                       <div className="text-center">
-                        <p className="text-coffee-accent/70 mb-2 text-sm font-medium">
+                        <p className="text-coffee-primary/70 mb-2 text-sm font-medium">
                           Prix estimé
                         </p>
-                        <div className="text-coffee-primary mb-2 text-4xl font-bold">
+                        <div className="text-coffee-accent mb-2 text-4xl font-bold">
                           {calculatePrice()}€
                         </div>
-                        <p className="text-coffee-accent/60 text-sm">
+                        <p className="text-coffee-primary/60 text-sm">
                           {bookingData.space.name} •{' '}
                           {bookingData.durationType === 'hour' &&
                           bookingData.startTime &&
@@ -1651,10 +1810,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
                     onClick={prevStep}
-                    className="absolute left-6 top-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
+                    className="absolute top-6 left-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
                     aria-label="Étape précédente"
                   >
-                    <ArrowLeft className="text-coffee-accent h-5 w-5" />
+                    <ArrowLeft className="text-coffee-primary h-5 w-5" />
                   </motion.button>
 
                   <div className="mb-8 text-center">
@@ -1662,7 +1821,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="text-coffee-accent mb-3 text-3xl font-bold"
+                      className="text-coffee-primary mb-3 text-3xl font-bold"
                     >
                       Finaliser les détails
                     </motion.h2>
@@ -1670,7 +1829,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-coffee-accent/70 text-lg"
+                      className="text-coffee-primary/70 text-lg"
                     >
                       Quelques informations supplémentaires
                     </motion.p>
@@ -1685,12 +1844,12 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       className="space-y-6"
                     >
                       <div>
-                        <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                        <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                           Nombre de personnes (vous inclus)
                         </label>
                         <div className="flex items-center justify-center gap-6">
                           <motion.button
-                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-primary flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={() =>
                               updateBookingData({
                                 guests: Math.max(1, bookingData.guests - 1),
@@ -1706,11 +1865,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           >
                             -
                           </motion.button>
-                          <span className="text-coffee-accent min-w-16 text-center text-4xl font-bold">
+                          <span className="text-coffee-primary min-w-16 text-center text-4xl font-bold">
                             {bookingData.guests}
                           </span>
                           <motion.button
-                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="hover:bg-coffee-primary/10 hover:border-coffee-primary/50 text-coffee-primary flex h-14 w-14 items-center justify-center rounded-xl border-2 border-white/30 bg-white/20 text-xl font-bold backdrop-blur-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={() =>
                               updateBookingData({
                                 guests: Math.min(
@@ -1741,7 +1900,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             +
                           </motion.button>
                         </div>
-                        <p className="text-coffee-accent/60 mt-2 text-center text-sm">
+                        <p className="text-coffee-primary/60 mt-2 text-center text-sm">
                           Capacité maximale: {bookingData.space?.capacity}{' '}
                           personnes
                         </p>
@@ -1750,8 +1909,8 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       {/* Users Icon Display */}
                       <div className="flex justify-center">
                         <div className="flex items-center gap-2 rounded-xl border border-white/30 bg-white/20 p-4 backdrop-blur-sm">
-                          <Users className="text-coffee-primary h-6 w-6" />
-                          <span className="text-coffee-accent font-medium">
+                          <Users className="text-coffee-accent h-6 w-6" />
+                          <span className="text-coffee-primary font-medium">
                             {bookingData.guests}{' '}
                             {bookingData.guests === 1
                               ? 'personne'
@@ -1769,40 +1928,40 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       className="space-y-6"
                     >
                       <div>
-                        <h3 className="text-coffee-accent mb-4 text-lg font-semibold">
+                        <h3 className="text-coffee-primary mb-4 text-lg font-semibold">
                           Informations de contact
                         </h3>
 
                         <div className="space-y-4">
                           <div>
-                            <label className="text-coffee-accent/70 mb-2 block text-sm font-medium">
+                            <label className="text-coffee-primary/70 mb-2 block text-sm font-medium">
                               Nom complet
                             </label>
                             <input
                               type="text"
-                              className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-accent placeholder:text-coffee-accent/50 w-full rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
+                              className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-primary placeholder:text-coffee-primary/50 w-full rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
                               placeholder="Votre nom complet"
                             />
                           </div>
 
                           <div>
-                            <label className="text-coffee-accent/70 mb-2 block text-sm font-medium">
+                            <label className="text-coffee-primary/70 mb-2 block text-sm font-medium">
                               Email
                             </label>
                             <input
                               type="email"
-                              className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-accent placeholder:text-coffee-accent/50 w-full rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
+                              className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-primary placeholder:text-coffee-primary/50 w-full rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
                               placeholder="votre@email.com"
                             />
                           </div>
 
                           <div>
-                            <label className="text-coffee-accent/70 mb-2 block text-sm font-medium">
+                            <label className="text-coffee-primary/70 mb-2 block text-sm font-medium">
                               Téléphone
                             </label>
                             <input
                               type="tel"
-                              className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-accent placeholder:text-coffee-accent/50 w-full rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
+                              className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-primary placeholder:text-coffee-primary/50 w-full rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
                               placeholder="06 XX XX XX XX"
                             />
                           </div>
@@ -1818,11 +1977,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     transition={{ delay: 0.6 }}
                     className="mt-8"
                   >
-                    <label className="text-coffee-accent mb-4 block text-lg font-semibold">
+                    <label className="text-coffee-primary mb-4 block text-lg font-semibold">
                       Demandes particulières (optionnel)
                     </label>
                     <textarea
-                      className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-accent placeholder:text-coffee-accent/50 w-full resize-none rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
+                      className="focus:ring-coffee-primary focus:border-coffee-primary text-coffee-primary placeholder:text-coffee-primary/50 w-full resize-none rounded-xl border border-white/30 bg-white/20 p-4 font-medium backdrop-blur-sm transition-all duration-300 focus:ring-2"
                       rows={4}
                       placeholder="Équipements spéciaux, allergies alimentaires, préférences d'ambiance, etc."
                     />
@@ -1867,10 +2026,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
                     onClick={prevStep}
-                    className="absolute left-6 top-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
+                    className="absolute top-6 left-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
                     aria-label="Étape précédente"
                   >
-                    <ArrowLeft className="text-coffee-accent h-5 w-5" />
+                    <ArrowLeft className="text-coffee-primary h-5 w-5" />
                   </motion.button>
 
                   <div className="mb-8 text-center">
@@ -1890,7 +2049,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-coffee-accent mb-3 text-3xl font-bold"
+                      className="text-coffee-primary mb-3 text-3xl font-bold"
                     >
                       Récapitulatif
                     </motion.h2>
@@ -1898,7 +2057,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="text-coffee-accent/70 text-lg"
+                      className="text-coffee-primary/70 text-lg"
                     >
                       Vérifiez vos informations avant de confirmer
                     </motion.p>
@@ -1912,26 +2071,26 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       transition={{ delay: 0.5 }}
                     >
                       <div className="rounded-2xl border border-white/30 bg-white/60 p-6 shadow-lg backdrop-blur-sm">
-                        <h3 className="text-coffee-accent mb-6 flex items-center gap-3 text-xl font-bold">
-                          <MapPin className="text-coffee-primary h-6 w-6" />
+                        <h3 className="text-coffee-primary mb-6 flex items-center gap-3 text-xl font-bold">
+                          <MapPin className="text-coffee-accent h-6 w-6" />
                           {bookingData.space?.name}
                         </h3>
 
                         <div className="space-y-4">
                           <div className="flex items-center justify-between py-2">
-                            <span className="text-coffee-accent/70 font-medium">
+                            <span className="text-coffee-primary/70 font-medium">
                               Lieu:
                             </span>
-                            <span className="text-coffee-accent font-semibold">
+                            <span className="text-coffee-primary font-semibold">
                               {bookingData.space?.location}
                             </span>
                           </div>
 
                           <div className="flex items-center justify-between py-2">
-                            <span className="text-coffee-accent/70 font-medium">
+                            <span className="text-coffee-primary/70 font-medium">
                               Date:
                             </span>
-                            <span className="text-coffee-accent font-semibold">
+                            <span className="text-coffee-primary font-semibold">
                               {bookingData.date?.toLocaleDateString('fr-FR', {
                                 weekday: 'long',
                                 year: 'numeric',
@@ -1942,10 +2101,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           </div>
 
                           <div className="flex items-center justify-between py-2">
-                            <span className="text-coffee-accent/70 font-medium">
+                            <span className="text-coffee-primary/70 font-medium">
                               Durée:
                             </span>
-                            <span className="text-coffee-accent font-semibold">
+                            <span className="text-coffee-primary font-semibold">
                               {bookingData.duration}{' '}
                               {bookingData.durationType === 'hour'
                                 ? 'heure(s)'
@@ -1959,20 +2118,20 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
                           {bookingData.startTime && (
                             <div className="flex items-center justify-between py-2">
-                              <span className="text-coffee-accent/70 font-medium">
+                              <span className="text-coffee-primary/70 font-medium">
                                 Heure de début:
                               </span>
-                              <span className="text-coffee-accent font-semibold">
+                              <span className="text-coffee-primary font-semibold">
                                 {bookingData.startTime}
                               </span>
                             </div>
                           )}
 
                           <div className="flex items-center justify-between py-2">
-                            <span className="text-coffee-accent/70 font-medium">
+                            <span className="text-coffee-primary/70 font-medium">
                               Personnes:
                             </span>
-                            <span className="text-coffee-accent flex items-center gap-2 font-semibold">
+                            <span className="text-coffee-primary flex items-center gap-2 font-semibold">
                               <Users className="h-4 w-4" />
                               {bookingData.guests}
                             </span>
@@ -1980,10 +2139,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
                           <div className="border-coffee-primary/20 mt-4 border-t pt-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-coffee-accent text-xl font-bold">
+                              <span className="text-coffee-primary text-xl font-bold">
                                 Total:
                               </span>
-                              <span className="text-coffee-primary text-3xl font-bold">
+                              <span className="text-coffee-accent text-3xl font-bold">
                                 {bookingData.totalPrice}€
                               </span>
                             </div>
@@ -2000,63 +2159,113 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       className="space-y-6"
                     >
                       <div>
-                        <h3 className="text-coffee-accent mb-4 text-xl font-bold">
+                        <h3 className="text-coffee-primary mb-2 text-xl font-bold">
                           Méthode de paiement
                         </h3>
+                        <p className="text-coffee-primary/70 mb-4 text-sm">
+                          Sélectionnez votre méthode de paiement préférée
+                        </p>
+                        {bookingData.paymentMethod === 'onsite' && (
+                          <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3">
+                            <div className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-green-600" />
+                              <p className="text-green-800 text-sm font-medium">
+                                Paiement sur place sélectionné - Vous pourrez régler directement au café
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {!bookingData.paymentMethod && (
+                          <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-3">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="h-4 w-4 text-amber-600" />
+                              <p className="text-amber-800 text-sm font-medium">
+                                Veuillez sélectionner une méthode de paiement pour continuer
+                              </p>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="space-y-3">
-                          {[
-                            {
-                              id: 'card',
-                              name: 'Carte bancaire',
-                              icon: CreditCard,
-                              popular: true,
-                              description: 'Paiement sécurisé instantané',
-                            },
-                            {
-                              id: 'paypal',
-                              name: 'PayPal',
-                              icon: CreditCard,
-                              description: 'Paiement via PayPal',
-                            },
-                            {
-                              id: 'onsite',
-                              name: 'Paiement sur place',
-                              icon: Coffee,
-                              description: 'Réglez directement au café',
-                            },
-                          ].map((method, index) => (
-                            <motion.div
-                              key={method.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.7 + index * 0.1 }}
-                              className="hover:border-coffee-primary/50 hover:bg-coffee-primary/10 group cursor-pointer rounded-xl border-2 border-white/30 bg-white/20 p-4 backdrop-blur-sm transition-all duration-300"
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <div className="flex items-start gap-4">
-                                <div className="bg-coffee-primary/10 group-hover:bg-coffee-primary/20 flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-300">
-                                  <method.icon className="text-coffee-primary h-6 w-6" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="mb-1 flex items-center gap-2">
-                                    <span className="text-coffee-accent font-semibold">
-                                      {method.name}
-                                    </span>
-                                    {method.popular && (
-                                      <span className="bg-coffee-primary/20 text-coffee-primary rounded-full px-2 py-1 text-xs font-medium">
-                                        Populaire
-                                      </span>
-                                    )}
+                          {paymentMethods.map((method, index) => {
+                            const isSelected = bookingData.paymentMethod === method.id
+                            const isDisabled = !method.available
+                            
+                            return (
+                              <motion.div
+                                key={method.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 + index * 0.1 }}
+                                className={`group rounded-xl border-2 p-4 backdrop-blur-sm transition-all duration-300 ${
+                                  isDisabled
+                                    ? 'cursor-not-allowed border-gray-300 bg-gray-100/50 opacity-60'
+                                    : isSelected
+                                    ? 'border-coffee-primary bg-coffee-primary/20 shadow-lg'
+                                    : 'cursor-pointer border-white/30 bg-white/20 hover:border-coffee-primary/50 hover:bg-coffee-primary/10'
+                                }`}
+                                whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                                whileTap={!isDisabled ? { scale: 0.98 } : {}}
+                                onClick={() => !isDisabled && selectPaymentMethod(method.id)}
+                              >
+                                <div className="flex items-start gap-4">
+                                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-300 ${
+                                    isSelected
+                                      ? 'bg-coffee-primary text-white'
+                                      : isDisabled
+                                      ? 'bg-gray-200'
+                                      : 'bg-coffee-primary/10 group-hover:bg-coffee-primary/20'
+                                  }`}>
+                                    <method.icon className={`h-6 w-6 ${
+                                      isSelected
+                                        ? 'text-white'
+                                        : isDisabled
+                                        ? 'text-gray-400'
+                                        : 'text-coffee-accent'
+                                    }`} />
                                   </div>
-                                  <p className="text-coffee-accent/60 text-sm">
-                                    {method.description}
-                                  </p>
+                                  <div className="flex-1">
+                                    <div className="mb-1 flex items-center gap-2">
+                                      <span className={`font-semibold ${
+                                        isDisabled
+                                          ? 'text-gray-400'
+                                          : 'text-coffee-primary'
+                                      }`}>
+                                        {method.name}
+                                      </span>
+                                      {method.popular && (
+                                        <span className="bg-coffee-primary/20 text-coffee-accent rounded-full px-2 py-1 text-xs font-medium">
+                                          Populaire
+                                        </span>
+                                      )}
+                                      {!method.available && (
+                                        <span className="bg-gray-200 text-gray-500 rounded-full px-2 py-1 text-xs font-medium">
+                                          Prochainement
+                                        </span>
+                                      )}
+                                      {isSelected && (
+                                        <span className="bg-green-100 text-green-700 rounded-full px-2 py-1 text-xs font-medium">
+                                          Sélectionné
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className={`text-sm ${
+                                      isDisabled
+                                        ? 'text-gray-400'
+                                        : 'text-coffee-primary/60'
+                                    }`}>
+                                      {method.description}
+                                    </p>
+                                  </div>
+                                  {isSelected && (
+                                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-coffee-primary">
+                                      <Check className="h-4 w-4 text-white" />
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                            </motion.div>
-                          ))}
+                              </motion.div>
+                            )
+                          })}
                         </div>
                       </div>
 
@@ -2084,19 +2293,61 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     </motion.div>
                   </div>
 
+                  {/* Error Display */}
+                  {errors.general && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4"
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-red-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-red-800">
+                            {errors.general}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Confirm Button */}
                   <motion.button
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.1 }}
-                    className="from-coffee-primary via-coffee-primary to-coffee-accent mt-8 flex min-h-[64px] w-full items-center justify-center gap-3 rounded-2xl bg-linear-to-r py-5 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+                    className="from-coffee-primary via-coffee-primary to-coffee-accent mt-8 flex min-h-[64px] w-full items-center justify-center gap-3 rounded-2xl bg-linear-to-r py-5 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                     whileHover={{
                       boxShadow: '0 25px 50px -12px rgba(255, 140, 0, 0.4)',
                     }}
+                    onClick={handleConfirmBooking}
+                    disabled={isLoading}
                   >
-                    <Coffee className="h-6 w-6" />
-                    Confirmer ma réservation
-                    <Check className="h-6 w-6" />
+                    {isLoading ? (
+                      <>
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Confirmation en cours...
+                        <div className="h-6 w-6" /> {/* Spacer */}
+                      </>
+                    ) : (
+                      <>
+                        <Coffee className="h-6 w-6" />
+                        Confirmer ma réservation
+                        <Check className="h-6 w-6" />
+                      </>
+                    )}
                   </motion.button>
 
                   {/* Terms */}
@@ -2104,14 +2355,14 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.2 }}
-                    className="text-coffee-accent/60 mt-4 text-center text-xs leading-relaxed"
+                    className="text-coffee-primary/60 mt-4 text-center text-xs leading-relaxed"
                   >
                     En confirmant, vous acceptez nos{' '}
-                    <span className="text-coffee-primary cursor-pointer font-medium hover:underline">
+                    <span className="text-coffee-accent cursor-pointer font-medium hover:underline">
                       conditions d'utilisation
                     </span>{' '}
                     et notre{' '}
-                    <span className="text-coffee-primary cursor-pointer font-medium hover:underline">
+                    <span className="text-coffee-accent cursor-pointer font-medium hover:underline">
                       politique de confidentialité
                     </span>
                   </motion.p>

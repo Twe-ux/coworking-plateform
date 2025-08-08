@@ -198,7 +198,7 @@ export const authOptions: NextAuthOptions = {
           const userPassword = user?.password || dummyPassword
 
           const isPasswordValid = await bcrypt.compare(
-            passwordValidation.sanitized || credentials.password,
+            credentials.password, // Utiliser le mot de passe original
             userPassword
           )
 
@@ -350,7 +350,30 @@ export const authOptions: NextAuthOptions = {
 
         // Si l'URL est relative, la construire avec le bon baseUrl
         if (url.startsWith('/')) {
-          return `${correctBaseUrl}${url}`
+          // Respecter l'URL de redirection demandée si elle est relative et sûre
+          const allowedPaths = [
+            '/',
+            '/dashboard',
+            '/dashboard/',
+            '/reservation',
+            '/dashboard/admin',
+            '/dashboard/manager',
+            '/dashboard/staff',
+            '/dashboard/client'
+          ]
+          
+          // Si l'URL relative est dans la liste autorisée ou commence par /dashboard
+          if (allowedPaths.includes(url) || url.startsWith('/dashboard/')) {
+            return `${correctBaseUrl}${url}`
+          }
+          
+          // Pour les autres pages protégées, vérifier qu'elles sont sûres
+          if (url.startsWith('/reservation') || url.match(/^\/[\w-]+$/)) {
+            return `${correctBaseUrl}${url}`
+          }
+          
+          // Fallback sécurisé
+          return `${correctBaseUrl}/dashboard`
         }
 
         const redirectUrl = new URL(url)

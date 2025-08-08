@@ -46,7 +46,7 @@ export default function NetworkDebug() {
 
       {/* Panel de debug */}
       {isVisible && (
-        <div className="fixed top-4 right-4 w-96 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-50 p-4 max-h-96 overflow-y-auto">
+        <div className="fixed top-4 right-4 w-96 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 max-h-96 overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-lg">Debug Réseau</h3>
             <button
@@ -95,11 +95,11 @@ export default function NetworkDebug() {
             </div>
 
             {!networkInfo.hasCorrectPort && (
-              <div className="bg-red-50 dark:bg-red-900 p-2 rounded border-l-4 border-red-500">
-                <p className="text-red-700 dark:text-red-200 font-medium">
+              <div className="bg-red-50 p-2 rounded border-l-4 border-red-500">
+                <p className="text-red-700 font-medium">
                   ⚠️ Port incorrect détecté !
                 </p>
-                <p className="text-red-600 dark:text-red-300 text-xs mt-1">
+                <p className="text-red-600 text-xs mt-1">
                   Vous êtes sur le port {networkInfo.port} au lieu de 3000
                 </p>
               </div>
