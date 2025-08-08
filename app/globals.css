@@ -23,27 +23,44 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
-  /* Coffee theme colors */
-  /* --color-coffee-primary: #ff8c00;
-  --color-coffee-secondary: #fffaf0;
-  --color-coffee-accent: #2d1b0e;
-  --color-coffee-muted: #e8ddd4;
-  --color-coffee-light: #faebd7;
-  --color-coffee-dark: #654321; */
-
-  /* Cow or king theme colors */
-  --color-coffee-primary: #a1d6a6;
-  --color-coffee-secondary: #f1e97e;
-  --color-coffee-accent: #1f4735;
-  --color-coffee-muted: #c13080;
-  --color-coffee-light: #faebd7;
-  --color-coffee-dark: #654321;
-
+  /* Coffee theme colors - Cow or King Café */
+  --color-coffee-primary: #8B4513; /* Saddle brown - coffee primary */
+  --color-coffee-accent: #D2691E; /* Chocolate - coffee accent */
+  --color-cream-light: #F5F5DC; /* Beige - cream light */
+  --color-coffee-dark: #654321; /* Dark brown */
+  --color-coffee-light: #DEB887; /* Burlywood - light coffee */
+  --color-coffee-muted: #D2B48C; /* Tan - muted coffee */
+  --color-coffee-warm: #CD853F; /* Peru - warm coffee */
+  --color-coffee-secondary: #FFF8DC; /* Cornsilk - secondary background */
+  
+  /* Client dashboard specific colors */
+  --color-client-bg: #FFFEF7; /* Warm white */
+  --color-client-card: #FEFBF3; /* Slightly warmer white */
+  --color-client-border: #E8DDD4; /* Light coffee border */
+  --color-client-text: #3C2415; /* Dark coffee text */
+  --color-client-muted: #8B7355; /* Muted coffee text */
+  
+  /* Admin theme colors (keep existing green theme) */
   --color-vert-foret: #1f4735;
   --color-vert-doux: #a1d6a6;
   --color-bordeaux: #661940;
   --color-fushia: #c13080;
   --color-jaune: #f1e97e;
+
+  /* Utilitaires Tailwind pour les couleurs café */
+  --tw-color-coffee-primary: var(--color-coffee-primary);
+  --tw-color-coffee-accent: var(--color-coffee-accent);
+  --tw-color-cream-light: var(--color-cream-light);
+  --tw-color-coffee-dark: var(--color-coffee-dark);
+  --tw-color-coffee-light: var(--color-coffee-light);
+  --tw-color-coffee-muted: var(--color-coffee-muted);
+  --tw-color-coffee-warm: var(--color-coffee-warm);
+  --tw-color-coffee-secondary: var(--color-coffee-secondary);
+  --tw-color-client-bg: var(--color-client-bg);
+  --tw-color-client-card: var(--color-client-card);
+  --tw-color-client-border: var(--color-client-border);
+  --tw-color-client-text: var(--color-client-text);
+  --tw-color-client-muted: var(--color-client-muted);
 
   /* --color-coffee-primary: #1f4735;
   --color-coffee-secondary: #a1d6a6;

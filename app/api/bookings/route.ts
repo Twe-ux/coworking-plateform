@@ -414,6 +414,7 @@ export async function GET(request: NextRequest) {
       totalPrice: booking.totalPrice,
       status: booking.status,
       paymentStatus: booking.paymentStatus,
+      paymentMethod: booking.paymentMethod,
       notes: booking.notes,
       createdAt: booking.createdAt.toISOString(),
       updatedAt: booking.updatedAt.toISOString(),
