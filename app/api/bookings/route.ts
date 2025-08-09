@@ -14,6 +14,9 @@ import {
   validateBookingData,
   calculateBookingPrice
 } from '@/lib/models'
+import { sendBookingConfirmationEmail } from '@/lib/email'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 // Schema de validation pour la création de réservation
 const createBookingSchema = z.object({
@@ -40,6 +43,37 @@ const getBookingsQuerySchema = z.object({
   limit: z.string().transform(val => parseInt(val) || 10).refine(val => val <= 100, 'Limite trop élevée').optional(),
   offset: z.string().transform(val => parseInt(val) || 0).refine(val => val >= 0, 'Offset invalide').optional()
 })
+
+/**
+ * Envoie un email de confirmation de réservation
+ */
+async function sendBookingConfirmation(booking: any, user: any, space: any) {
+  try {
+    const emailResult = await sendBookingConfirmationEmail({
+      email: process.env.NODE_ENV === 'development' ? 'milone.thierry@gmail.com' : user.email, // Forcé en dev
+      firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
+      lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
+      bookingId: booking._id.toString(),
+      spaceName: space.name,
+      date: format(booking.date, 'dd MMMM yyyy', { locale: fr }),
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      duration: booking.duration,
+      durationType: booking.durationType,
+      guests: booking.guests,
+      totalPrice: booking.totalPrice,
+      paymentMethod: booking.paymentMethod
+    })
+
+    if (emailResult.success) {
+      console.log(`✅ Email de confirmation envoyé pour la réservation ${booking._id}`)
+    } else {
+      console.error(`❌ Échec envoi email confirmation pour ${booking._id}:`, emailResult.error)
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi de l\'email de confirmation:', error)
+  }
+}
 
 /**
  * POST /api/bookings - Créer une nouvelle réservation
@@ -190,6 +224,15 @@ export async function POST(request: NextRequest) {
       ])
 
       console.log(`[BOOKING_CREATED] User ${session.user.id} created onsite booking ${booking._id} for space ${space.id}`)
+
+      // Récupérer les données utilisateur pour l'email
+      const user = await User.findById(session.user.id)
+      if (user) {
+        // Envoyer l'email de confirmation de manière asynchrone
+        setImmediate(() => {
+          sendBookingConfirmation(booking, user, space)
+        })
+      }
 
       return NextResponse.json(
         { 

@@ -521,8 +521,8 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
       id: 'paypal',
       name: 'PayPal',
       icon: CreditCard,
-      description: 'Paiement via PayPal',
-      available: true,
+      description: 'Paiement via PayPal (temporairement indisponible)',
+      available: false,
     },
   ]
 
@@ -1105,6 +1105,9 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
   }
 
   const nextStep = async () => {
+    // Clear previous errors
+    setErrors({})
+
     if (!validateStep(step)) {
       return
     }
@@ -1115,17 +1118,30 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
       // Check availability for step 2 (date/time selection)
       if (step === 2 && bookingData.space && bookingData.date) {
-        const isAvailable = await checkAvailability(
-          bookingData.space.id,
-          bookingData.date,
-          bookingData.startTime
-        )
-        if (!isAvailable) {
+        setIsLoading(true)
+
+        try {
+          const isAvailable = await checkAvailability(
+            bookingData.space.id,
+            bookingData.date,
+            bookingData.startTime
+          )
+          if (!isAvailable) {
+            setErrors({
+              availability:
+                "Cet horaire n'est plus disponible. Veuillez en choisir un autre.",
+            })
+            return
+          }
+        } catch (error) {
+          console.error('Erreur vérification disponibilité:', error)
           setErrors({
             availability:
-              "Cet horaire n'est plus disponible. Veuillez en choisir un autre.",
+              'Erreur lors de la vérification de disponibilité. Veuillez réessayer.',
           })
           return
+        } finally {
+          setIsLoading(false)
         }
       }
 
@@ -1143,7 +1159,32 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
   }
 
   const prevStep = () => {
-    if (step > 1) setStep(step - 1)
+    console.log('🔙 prevStep appelé, step actuel:', step)
+
+    if (step > 1) {
+      const newStep = step - 1
+      console.log("➡️ Retour à l'étape:", newStep)
+
+      // Réinitialiser les erreurs lors du retour en arrière
+      setErrors({})
+      setIsLoading(false) // Arrêter tout loading en cours
+      setStep(newStep)
+
+      // Scroll to top when moving to previous step
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 100)
+    } else {
+      console.log("⚠️ Ne peut pas revenir en arrière depuis l'étape 1")
+    }
+  }
+
+  // Handler spécifique pour éviter les conflits d'événements
+  const handleBackClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('🖱️ Back button clicked via handler')
+    prevStep()
   }
 
   const getStepTitle = () => {
@@ -1178,10 +1219,12 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
         <div className="container mx-auto max-w-4xl px-4 py-2">
           {/* <div className="mb-2 flex items-center justify-between">
             <button
-              onClick={prevStep}
-              className="touch-target flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-3 shadow-sm transition-all duration-300 hover:bg-white/50"
+              onClick={handleBackClick}
+              className="touch-target flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-3 shadow-sm transition-all duration-300 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-50 relative z-50"
               disabled={step === 1}
               aria-label="Étape précédente"
+              type="button"
+              style={{ pointerEvents: step === 1 ? 'none' : 'auto' }}
             >
               <ArrowLeft
                 className={`h-6 w-6 ${step === 1 ? 'text-gray-300' : 'text-coffee-primary'}`}
@@ -1195,8 +1238,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                 {getStepTitle()}
               </p>
             </div>
-            <div className="from-coffee-primary to-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-r shadow-lg">
-              <span className="text-sm font-bold text-white">{step}/4</span>
+            <div className="flex items-center gap-2">
+              <div className="from-coffee-primary to-coffee-accent flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-r shadow-lg">
+                <span className="text-sm font-bold text-white">{step}/4</span>
+              </div>
             </div>
           </div> */}
 
@@ -1297,7 +1342,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="text-coffee-primary mb-3 text-3xl font-bold"
+                      className="text-coffee-accent mb-3 text-3xl font-bold"
                     >
                       Quel espace vous convient ?
                     </motion.h2>
@@ -1482,9 +1527,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    onClick={prevStep}
-                    className="absolute top-6 left-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
+                    onClick={handleBackClick}
+                    className="absolute top-6 left-6 z-50 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
                     aria-label="Étape précédente"
+                    type="button"
+                    style={{ pointerEvents: 'auto' }}
                   >
                     <ArrowLeft className="text-coffee-primary h-5 w-5" />
                   </motion.button>
@@ -2100,9 +2147,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    onClick={prevStep}
-                    className="absolute top-6 left-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
+                    onClick={handleBackClick}
+                    className="absolute top-6 left-6 z-50 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
                     aria-label="Étape précédente"
+                    type="button"
+                    style={{ pointerEvents: 'auto' }}
                   >
                     <ArrowLeft className="text-coffee-primary h-5 w-5" />
                   </motion.button>
@@ -2316,9 +2365,11 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    onClick={prevStep}
-                    className="absolute top-6 left-6 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
+                    onClick={handleBackClick}
+                    className="absolute top-6 left-6 z-50 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-white/60 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/80"
                     aria-label="Étape précédente"
+                    type="button"
+                    style={{ pointerEvents: 'auto' }}
                   >
                     <ArrowLeft className="text-coffee-primary h-5 w-5" />
                   </motion.button>

@@ -132,6 +132,8 @@ export const PUBLIC_ROUTES = [
   '/payment/cancel',
   '/api/auth',
   '/api/health',
+  // Routes de test (développement uniquement)
+  ...(process.env.NODE_ENV === 'development' ? ['/test-email', '/api/test-email'] : []),
 ]
 
 // Extensions de types pour NextAuth

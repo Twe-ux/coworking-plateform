@@ -3,10 +3,11 @@ import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
-import { Booking } from '@/lib/models'
+import { Booking, User, Space } from '@/lib/models'
 import Stripe from 'stripe'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { sendBookingConfirmationEmail } from '@/lib/email'
 
 // Initialiser Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -22,6 +23,48 @@ const createPaymentSchema = z.object({
   amount: z.number().min(0.5, 'Montant minimum 0.50€'),
   currency: z.string().default('eur')
 })
+
+/**
+ * Envoie un email de confirmation après paiement réussi
+ */
+async function sendPaymentConfirmationEmail(booking: any) {
+  try {
+    // Récupérer les données utilisateur et espace
+    const [user, space] = await Promise.all([
+      User.findById(booking.userId),
+      Space.findById(booking.spaceId)
+    ])
+
+    if (!user || !space) {
+      console.error(`❌ Données manquantes pour l'email de confirmation: user=${!!user}, space=${!!space}`)
+      return
+    }
+
+    const emailResult = await sendBookingConfirmationEmail({
+      email: process.env.NODE_ENV === 'development' ? 'milone.thierry@gmail.com' : user.email, // Forcé en dev
+      firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
+      lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
+      bookingId: booking._id.toString(),
+      spaceName: space.name,
+      date: format(booking.date, 'dd MMMM yyyy', { locale: fr }),
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      duration: booking.duration,
+      durationType: booking.durationType,
+      guests: booking.guests,
+      totalPrice: booking.totalPrice,
+      paymentMethod: booking.paymentMethod
+    })
+
+    if (emailResult.success) {
+      console.log(`✅ Email de confirmation post-paiement envoyé pour la réservation ${booking._id}`)
+    } else {
+      console.error(`❌ Échec envoi email post-paiement pour ${booking._id}:`, emailResult.error)
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi de l\'email post-paiement:', error)
+  }
+}
 
 /**
  * POST /api/payments - Créer une session de paiement Stripe
@@ -167,16 +210,22 @@ export async function GET(request: NextRequest) {
       }
 
       // Récupérer et mettre à jour la réservation
-      let booking = null
+      let booking: any = null
       if (bookingId) {
         booking = await Booking.findById(bookingId)
         if (booking && paymentIntent.status === 'succeeded') {
           // Mettre à jour le statut de paiement si nécessaire
-          if (booking.paymentStatus !== 'paid') {
+          const wasNotPaid = booking.paymentStatus !== 'paid'
+          if (wasNotPaid) {
             booking.paymentStatus = 'paid'
             booking.status = 'confirmed'
             await booking.save()
             console.log('✅ Réservation mise à jour:', booking._id, '- statut:', booking.paymentStatus)
+            
+            // Envoyer l'email de confirmation de manière asynchrone
+            setImmediate(() => {
+              sendPaymentConfirmationEmail(booking)
+            })
           }
         }
       }
@@ -212,10 +261,16 @@ export async function GET(request: NextRequest) {
         const booking = await Booking.findById(bookingIdFromSession)
         if (booking && checkoutSession.payment_status === 'paid') {
           // Mettre à jour le statut de paiement si nécessaire
-          if (booking.paymentStatus !== 'paid') {
+          const wasNotPaid = booking.paymentStatus !== 'paid'
+          if (wasNotPaid) {
             booking.paymentStatus = 'paid'
             booking.status = 'confirmed'
             await booking.save()
+            
+            // Envoyer l'email de confirmation de manière asynchrone
+            setImmediate(() => {
+              sendPaymentConfirmationEmail(booking)
+            })
           }
         }
       }
