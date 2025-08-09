@@ -214,11 +214,48 @@ export async function POST(request: NextRequest) {
         },
         { status: 201 }
       )
+    } else if (data.paymentMethod === 'card') {
+      // Paiement par carte : créer la réservation et laisser le frontend gérer Stripe Elements
+      const booking = new Booking({
+        ...bookingData,
+        userId: new ObjectId(session.user.id),
+        spaceId: space._id,
+        status: 'payment_pending', // En attente du paiement Stripe Elements
+        paymentStatus: 'pending'
+      })
+
+      await booking.save()
+
+      console.log(`[BOOKING_CREATED] User ${session.user.id} created booking ${booking._id} with payment_pending status for card payment`)
+
+      return NextResponse.json(
+        { 
+          message: 'Réservation créée, paiement en attente',
+          booking: {
+            id: booking._id.toString(),
+            userId: booking.userId.toString(),
+            spaceId: booking.spaceId.toString(),
+            date: booking.date.toISOString(),
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            duration: booking.duration,
+            durationType: booking.durationType,
+            guests: booking.guests,
+            totalPrice: booking.totalPrice,
+            status: booking.status,
+            paymentStatus: booking.paymentStatus,
+            paymentMethod: booking.paymentMethod,
+            notes: booking.notes,
+            createdAt: booking.createdAt.toISOString(),
+            updatedAt: booking.updatedAt.toISOString()
+          }
+        },
+        { status: 201 }
+      )
     } else {
-      // Paiement Stripe (card ou paypal) : créer une session Stripe
+      // Autres méthodes de paiement (PayPal) : utiliser l'ancien système Stripe Checkout
       const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
       
-      // Créer d'abord la réservation avec status 'payment_pending'
       const booking = new Booking({
         ...bookingData,
         userId: new ObjectId(session.user.id),
@@ -231,7 +268,7 @@ export async function POST(request: NextRequest) {
 
       // Créer la session Stripe
       const stripeSession = await stripe.checkout.sessions.create({
-        payment_method_types: data.paymentMethod === 'card' ? ['card'] : ['paypal'],
+        payment_method_types: ['paypal'],
         line_items: [
           {
             price_data: {

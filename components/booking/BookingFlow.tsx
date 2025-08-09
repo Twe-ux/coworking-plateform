@@ -48,6 +48,23 @@ interface Space {
   rating: number
   specialty: string
   isPopular?: boolean
+  openingHours?: {
+    monday: { open: string; close: string; closed?: boolean } | { closed: true }
+    tuesday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
+    wednesday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
+    thursday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
+    friday: { open: string; close: string; closed?: boolean } | { closed: true }
+    saturday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
+    sunday: { open: string; close: string; closed?: boolean } | { closed: true }
+  }
 }
 
 interface TimeSlot {
@@ -98,6 +115,15 @@ const SPACES: Space[] = [
     available: true,
     rating: 4.9,
     specialty: 'Luminosité naturelle',
+    openingHours: {
+      monday: { open: '09:00', close: '20:00' },
+      tuesday: { open: '09:00', close: '20:00' },
+      wednesday: { open: '09:00', close: '20:00' },
+      thursday: { open: '09:00', close: '20:00' },
+      friday: { open: '09:00', close: '20:00' },
+      saturday: { open: '10:00', close: '20:00' },
+      sunday: { open: '10:00', close: '20:00' },
+    },
   },
   {
     id: 'places',
@@ -120,6 +146,15 @@ const SPACES: Space[] = [
     rating: 4.8,
     specialty: 'Ambiance café conviviale',
     isPopular: true,
+    openingHours: {
+      monday: { open: '09:00', close: '20:00' },
+      tuesday: { open: '09:00', close: '20:00' },
+      wednesday: { open: '09:00', close: '20:00' },
+      thursday: { open: '09:00', close: '20:00' },
+      friday: { open: '09:00', close: '20:00' },
+      saturday: { open: '10:00', close: '20:00' },
+      sunday: { open: '10:00', close: '20:00' },
+    },
   },
   {
     id: 'etage',
@@ -141,6 +176,15 @@ const SPACES: Space[] = [
     available: true,
     rating: 4.7,
     specialty: 'Calme et concentration',
+    openingHours: {
+      monday: { open: '09:00', close: '20:00' },
+      tuesday: { open: '09:00', close: '20:00' },
+      wednesday: { open: '09:00', close: '20:00' },
+      thursday: { open: '09:00', close: '20:00' },
+      friday: { open: '09:00', close: '20:00' },
+      saturday: { open: '10:00', close: '20:00' },
+      sunday: { open: '10:00', close: '20:00' },
+    },
   },
 ]
 
@@ -230,6 +274,22 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   const handleDateSelect = (date: Date) => {
     // Ne pas sélectionner si on est en train de faire un drag
     if (isDragging) return
+
+    // 🔍 LOGS de diagnostic pour la sélection de date
+    console.log('🗓️ [DateSelector] Date sélectionnée:', {
+      dateOriginal: date,
+      dateISO: date.toISOString(),
+      dateLocal: date.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Europe/Paris',
+      }),
+      timestamp: date.getTime(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      utcOffset: date.getTimezoneOffset(),
+    })
 
     onDateSelect(date)
 
@@ -448,27 +508,27 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
       icon: Coffee,
       description: 'Réglez directement au café',
       available: true,
-      popular: true
+      popular: true,
     },
     {
       id: 'card',
       name: 'Carte bancaire',
       icon: CreditCard,
       description: 'Paiement sécurisé par Stripe',
-      available: true
+      available: true,
     },
     {
       id: 'paypal',
       name: 'PayPal',
       icon: CreditCard,
       description: 'Paiement via PayPal',
-      available: true
-    }
+      available: true,
+    },
   ]
 
   // Fonction pour sélectionner une méthode de paiement
   const selectPaymentMethod = (methodId: string) => {
-    const method = paymentMethods.find(m => m.id === methodId)
+    const method = paymentMethods.find((m) => m.id === methodId)
     if (method && method.available) {
       updateBookingData({ paymentMethod: methodId })
     }
@@ -482,28 +542,37 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
     }
 
     // Si les heures manquent, essayer de les définir automatiquement
-    if (bookingData.space && bookingData.date && (!bookingData.startTime || !bookingData.endTime)) {
+    if (
+      bookingData.space &&
+      bookingData.date &&
+      (!bookingData.startTime || !bookingData.endTime)
+    ) {
       const firstAvailableTime = getFirstAvailableTime(bookingData.date)
-      
+
       if (firstAvailableTime) {
         const [hours, minutes] = firstAvailableTime.split(':').map(Number)
         let endHours = hours + 2
-        
+
         // S'assurer que l'heure de fin ne dépasse pas les créneaux disponibles
-        const maxEndTime = TIME_SLOTS[TIME_SLOTS.length - 1].time
+        const availableSlots = getAvailableTimeSlots(
+          bookingData.date,
+          bookingData.space
+        )
+        const maxEndTime =
+          availableSlots[availableSlots.length - 1]?.time || '18:00'
         const [maxHours] = maxEndTime.split(':').map(Number)
-        
+
         if (endHours > maxHours) {
           endHours = maxHours
         }
-        
+
         const endTime = `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-        
+
         updateBookingData({
           startTime: bookingData.startTime || firstAvailableTime,
-          endTime: bookingData.endTime || endTime
+          endTime: bookingData.endTime || endTime,
         })
-        
+
         // Relancer la validation après la mise à jour
         setTimeout(() => handleConfirmBooking(), 100)
         return
@@ -517,12 +586,56 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
       !bookingData.endTime ||
       !bookingData.paymentMethod
     ) {
-      setErrors({ general: 'Données de réservation incomplètes. Veuillez sélectionner une méthode de paiement.' })
+      setErrors({
+        general:
+          'Données de réservation incomplètes. Veuillez sélectionner une méthode de paiement.',
+      })
       return
     }
 
     setIsLoading(true)
     setErrors({})
+
+    // 🔍 LOGS de diagnostic avant envoi API
+    const apiPayload = {
+      spaceId: bookingData.space.id,
+      date: bookingData.date.toISOString().split('T')[0], // YYYY-MM-DD
+      startTime: bookingData.startTime,
+      endTime: bookingData.endTime,
+      duration:
+        bookingData.durationType === 'hour' &&
+        bookingData.startTime &&
+        bookingData.endTime
+          ? calculateDurationFromTimes(
+              bookingData.startTime,
+              bookingData.endTime
+            )
+          : bookingData.duration,
+      durationType: bookingData.durationType,
+      guests: bookingData.guests,
+      paymentMethod: bookingData.paymentMethod,
+    }
+
+    console.log("🚀 [HandleConfirmBooking] Envoi à l'API:", {
+      originalDate: bookingData.date,
+      originalDateISO: bookingData.date.toISOString(),
+      originalDateLocal: bookingData.date.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Europe/Paris',
+      }),
+      apiDateString: apiPayload.date,
+      // Vérifier quel jour de la semaine l'API va recevoir
+      apiDateParsed: new Date(apiPayload.date),
+      apiDateWeekday: new Date(apiPayload.date).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        timeZone: 'Europe/Paris',
+      }),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      fullPayload: apiPayload,
+    })
 
     try {
       const response = await fetch('/api/bookings', {
@@ -531,18 +644,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
           'Content-Type': 'application/json',
         },
         credentials: 'same-origin', // Inclure les cookies de session
-        body: JSON.stringify({
-          spaceId: bookingData.space.id,
-          date: bookingData.date.toISOString().split('T')[0], // YYYY-MM-DD
-          startTime: bookingData.startTime,
-          endTime: bookingData.endTime,
-          duration: bookingData.durationType === 'hour' && bookingData.startTime && bookingData.endTime
-            ? calculateDurationFromTimes(bookingData.startTime, bookingData.endTime)
-            : bookingData.duration,
-          durationType: bookingData.durationType,
-          guests: bookingData.guests,
-          paymentMethod: bookingData.paymentMethod,
-        }),
+        body: JSON.stringify(apiPayload),
       })
 
       const result = await response.json()
@@ -555,14 +657,33 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
       // Gérer la réponse selon le type de paiement
       if (result.paymentUrl) {
-        // Paiement Stripe : rediriger vers la page de paiement
+        // Paiement externe (PayPal) : rediriger vers Stripe Checkout
         console.log('Redirection vers Stripe:', result.paymentUrl)
         window.location.href = result.paymentUrl
+      } else if (result.booking && bookingData.paymentMethod === 'card') {
+        // Paiement par carte : rediriger vers le formulaire Stripe Elements intégré
+        const paymentParams = new URLSearchParams({
+          booking_id: result.booking.id,
+          amount: result.booking.totalPrice.toString(),
+          space_name: bookingData.space?.name || 'Espace',
+          date:
+            bookingData.date?.toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }) || '',
+          start_time: bookingData.startTime || '',
+          end_time: bookingData.endTime || '',
+        })
+        router.push(`/payment/form?${paymentParams.toString()}`)
       } else {
         // Paiement sur place : afficher les confettis puis rediriger vers la page de confirmation
         setShowConfetti(true)
         setTimeout(() => {
-          router.push(`/payment/success?booking_id=${result.booking.id}&payment_method=onsite`)
+          router.push(
+            `/payment/success?booking_id=${result.booking.id}&payment_method=onsite`
+          )
         }, 2000)
       }
     } catch (error) {
@@ -589,7 +710,12 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
         let endHours = hours + 2
 
         // S'assurer que l'heure de fin ne dépasse pas les créneaux disponibles
-        const maxEndTime = TIME_SLOTS[TIME_SLOTS.length - 1].time
+        const availableSlots = getAvailableTimeSlots(
+          bookingData.date,
+          bookingData.space
+        )
+        const maxEndTime =
+          availableSlots[availableSlots.length - 1]?.time || '18:00'
         const [maxHours] = maxEndTime.split(':').map(Number)
 
         if (endHours > maxHours) {
@@ -613,6 +739,24 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
   }, [bookingData.space, step, bookingData.date]) // Quand l'espace, l'étape ou la date change
 
   const updateBookingData = (updates: Partial<BookingData>) => {
+    // 🔍 LOGS de diagnostic pour les mises à jour
+    if (updates.date) {
+      console.log('📝 [UpdateBookingData] Date mise à jour:', {
+        previousDate: bookingData.date,
+        newDate: updates.date,
+        newDateISO: updates.date.toISOString(),
+        newDateLocal: updates.date.toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: 'Europe/Paris',
+        }),
+        newDateForAPI: updates.date.toISOString().split('T')[0], // Format YYYY-MM-DD pour l'API
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      })
+    }
+
     setBookingData((prev) => {
       const newData = { ...prev, ...updates }
 
@@ -717,6 +861,127 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
     }
   }
 
+  // Générer les créneaux horaires basés sur les horaires d'ouverture
+  const getAvailableTimeSlots = (
+    date: Date | null,
+    space: Space | null
+  ): TimeSlot[] => {
+    if (!date || !space) {
+      console.log("⏰ [GetAvailableTimeSlots] Pas de date ou d'espace:", {
+        date,
+        space,
+      })
+      return TIME_SLOTS // Fallback sur les créneaux par défaut
+    }
+
+    // Obtenir le nom du jour en anglais pour correspondre aux clés d'openingHours
+    const dayNames = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ]
+    const dayName = dayNames[date.getDay()]
+
+    console.log(
+      '⏰ [GetAvailableTimeSlots] Jour:',
+      dayName,
+      'pour la date:',
+      date,
+      'dayOfWeek:',
+      date.getDay()
+    )
+
+    // Si l'espace n'a pas d'horaires d'ouverture, utiliser les créneaux par défaut
+    if (!space.openingHours || typeof space.openingHours !== 'object') {
+      console.log(
+        "⏰ [GetAvailableTimeSlots] Pas d'horaires d'ouverture définis, fallback"
+      )
+      return TIME_SLOTS
+    }
+
+    const daySchedule =
+      space.openingHours[dayName as keyof typeof space.openingHours]
+
+    if (!daySchedule || daySchedule.closed) {
+      console.log('⏰ [GetAvailableTimeSlots] Fermé ce jour:', dayName)
+      return [] // Fermé ce jour-là
+    }
+
+    // Vérifier que les heures d'ouverture/fermeture existent
+    if (
+      !('open' in daySchedule) ||
+      !('close' in daySchedule) ||
+      !daySchedule.open ||
+      !daySchedule.close
+    ) {
+      console.log(
+        '⏰ [GetAvailableTimeSlots] Horaires manquants pour:',
+        dayName
+      )
+      return TIME_SLOTS // Fallback sur les créneaux par défaut
+    }
+
+    console.log("⏰ [GetAvailableTimeSlots] Horaires d'ouverture:", daySchedule)
+
+    // Générer les créneaux entre l'heure d'ouverture et de fermeture
+    const openTime = daySchedule.open
+    const closeTime = daySchedule.close
+
+    const [openHour, openMinute] = openTime.split(':').map(Number)
+    const [closeHour, closeMinute] = closeTime.split(':').map(Number)
+
+    const slots: TimeSlot[] = []
+    let currentHour = openHour
+    let currentMinute = openMinute
+
+    while (
+      currentHour < closeHour ||
+      (currentHour === closeHour && currentMinute < closeMinute)
+    ) {
+      const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`
+
+      // Marquer certains créneaux comme populaires
+      const isPopular =
+        timeString === '10:00' ||
+        timeString === '14:00' ||
+        timeString === '16:00'
+
+      slots.push({
+        time: timeString,
+        available: true,
+        isPopular,
+      })
+
+      // Avancer de 30 minutes
+      currentMinute += 30
+      if (currentMinute >= 60) {
+        currentHour += 1
+        currentMinute = 0
+      }
+    }
+
+    console.log(
+      '⏰ [GetAvailableTimeSlots] Créneaux générés:',
+      slots,
+      'Total:',
+      slots.length
+    )
+
+    // Si aucun créneau généré, fallback sur les créneaux par défaut
+    if (slots.length === 0) {
+      console.log(
+        '⏰ [GetAvailableTimeSlots] Aucun créneau généré, utilisation du fallback'
+      )
+      return TIME_SLOTS
+    }
+
+    return slots
+  }
+
   // Trouver la première heure disponible avec marge d'1h
   const getFirstAvailableTime = (selectedDate: Date | null): string => {
     if (!selectedDate) return ''
@@ -731,13 +996,21 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
     // Si ce n'est pas le jour même, retourner le premier créneau
     if (selected.getTime() !== today.getTime()) {
-      return TIME_SLOTS.find((slot) => slot.available)?.time || ''
+      const availableSlots = getAvailableTimeSlots(
+        selectedDate,
+        bookingData.space
+      )
+      return availableSlots.find((slot) => slot.available)?.time || ''
     }
 
     // Pour le jour même, trouver le premier créneau avec marge d'1h
     const minimumTime = new Date(now.getTime() + 60 * 60 * 1000)
 
-    for (const slot of TIME_SLOTS) {
+    const availableSlots = getAvailableTimeSlots(
+      selectedDate,
+      bookingData.space
+    )
+    for (const slot of availableSlots) {
       if (!slot.available) continue
 
       const [slotHours, slotMinutes] = slot.time.split(':').map(Number)
@@ -1333,41 +1606,49 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             Heure de début
                           </label>
                           <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
-                            {TIME_SLOTS.filter((slot) => {
-                              return (
-                                slot.available &&
-                                isTimeSlotAvailable(slot.time, bookingData.date)
-                              )
-                            }).map((slot, index) => (
-                              <motion.button
-                                key={`start-${slot.time}`}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.8 + index * 0.02 }}
-                                className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
-                                  bookingData.startTime === slot.time
-                                    ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
-                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
-                                }`}
-                                onClick={() => {
-                                  updateBookingData({ startTime: slot.time })
-                                  // Reset endTime si elle est avant la nouvelle startTime
-                                  if (
-                                    bookingData.endTime &&
-                                    bookingData.endTime <= slot.time
-                                  ) {
-                                    updateBookingData({ endTime: '' })
-                                  }
-                                }}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                {slot.time}
-                                {slot.isPopular && (
-                                  <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500 shadow-lg"></div>
-                                )}
-                              </motion.button>
-                            ))}
+                            {getAvailableTimeSlots(
+                              bookingData.date,
+                              bookingData.space
+                            )
+                              .filter((slot) => {
+                                return (
+                                  slot.available &&
+                                  isTimeSlotAvailable(
+                                    slot.time,
+                                    bookingData.date
+                                  )
+                                )
+                              })
+                              .map((slot, index) => (
+                                <motion.button
+                                  key={`start-${slot.time}`}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.8 + index * 0.02 }}
+                                  className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
+                                    bookingData.startTime === slot.time
+                                      ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
+                                      : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
+                                  }`}
+                                  onClick={() => {
+                                    updateBookingData({ startTime: slot.time })
+                                    // Reset endTime si elle est avant la nouvelle startTime
+                                    if (
+                                      bookingData.endTime &&
+                                      bookingData.endTime <= slot.time
+                                    ) {
+                                      updateBookingData({ endTime: '' })
+                                    }
+                                  }}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  {slot.time}
+                                  {slot.isPopular && (
+                                    <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500 shadow-lg"></div>
+                                  )}
+                                </motion.button>
+                              ))}
                           </div>
                         </motion.div>
 
@@ -1386,46 +1667,56 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             )}
                           </label>
                           <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
-                            {TIME_SLOTS.filter((slot) => {
-                              // Calculer l'heure minimale (startTime + 1 heure)
-                              const getMinimumEndTime = (startTime: string) => {
-                                const [hours, minutes] = startTime
-                                  .split(':')
-                                  .map(Number)
-                                const minHours = hours + 1
-                                return `${minHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-                              }
-
-                              const isSlotAvailable =
-                                slot.available &&
-                                isTimeSlotAvailable(slot.time, bookingData.date)
-
-                              return (
-                                isSlotAvailable &&
-                                bookingData.startTime &&
-                                slot.time >=
-                                  getMinimumEndTime(bookingData.startTime)
-                              )
-                            }).map((slot, index) => (
-                              <motion.button
-                                key={`end-${slot.time}`}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.9 + index * 0.02 }}
-                                className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
-                                  bookingData.endTime === slot.time
-                                    ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
-                                    : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
-                                }`}
-                                onClick={() =>
-                                  updateBookingData({ endTime: slot.time })
+                            {getAvailableTimeSlots(
+                              bookingData.date,
+                              bookingData.space
+                            )
+                              .filter((slot) => {
+                                // Calculer l'heure minimale (startTime + 1 heure)
+                                const getMinimumEndTime = (
+                                  startTime: string
+                                ) => {
+                                  const [hours, minutes] = startTime
+                                    .split(':')
+                                    .map(Number)
+                                  const minHours = hours + 1
+                                  return `${minHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
                                 }
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                {slot.time}
-                              </motion.button>
-                            ))}
+
+                                const isSlotAvailable =
+                                  slot.available &&
+                                  isTimeSlotAvailable(
+                                    slot.time,
+                                    bookingData.date
+                                  )
+
+                                return (
+                                  isSlotAvailable &&
+                                  bookingData.startTime &&
+                                  slot.time >=
+                                    getMinimumEndTime(bookingData.startTime)
+                                )
+                              })
+                              .map((slot, index) => (
+                                <motion.button
+                                  key={`end-${slot.time}`}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.9 + index * 0.02 }}
+                                  className={`relative rounded-lg p-3 text-sm font-medium transition-all duration-300 ${
+                                    bookingData.endTime === slot.time
+                                      ? 'from-coffee-primary to-coffee-accent bg-linear-to-r text-white shadow-lg'
+                                      : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 text-coffee-primary border border-white/30 bg-white/40'
+                                  }`}
+                                  onClick={() =>
+                                    updateBookingData({ endTime: slot.time })
+                                  }
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  {slot.time}
+                                </motion.button>
+                              ))}
                           </div>
                         </motion.div>
 
@@ -1609,7 +1900,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             Heure de début
                           </label>
                           <div className="grid grid-cols-3 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
-                            {TIME_SLOTS.filter((slot) => {
+                            {getAvailableTimeSlots(bookingData.date, bookingData.space).filter((slot) => {
                               return slot.available && isTimeSlotAvailable(slot.time, bookingData.date)
                             }).map((slot, index) => (
                               <motion.button
@@ -1686,7 +1977,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                             Heure de début
                           </label>
                           <div className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur-sm">
-                            {TIME_SLOTS.filter((slot) => {
+                            {getAvailableTimeSlots(bookingData.date, bookingData.space).filter((slot) => {
                               return slot.available && isTimeSlotAvailable(slot.time, bookingData.date)
                             }).map((slot, index) => (
                               <motion.button
@@ -2166,21 +2457,23 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           Sélectionnez votre méthode de paiement préférée
                         </p>
                         {bookingData.paymentMethod === 'onsite' && (
-                          <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3">
+                          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3">
                             <div className="flex items-center gap-2">
                               <Check className="h-4 w-4 text-green-600" />
-                              <p className="text-green-800 text-sm font-medium">
-                                Paiement sur place sélectionné - Vous pourrez régler directement au café
+                              <p className="text-sm font-medium text-green-800">
+                                Paiement sur place sélectionné - Vous pourrez
+                                régler directement au café
                               </p>
                             </div>
                           </div>
                         )}
                         {!bookingData.paymentMethod && (
-                          <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-3">
+                          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
                             <div className="flex items-center gap-2">
                               <AlertCircle className="h-4 w-4 text-amber-600" />
-                              <p className="text-amber-800 text-sm font-medium">
-                                Veuillez sélectionner une méthode de paiement pour continuer
+                              <p className="text-sm font-medium text-amber-800">
+                                Veuillez sélectionner une méthode de paiement
+                                pour continuer
                               </p>
                             </div>
                           </div>
@@ -2188,9 +2481,10 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
                         <div className="space-y-3">
                           {paymentMethods.map((method, index) => {
-                            const isSelected = bookingData.paymentMethod === method.id
+                            const isSelected =
+                              bookingData.paymentMethod === method.id
                             const isDisabled = !method.available
-                            
+
                             return (
                               <motion.div
                                 key={method.id}
@@ -2201,36 +2495,44 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                   isDisabled
                                     ? 'cursor-not-allowed border-gray-300 bg-gray-100/50 opacity-60'
                                     : isSelected
-                                    ? 'border-coffee-primary bg-coffee-primary/20 shadow-lg'
-                                    : 'cursor-pointer border-white/30 bg-white/20 hover:border-coffee-primary/50 hover:bg-coffee-primary/10'
+                                      ? 'border-coffee-primary bg-coffee-primary/20 shadow-lg'
+                                      : 'hover:border-coffee-primary/50 hover:bg-coffee-primary/10 cursor-pointer border-white/30 bg-white/20'
                                 }`}
                                 whileHover={!isDisabled ? { scale: 1.02 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.98 } : {}}
-                                onClick={() => !isDisabled && selectPaymentMethod(method.id)}
+                                onClick={() =>
+                                  !isDisabled && selectPaymentMethod(method.id)
+                                }
                               >
                                 <div className="flex items-start gap-4">
-                                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-300 ${
-                                    isSelected
-                                      ? 'bg-coffee-primary text-white'
-                                      : isDisabled
-                                      ? 'bg-gray-200'
-                                      : 'bg-coffee-primary/10 group-hover:bg-coffee-primary/20'
-                                  }`}>
-                                    <method.icon className={`h-6 w-6 ${
+                                  <div
+                                    className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-300 ${
                                       isSelected
-                                        ? 'text-white'
+                                        ? 'bg-coffee-primary text-white'
                                         : isDisabled
-                                        ? 'text-gray-400'
-                                        : 'text-coffee-accent'
-                                    }`} />
+                                          ? 'bg-gray-200'
+                                          : 'bg-coffee-primary/10 group-hover:bg-coffee-primary/20'
+                                    }`}
+                                  >
+                                    <method.icon
+                                      className={`h-6 w-6 ${
+                                        isSelected
+                                          ? 'text-white'
+                                          : isDisabled
+                                            ? 'text-gray-400'
+                                            : 'text-coffee-accent'
+                                      }`}
+                                    />
                                   </div>
                                   <div className="flex-1">
                                     <div className="mb-1 flex items-center gap-2">
-                                      <span className={`font-semibold ${
-                                        isDisabled
-                                          ? 'text-gray-400'
-                                          : 'text-coffee-primary'
-                                      }`}>
+                                      <span
+                                        className={`font-semibold ${
+                                          isDisabled
+                                            ? 'text-gray-400'
+                                            : 'text-coffee-primary'
+                                        }`}
+                                      >
                                         {method.name}
                                       </span>
                                       {method.popular && (
@@ -2239,26 +2541,28 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                                         </span>
                                       )}
                                       {!method.available && (
-                                        <span className="bg-gray-200 text-gray-500 rounded-full px-2 py-1 text-xs font-medium">
+                                        <span className="rounded-full bg-gray-200 px-2 py-1 text-xs font-medium text-gray-500">
                                           Prochainement
                                         </span>
                                       )}
                                       {isSelected && (
-                                        <span className="bg-green-100 text-green-700 rounded-full px-2 py-1 text-xs font-medium">
+                                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
                                           Sélectionné
                                         </span>
                                       )}
                                     </div>
-                                    <p className={`text-sm ${
-                                      isDisabled
-                                        ? 'text-gray-400'
-                                        : 'text-coffee-primary/60'
-                                    }`}>
+                                    <p
+                                      className={`text-sm ${
+                                        isDisabled
+                                          ? 'text-gray-400'
+                                          : 'text-coffee-primary/60'
+                                      }`}
+                                    >
                                       {method.description}
                                     </p>
                                   </div>
                                   {isSelected && (
-                                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-coffee-primary">
+                                    <div className="bg-coffee-primary flex h-6 w-6 items-center justify-center rounded-full">
                                       <Check className="h-4 w-4 text-white" />
                                     </div>
                                   )}

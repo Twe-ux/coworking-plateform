@@ -19,6 +19,7 @@ export interface IBooking extends Document {
   paymentMethod: 'onsite' | 'card' | 'paypal'
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'payment_pending'
   paymentId?: string
+  stripePaymentIntentId?: string
   paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
   notes?: string
   createdAt: Date
@@ -149,6 +150,10 @@ const bookingSchema = new Schema<IBooking>(
     paymentId: {
       type: String,
       sparse: true, // Index partiel pour les valeurs non-null uniquement
+    },
+    stripePaymentIntentId: {
+      type: String,
+      sparse: true,
     },
     paymentStatus: {
       type: String,

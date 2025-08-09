@@ -369,7 +369,22 @@ export async function validateBookingData(bookingData: {
     }
 
     // Vérifier que la date n'est pas dans le passé
-    if (bookingData.date < startOfDay(new Date())) {
+    // Utiliser la timezone française pour une comparaison correcte
+    const todayParis = new Date(new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+    const todayStartParis = startOfDay(todayParis)
+    const bookingDateLocal = new Date(bookingData.date.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+    const bookingDayStart = startOfDay(bookingDateLocal)
+    
+    console.log('📅 [Validation Date] Comparaison:', {
+      todayParis: todayParis.toISOString(),
+      todayStartParis: todayStartParis.toISOString(),
+      bookingDate: bookingData.date.toISOString(),
+      bookingDateLocal: bookingDateLocal.toISOString(),
+      bookingDayStart: bookingDayStart.toISOString(),
+      isPast: bookingDayStart < todayStartParis
+    })
+    
+    if (bookingDayStart < todayStartParis) {
       errors.push('La date ne peut pas être dans le passé')
     }
 
@@ -488,10 +503,27 @@ function minutesToTime(minutes: number): string {
 
 /**
  * Obtient le nom du jour pour les heures d'ouverture
+ * Utilise l'heure locale française pour éviter les problèmes de timezone
  */
 function getDayName(date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  return days[date.getDay()] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+  
+  // Créer une nouvelle date en heure locale française
+  // pour éviter les décalages UTC
+  const localDate = new Date(date.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+  const dayIndex = localDate.getDay()
+  
+  console.log('📅 [getDayName] Conversion timezone:', {
+    originalDate: date,
+    originalUTC: date.toISOString(),
+    localDateParis: localDate,
+    originalDayIndex: date.getDay(),
+    localDayIndex: dayIndex,
+    originalDayName: days[date.getDay()],
+    localDayName: days[dayIndex]
+  })
+  
+  return days[dayIndex] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
 }
 
 /**

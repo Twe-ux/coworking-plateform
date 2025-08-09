@@ -102,6 +102,15 @@ export const PROTECTED_ROUTES: RoutePermission[] = [
     ],
   },
   {
+    path: '/payment/form',
+    allowedRoles: [
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+      UserRole.CLIENT,
+    ],
+  },
+  {
     path: '/reservation',
     allowedRoles: [
       UserRole.ADMIN,

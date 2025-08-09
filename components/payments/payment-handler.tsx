@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CreditCard, Coffee, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import StripePaymentForm from './stripe-payment-form'
 
 interface PaymentHandlerProps {
   paymentMethod: 'onsite' | 'card' | 'paypal'
@@ -10,6 +11,12 @@ interface PaymentHandlerProps {
   onSuccess: (paymentResult: any) => void
   onError: (error: string) => void
   bookingId?: string
+  bookingDetails?: {
+    spaceName: string
+    date: string
+    startTime: string
+    endTime: string
+  }
 }
 
 export default function PaymentHandler({
@@ -17,7 +24,8 @@ export default function PaymentHandler({
   amount,
   onSuccess,
   onError,
-  bookingId
+  bookingId,
+  bookingDetails
 }: PaymentHandlerProps) {
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -112,27 +120,14 @@ export default function PaymentHandler({
         </div>
       )}
 
-      {paymentMethod === 'card' && (
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="rounded-full bg-blue-100 p-4">
-              <CreditCard className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Paiement par carte</h3>
-            <p className="text-gray-600">
-              Paiement sécurisé par Stripe
-            </p>
-          </div>
-          <Button
-            onClick={handleStripePayment}
-            disabled={isProcessing}
-            className="w-full"
-          >
-            {isProcessing ? 'Traitement...' : 'Payer maintenant'}
-          </Button>
-        </div>
+      {paymentMethod === 'card' && bookingId && bookingDetails && (
+        <StripePaymentForm
+          amount={amount}
+          bookingId={bookingId}
+          bookingDetails={bookingDetails}
+          onSuccess={onSuccess}
+          onError={onError}
+        />
       )}
 
       {paymentMethod === 'paypal' && (
