@@ -231,7 +231,7 @@ export default function ClientCommandesPage() {
 
   useEffect(() => {
     setOrders(mockOrders)
-  }, [])
+  }, [mockOrders])
 
   // Filtrer les items du menu
   const filteredItems = menuItems.filter(item => {
@@ -415,28 +415,28 @@ export default function ClientCommandesPage() {
           <StatsCard
             title="Commandes aujourd'hui"
             value="3"
-            description="Total du jour"
+            change="Total du jour"
             icon={ShoppingBag}
           />
           
           <StatsCard
             title="Montant dépensé"
             value="47.50€"
-            description="Ce mois"
+            change="Ce mois"
             icon={Euro}
           />
           
           <StatsCard
             title="Temps moyen"
             value="8 min"
-            description="Préparation"
+            change="Préparation"
             icon={Clock}
           />
           
           <StatsCard
             title="Items favoris"
             value="5"
-            description="Dans vos favoris"
+            change="Dans vos favoris"
             icon={Heart}
           />
         </div>
@@ -496,7 +496,6 @@ export default function ClientCommandesPage() {
                 title="Notre menu" 
                 description={`${filteredItems.length} article${filteredItems.length > 1 ? 's' : ''} disponible${filteredItems.length > 1 ? 's' : ''}`}
                 icon={ChefHat}
-                variant="warm"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredItems.map((item, index) => {
@@ -631,7 +630,6 @@ export default function ClientCommandesPage() {
                 title="Votre panier"
                 description={`${cartItemCount} article${cartItemCount > 1 ? 's' : ''} • Total: ${cartTotal.toFixed(2)}€`}
                 icon={ShoppingCart}
-                variant="accent"
               >
                 {cart.length === 0 ? (
                   <div className="text-center py-12">
@@ -795,7 +793,7 @@ export default function ClientCommandesPage() {
                       Aucune commande
                     </h3>
                     <p style={{ color: 'var(--color-client-muted)' }}>
-                      Vous n'avez pas encore passé de commande
+                      Vous n&apos;avez pas encore passé de commande
                     </p>
                   </div>
                 ) : (

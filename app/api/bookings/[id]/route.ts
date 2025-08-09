@@ -48,7 +48,8 @@ export async function GET(
 
     // Vérifier que l'utilisateur est propriétaire de la réservation ou admin
     const userObjectId = new ObjectId(session.user.id)
-    if (!booking.userId.equals(userObjectId) && session.user.role !== 'admin') {
+    const bookingUserId = new ObjectId((booking as any).userId)
+    if (!bookingUserId.equals(userObjectId) && session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Accès refusé', code: 'ACCESS_DENIED' },
         { status: 403 }
@@ -56,42 +57,42 @@ export async function GET(
     }
 
     // Récupérer les données utilisateur pour l'email
-    const user = await User.findById(booking.userId).select('email firstName lastName').lean()
+    const user = await User.findById((booking as any).userId).select('email firstName lastName').lean()
 
     // Formater la réponse
     return NextResponse.json({
       success: true,
       booking: {
-        id: booking._id.toString(),
-        userId: booking.userId.toString(),
-        space: booking.spaceId ? {
-          id: booking.spaceId.id,
-          name: booking.spaceId.name,
-          location: booking.spaceId.location,
-          capacity: booking.spaceId.capacity,
-          specialty: booking.spaceId.specialty,
-          image: booking.spaceId.image,
-          features: booking.spaceId.features,
-          rating: booking.spaceId.rating
+        id: (booking as any)._id.toString(),
+        userId: (booking as any).userId.toString(),
+        space: (booking as any).spaceId ? {
+          id: (booking as any).spaceId.id,
+          name: (booking as any).spaceId.name,
+          location: (booking as any).spaceId.location,
+          capacity: (booking as any).spaceId.capacity,
+          specialty: (booking as any).spaceId.specialty,
+          image: (booking as any).spaceId.image,
+          features: (booking as any).spaceId.features,
+          rating: (booking as any).spaceId.rating
         } : null,
-        date: booking.date.toISOString(),
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        duration: booking.duration,
-        durationType: booking.durationType,
-        guests: booking.guests,
-        totalPrice: booking.totalPrice,
-        status: booking.status,
-        paymentStatus: booking.paymentStatus,
-        paymentMethod: booking.paymentMethod,
-        notes: booking.notes,
-        createdAt: booking.createdAt.toISOString(),
-        updatedAt: booking.updatedAt.toISOString(),
+        date: (booking as any).date.toISOString(),
+        startTime: (booking as any).startTime,
+        endTime: (booking as any).endTime,
+        duration: (booking as any).duration,
+        durationType: (booking as any).durationType,
+        guests: (booking as any).guests,
+        totalPrice: (booking as any).totalPrice,
+        status: (booking as any).status,
+        paymentStatus: (booking as any).paymentStatus,
+        paymentMethod: (booking as any).paymentMethod,
+        notes: (booking as any).notes,
+        createdAt: (booking as any).createdAt.toISOString(),
+        updatedAt: (booking as any).updatedAt.toISOString(),
       },
       user: user ? {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
+        email: (user as any).email,
+        firstName: (user as any).firstName,
+        lastName: (user as any).lastName
       } : null
     })
 

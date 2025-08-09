@@ -348,7 +348,7 @@ export async function validateBookingData(bookingData: {
       }
     } else {
       // Fallback - convertir en string et chercher par id
-      spaceQuery = { id: bookingData.spaceId.toString() }
+      spaceQuery = { id: String(bookingData.spaceId) }
     }
     
     const space = await Space.findOne(spaceQuery)

@@ -218,7 +218,7 @@ export default function ClientHistoriquePage() {
     }
 
     fetchActivities()
-  }, [])
+  }, [mockActivities])
 
   // Filtrer et trier les activités
   const filteredActivities = useMemo(() => {
@@ -419,28 +419,28 @@ export default function ClientHistoriquePage() {
           <StatsCard
             title="Total activités"
             value={stats.totalActivities}
-            description="Toutes activités"
+            change="Toutes activités"
             icon={History}
           />
           
           <StatsCard
             title="Montant total"
             value={`${stats.totalAmount.toFixed(2)}€`}
-            description="Dépenses confirmées"
+            change="Dépenses confirmées"
             icon={Euro}
           />
           
           <StatsCard
             title="Réservations"
             value={stats.reservations}
-            description="Espaces réservés"
+            change="Espaces réservés"
             icon={Calendar}
           />
           
           <StatsCard
             title="Commandes"
             value={stats.orders}
-            description="Café & nourriture"
+            change="Café & nourriture"
             icon={Coffee}
           />
         </div>
@@ -625,13 +625,12 @@ export default function ClientHistoriquePage() {
           title="Activités"
           description={`${filteredActivities.length} activité${filteredActivities.length > 1 ? 's' : ''} trouvée${filteredActivities.length > 1 ? 's' : ''}`}
           icon={History}
-          variant="warm"
         >
           {loading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--color-coffee-primary)' }} />
               <span className="ml-2" style={{ color: 'var(--color-client-muted)' }}>
-                Chargement de l'historique...
+                Chargement de l&apos;historique...
               </span>
             </div>
           )}

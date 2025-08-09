@@ -107,7 +107,6 @@ export default function ClientProfilPage() {
         <ClientCard
           title="Informations personnelles"
           icon={User}
-          variant="warm"
         >
           <div className="space-y-6">
             {/* Photo de profil */}
@@ -279,28 +278,28 @@ export default function ClientProfilPage() {
           <StatsCard
             title="Réservations"
             value={memberStats.totalBookings}
-            description="Total effectuées"
+            change="Total effectuées"
             icon={Calendar}
           />
           
           <StatsCard
             title="Dépenses totales"
             value={`${memberStats.totalSpent}€`}
-            description="Depuis l'inscription"
+            change="Depuis l'inscription"
             icon={Coffee}
           />
           
           <StatsCard
             title="Espaces favoris"
             value={memberStats.favoriteSpaces}
-            description="Dans votre liste"
+            change="Dans votre liste"
             icon={Star}
           />
           
           <StatsCard
             title="Statut"
             value="Premium"
-            description="Membre fidèle"
+            change="Membre fidèle"
             icon={Shield}
           />
         </div>

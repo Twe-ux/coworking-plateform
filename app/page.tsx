@@ -67,7 +67,7 @@ export default function Home() {
   }
 
   return (
-    <main className="from-coffee-light via-coffee-light/80 to-coffee-light/60 relative min-h-screen overflow-hidden bg-gradient-to-br">
+    <main className="from-coffee-light via-coffee-light/80 to-coffee-light/60 relative min-h-screen overflow-hidden bg-gradient-to-br p-10">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div

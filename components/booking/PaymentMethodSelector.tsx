@@ -4,7 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Check, CreditCard, Coffee, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
@@ -39,27 +43,29 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   showFeatures = true,
 }) => {
   const [hoveredMethod, setHoveredMethod] = useState<string | null>(null)
-  
+
   const handleMethodSelect = (methodId: string) => {
-    const method = methods.find(m => m.id === methodId)
+    const method = methods.find((m) => m.id === methodId)
     if (method?.available && !disabled) {
       onMethodSelect(methodId)
     }
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-coffee-primary">
+        <h3 className="text-coffee-primary text-lg font-semibold">
           Méthode de paiement
         </h3>
-        <span className="text-sm text-coffee-primary/60">
-          {methods.filter(m => m.available).length} méthode{methods.filter(m => m.available).length > 1 ? 's' : ''} disponible{methods.filter(m => m.available).length > 1 ? 's' : ''}
+        <span className="text-coffee-primary/60 text-sm">
+          {methods.filter((m) => m.available).length} méthode
+          {methods.filter((m) => m.available).length > 1 ? 's' : ''} disponible
+          {methods.filter((m) => m.available).length > 1 ? 's' : ''}
         </span>
       </div>
 
-      <RadioGroup 
-        value={selectedMethod || ''} 
+      <RadioGroup
+        value={selectedMethod || ''}
         onValueChange={handleMethodSelect}
         className="space-y-3"
         disabled={disabled}
@@ -78,10 +84,10 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ 
+                transition={{
                   delay: index * 0.1,
                   duration: 0.3,
-                  ease: "easeOut"
+                  ease: 'easeOut',
                 }}
                 className="relative"
                 onMouseEnter={() => !isDisabled && setHoveredMethod(method.id)}
@@ -90,12 +96,14 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 <motion.label
                   htmlFor={method.id}
                   className={cn(
-                    "group relative flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition-all duration-300",
+                    'group relative flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition-all duration-300',
                     {
-                      "cursor-not-allowed opacity-60": isDisabled,
-                      "border-coffee-primary bg-coffee-primary/10 shadow-lg ring-2 ring-coffee-primary/20": isSelected,
-                      "border-gray-200 bg-white hover:border-coffee-primary/50 hover:bg-coffee-primary/5": !isSelected && !isDisabled,
-                      "border-gray-200 bg-gray-50": isDisabled,
+                      'cursor-not-allowed opacity-60': isDisabled,
+                      'border-coffee-primary bg-coffee-primary/10 ring-coffee-primary/20 shadow-lg ring-2':
+                        isSelected,
+                      'hover:border-coffee-primary/50 hover:bg-coffee-primary/5 border-gray-200 bg-white':
+                        !isSelected && !isDisabled,
+                      'border-gray-200 bg-gray-50': isDisabled,
                     }
                   )}
                   whileHover={!isDisabled ? { scale: 1.01 } : {}}
@@ -118,25 +126,29 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                       value={method.id}
                       disabled={isDisabled}
                       className={cn(
-                        "size-5 border-2 transition-all duration-200",
+                        'size-5 border-2 transition-all duration-200',
                         {
-                          "border-coffee-primary bg-coffee-primary text-white": isSelected,
-                          "border-gray-300": !isSelected && !isDisabled,
-                          "border-gray-200": isDisabled,
+                          'border-coffee-primary bg-coffee-primary text-white':
+                            isSelected,
+                          'border-gray-300': !isSelected && !isDisabled,
+                          'border-gray-200': isDisabled,
                         }
                       )}
                     />
                   </div>
 
                   {/* Icon */}
-                  <div className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300",
-                    {
-                      "bg-coffee-primary text-white": isSelected,
-                      "bg-coffee-primary/10 text-coffee-accent group-hover:bg-coffee-primary/20": !isSelected && !isDisabled,
-                      "bg-gray-100 text-gray-400": isDisabled,
-                    }
-                  )}>
+                  <div
+                    className={cn(
+                      'flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300',
+                      {
+                        'bg-coffee-primary text-white': isSelected,
+                        'bg-coffee-primary/10 text-coffee-accent group-hover:bg-coffee-primary/20':
+                          !isSelected && !isDisabled,
+                        'bg-gray-100 text-gray-400': isDisabled,
+                      }
+                    )}
+                  >
                     <IconComponent className="h-6 w-6" />
                   </div>
 
@@ -144,28 +156,30 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                   <div className="min-w-0 flex-1 space-y-2">
                     {/* Header */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={cn(
-                        "font-semibold leading-none",
-                        {
-                          "text-coffee-primary": !isDisabled,
-                          "text-gray-400": isDisabled,
-                        }
-                      )}>
+                      <span
+                        className={cn('leading-none font-semibold', {
+                          'text-coffee-primary': !isDisabled,
+                          'text-gray-400': isDisabled,
+                        })}
+                      >
                         {method.name}
                       </span>
-                      
+
                       {method.popular && (
                         <Badge variant="secondary" className="text-xs">
                           Populaire
                         </Badge>
                       )}
-                      
+
                       {method.comingSoon && (
-                        <Badge variant="outline" className="text-xs text-orange-600">
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-orange-600"
+                        >
                           Prochainement
                         </Badge>
                       )}
-                      
+
                       {isSelected && (
                         <motion.div
                           initial={{ scale: 0 }}
@@ -173,7 +187,10 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                           className="flex items-center gap-1"
                         >
                           <Check className="h-4 w-4 text-green-600" />
-                          <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-xs text-green-700"
+                          >
                             Sélectionné
                           </Badge>
                         </motion.div>
@@ -181,53 +198,60 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                     </div>
 
                     {/* Description */}
-                    <p id={`${method.id}-description`} className={cn(
-                      "text-sm leading-relaxed",
-                      {
-                        "text-coffee-primary/70": !isDisabled,
-                        "text-gray-400": isDisabled,
-                      }
-                    )}>
+                    <p
+                      id={`${method.id}-description`}
+                      className={cn('text-sm leading-relaxed', {
+                        'text-coffee-primary/70': !isDisabled,
+                        'text-gray-400': isDisabled,
+                      })}
+                    >
                       {method.description}
                     </p>
 
                     {/* Features and details */}
                     <AnimatePresence>
-                      {showFeatures && (isSelected || isHovered) && method.features && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="mt-3 space-y-2 border-t border-coffee-primary/20 pt-3">
-                            {method.features.map((feature, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-sm text-coffee-primary/60">
-                                <Check className="h-3 w-3 text-green-600" />
-                                <span>{feature}</span>
+                      {showFeatures &&
+                        (isSelected || isHovered) &&
+                        method.features && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="border-coffee-primary/20 mt-3 space-y-2 border-t pt-3">
+                              {method.features.map((feature, idx) => (
+                                <div
+                                  key={idx}
+                                  className="text-coffee-primary/60 flex items-center gap-2 text-sm"
+                                >
+                                  <Check className="h-3 w-3 text-green-600" />
+                                  <span>{feature}</span>
+                                </div>
+                              ))}
+
+                              {/* Additional info */}
+                              <div className="text-coffee-primary/50 mt-2 flex flex-wrap gap-4 text-xs">
+                                {method.processingTime && (
+                                  <span>
+                                    Traitement: {method.processingTime}
+                                  </span>
+                                )}
+                                {method.fees && (
+                                  <span>Frais: {method.fees}</span>
+                                )}
                               </div>
-                            ))}
-                            
-                            {/* Additional info */}
-                            <div className="mt-2 flex flex-wrap gap-4 text-xs text-coffee-primary/50">
-                              {method.processingTime && (
-                                <span>Traitement: {method.processingTime}</span>
-                              )}
-                              {method.fees && (
-                                <span>Frais: {method.fees}</span>
-                              )}
                             </div>
-                          </div>
-                        </motion.div>
-                      )}
+                          </motion.div>
+                        )}
                     </AnimatePresence>
                   </div>
 
                   {/* Loading state */}
                   {disabled && isSelected && (
                     <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80">
-                      <Loader2 className="h-6 w-6 animate-spin text-coffee-primary" />
+                      <Loader2 className="text-coffee-primary h-6 w-6 animate-spin" />
                     </div>
                   )}
                 </motion.label>
@@ -250,11 +274,11 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       </RadioGroup>
 
       {/* Help text */}
-      <motion.p 
+      <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="text-sm text-coffee-primary/60"
+        className="text-coffee-primary/60 text-sm"
       >
         Toutes les transactions sont sécurisées et protégées.
       </motion.p>
