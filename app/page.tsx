@@ -469,16 +469,16 @@ export default function Home() {
           <div className="mb-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                name: 'À la carte',
-                price: '8€',
+                name: "À l'heure",
+                price: '6€',
                 period: '/heure',
                 description: 'Parfait pour une session ponctuelle',
                 icon: Clock,
-                color: 'from-blue-400 to-blue-600',
+                color: 'from-coffee-accent to-coffee-primary/80',
                 features: [
-                  'Accès à tous les espaces',
+                  "Accès à l'open-space",
                   'WiFi haute vitesse',
-                  '1 boisson incluse',
+                  'Les boissons incluses parmis les classiques',
                   'Réservation en temps réel',
                   'Support client',
                 ],
@@ -486,13 +486,13 @@ export default function Home() {
               },
               {
                 name: 'Journée',
-                price: '35€',
+                price: '29€',
                 period: '/jour',
                 description: "L'idéal pour une journée productive",
                 icon: Zap,
                 color: 'from-coffee-primary to-coffee-accent',
                 features: [
-                  'Accès illimité 9h-19h',
+                  'Accès illimité 9h-20h',
                   'Boissons à volonté',
                   'Snacks inclus',
                   'Casier personnel',
@@ -502,7 +502,7 @@ export default function Home() {
               },
               {
                 name: 'Hebdomadaire',
-                price: '149€',
+                price: '99€',
                 period: '/semaine',
                 description: 'Une semaine de productivité',
                 icon: Shield,
@@ -518,7 +518,7 @@ export default function Home() {
               },
               {
                 name: 'Mensuel',
-                price: '399€',
+                price: '290€',
                 period: '/mois',
                 description: 'Pour les nomades réguliers',
                 icon: Heart,
@@ -623,7 +623,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-coffee-primary mb-6 text-center text-2xl font-bold">
+            <h3 className="text-coffee-accent mb-6 text-center text-2xl font-bold">
               Services Additionnels
             </h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -851,7 +851,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-coffee-primary mb-8 text-center text-2xl font-bold">
+            <h3 className="text-coffee-accent mb-8 text-center text-2xl font-bold">
               Avantages Membres Exclusifs
             </h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
