@@ -1,190 +1,437 @@
-# Tâches - Plateforme de Coworking
+# Tasks - Café Coworking Platform
 
-## ✅ Tâches Complétées
+## 🏗️ Setup & Infrastructure
 
-### Phase 1 : Système de Réservation
-- [x] Analyser le système de réservation existant (BookingFlow)
-- [x] Créer le modèle MongoDB pour les réservations
-- [x] Créer les API endpoints pour les réservations (CRUD)
-- [x] Intégrer la persistance dans BookingFlow
-- [x] Initialiser les espaces par défaut en base
-- [x] Tester le système de réservation bout en bout
+### Environment Setup
+- [x] Initialize Next.js 14 project with TypeScript
+- [x] Configure Turborepo for monorepo structure
+- [x] Setup ESLint with custom rules
+- [x] Configure Prettier with team standards
+- [x] Setup Husky for pre-commit hooks
+- [x] Configure commitlint for conventional commits
 
-### Phase 2 : Interface Utilisateur
-- [x] Corriger les erreurs dans BookingFlow UI
-- [x] Retirer '/reservation' des routes publiques et sécuriser l'accès
-- [x] Corriger redirection post-connexion pour rester sur page d'origine
-- [x] Corriger problème d'affichage des boutons d'authentification
-- [x] Corriger redirection depuis page d'accueil pour rester sur /
-- [x] Corriger erreur "Données de réservation incomplètes" et méthode de paiement
+### Database & Services
+- [x] Create MongoDB Atlas cluster
+- [x] Design database schemas
+- [x] Setup Mongoose models
+- [x] Configure Cloudinary account
+- [x] Setup Stripe account and webhooks
+- [ ] Configure SendGrid/Resend for emails
 
-### Phase 3 : Intégration Paiements
-- [x] Préparer intégration Stripe pour paiements
-- [x] Activer les méthodes de paiement Stripe (card/paypal)
-- [x] Compléter l'endpoint GET pour vérification de paiement
-- [x] Créer les pages de succès/annulation Stripe
-- [x] Tester le flux Stripe bout en bout
-- [x] Implémenter la redirection Stripe pour les paiements par carte
-- [x] Corriger la redirection unauthorized après paiement Stripe
-- [x] Ajouter écran de confirmation pour paiements sur place
+### CI/CD Pipeline
+- [ ] Setup GitHub Actions workflows
+- [ ] Configure automated testing
+- [ ] Setup deployment to Vercel
+- [ ] Configure environment variables
+- [ ] Setup preview deployments
 
-### Phase 4 : Stabilité et Performance
-- [x] Déboguer l'erreur 500 lors de la création de réservation
-- [x] Résoudre les timeouts MongoDB
-- [x] Corriger l'erreur 'La durée ne correspond pas aux heures de début/fin' dans BookingFlow
-- [x] Corriger l'erreur Mongoose User model dans l'API bookings
-- [x] Corriger les heures d'ouverture manquantes dans les espaces
-- [x] Vérifier et résoudre les conflits de réservation
-- [x] Corriger l'erreur timeToMinutes undefined et nettoyer les espaces corrompus
-- [x] Résoudre les conflits de réservation persistants
+---
 
-### Phase 5 : Dashboard Client
-- [x] Implémenter l'historique des réservations dans le dashboard client
-- [x] Créer et configurer le favicon pour les onglets navigateur
-- [x] Repenser l'architecture dashboard client/admin avec composants séparés
-- [x] Créer structure composants dashboard client avec style site
-- [x] Implémenter infos profil utilisateur dans dashboard client
-- [x] Créer historique réservations avec style cohérent
-- [x] Ajouter section commandes et historique commandes
-- [x] Déboguer erreur d'import ClientHeader dans dashboard client
-- [x] Renommer architecture client actuelle pour dashboard admin
-- [x] Analyser le design du module de réservation pour s'inspirer
-- [x] Créer nouveau dashboard client mobile-first simple
-- [x] Implémenter design similaire au module de réservation
-- [x] Tester le nouveau dashboard client
-- [x] S'inspirer du dashboard simple du commit a69fae7
-- [x] Créer dashboard client moderne qui déchire
+## 🔐 Authentication System
 
-### Phase 6 : Gestion des Réservations
-- [x] Créer page /dashboard/client/bookings avec liste des réservations
-- [x] Implémenter filtres et recherche pour les réservations
-- [x] Ajouter fonctionnalité d'annulation de réservation
-- [x] Implémenter modification de réservation (date/heure)
-- [x] Ajouter téléchargement de reçus/confirmations PDF
-- [x] Créer interface de gestion des réservations (annulation, modification)
-- [x] Tester l'interface complète de gestion des réservations
+### NextAuth Configuration
+- [x] Install and configure NextAuth.js
+- [x] Setup JWT strategy
+- [x] Create auth providers (credentials, Google, etc.)
+- [x] Implement role-based access control (RBAC)
+- [x] Create auth middleware
 
-### Phase 7 : Statistiques et Analytics
-- [x] Ajouter statistiques utilisateur (réservations totales, temps passé)
-- [x] Créer API endpoint /api/bookings/stats pour analytics
-- [x] Intégrer statistiques réelles dans le dashboard client
+### User Management
+- [x] User registration flow
+- [x] Email verification system
+- [x] Password reset functionality
+- [x] Profile management pages
+- [ ] Avatar upload to Cloudinary
+- [x] Account settings page
 
-### Phase 8 : Corrections Techniques
-- [x] Résoudre définitivement erreur Framer Motion
-- [x] Corriger les imports manquants pour la compilation
-- [x] Fixer erreurs TypeScript dans User model (delete operator)
-- [x] Corriger propriétés virtuelles interface IUser
-- [x] Résoudre erreur mongodb-utils toString()
-- [x] Valider compilation TypeScript complète
-- [x] Pousser les changements sur Git (multiple fois)
-- [x] Mettre à jour tasks.md et planning.md
-- [x] Corriger erreurs ESLint (apostrophes, useEffect dependencies)
-- [x] Finaliser build production stable
+### Security
+- [x] Implement rate limiting
+- [x] Setup CSRF protection
+- [x] Configure secure headers
+- [ ] Implement 2FA (optional)
+- [x] Create security audit logs
 
-## 📋 Tâches Restantes
+---
 
-### Phase 9 : Notifications (Priorité Immédiate)
-- [ ] Implémenter notifications pour rappels de réservations
-  - [ ] Système d'emails automatiques (24h avant, 1h avant)
-  - [ ] Notifications push dans l'interface
-  - [ ] Gestion des préférences de notification utilisateur
-  - [ ] Templates d'emails personnalisés
-  - [ ] Job scheduler pour envois automatiques
-  - [ ] API endpoints pour notifications (/api/notifications)
-  - [ ] Interface admin pour gérer les templates
+## 🏠 Main Website
 
-### Phase 10 : Améliorations UX
-- [ ] Améliorer l'interface de sélection des créneaux
-  - [ ] Calendrier interactif avec drag & drop
-  - [ ] Visualisation des conflits en temps réel
-  - [ ] Suggestions de créneaux alternatifs
-- [ ] Ajouter calendrier visuel pour les disponibilités
-  - [ ] Vue mensuelle/hebdomadaire/journalière
-  - [ ] Codes couleur pour statuts des réservations
-  - [ ] Filtres par espace et type
-- [ ] Implémenter recherche avancée d'espaces
-  - [ ] Filtres par capacité, équipements, prix
-  - [ ] Géolocalisation et distance
-  - [ ] Recherche par mots-clés
-- [ ] Ajouter système de favoris pour espaces
-  - [ ] Liste des espaces favoris
-  - [ ] Notifications pour disponibilités favoris
-  - [ ] Recommandations personnalisées
-- [ ] Créer tour guidé pour nouveaux utilisateurs
-  - [ ] Onboarding interactif
-  - [ ] Tooltips contextuels
-  - [ ] Documentation intégrée
+### Homepage
+- [x] Hero section with CTA
+- [x] Features showcase
+- [x] Testimonials carousel
+- [x] Pricing preview
+- [x] Newsletter signup
+- [x] Footer with links
 
-### Phase 11 : Administration (En cours - 30% fait)
-- [ ] Dashboard admin complet
-  - [x] Structure de base créée (composants dans /dashboard/admin)
-  - [ ] Page principale admin avec statistiques globales
-  - [ ] Navigation et layout admin finalisés
-- [ ] Gestion des espaces (création, modification)
-  - [ ] Interface CRUD pour les espaces
-  - [ ] Upload d'images pour espaces
-  - [ ] Configuration des horaires et tarifs
-- [ ] Analytics avancés pour administrateurs
-  - [ ] Tableaux de bord avec métriques clés
-  - [ ] Graphiques de revenus et occupation
-  - [ ] Rapports exportables (PDF/Excel)
-- [ ] Gestion des utilisateurs et rôles
-  - [ ] Liste et recherche d'utilisateurs
-  - [ ] Modification des rôles et permissions
-  - [ ] Suspension/activation des comptes
-- [ ] Rapports financiers et statistiques
-  - [ ] Revenus par période
-  - [ ] Espaces les plus rentables
-  - [ ] Analyses prédictives
+### Static Pages
+- [x] About Us page
+- [x] Services detailed page
+- [x] Contact page with form
+- [x] Privacy Policy
+- [x] Terms of Service
+- [x] FAQ page
 
-### Phase 12 : Performance & Sécurité
-- [ ] Optimisation des requêtes MongoDB
-  - [ ] Indexation des collections
-  - [ ] Agrégation pipeline optimization
-  - [ ] Connection pooling
-- [ ] Mise en cache des données fréquentes
-  - [ ] Cache Redis pour sessions
-  - [ ] Cache des espaces et disponibilités
-  - [ ] CDN pour assets statiques
-- [ ] Tests de sécurité complets
-  - [ ] Audit des vulnérabilités OWASP
-  - [ ] Tests de pénétration
-  - [ ] Validation des inputs et sanitization
-- [ ] Audit de performance
-  - [ ] Lighthouse score optimization
-  - [ ] Bundle size analysis
-  - [ ] Database query optimization
-- [ ] Documentation technique
-  - [ ] Architecture documentation
-  - [ ] API documentation (Swagger)
-  - [ ] Deployment guide
+### Spaces Showcase
+- [x] Spaces listing page
+- [x] Individual space details
+- [x] Photo galleries
+- [ ] Virtual tour integration
+- [x] Amenities list
+- [x] Capacity information
 
-## 🎯 Priorités Actuelles
+---
 
-1. **Finaliser les notifications** - Seule fonctionnalité majeure manquante
-   - Système d'emails automatiques (rappels 24h/1h)
-   - Templates personnalisables
-   - Job scheduler pour envois automatiques
-   
-2. **Dashboard Admin** - Compléter l'interface d'administration
-   - CRUD espaces avec upload d'images
-   - Analytics et rapports financiers
-   - Gestion utilisateurs et rôles
-   
-3. **Tests et Optimisation** - Stabilité production
-   - Tests end-to-end complets
-   - Optimisation performance MongoDB
-   - Audit sécurité OWASP
-   
-4. **Documentation et Déploiement** - Préparation mise en production
-   - Documentation technique complète
-   - Guide utilisateur
-   - Configuration serveur optimisée
+## 📅 Booking System
 
-## 📊 Progression Globale
+### Calendar Component
+- [x] Monthly/Weekly/Daily views (vue mensuelle implémentée)
+- [x] Available slots display (avec filtrage intelligent)
+- [ ] Drag-and-drop booking
+- [ ] Recurring bookings
+- [ ] Time zone support
+- [x] Mobile-optimized calendar (mobile-first design)
 
-**MVP Fonctionnel : 95% ✅**
-- Core features: 100% ✅
-- Client interface: 100% ✅  
-- Admin interface: 30% 🔄
-- Notifications: 0% ⏳
+### Booking Flow
+- [x] Space/desk selection (avec espace populaire)
+- [x] Date/time picker (avec validation même jour)
+- [x] Duration selection (minimum 1h obligatoire)
+- [ ] Add-on services
+- [x] Price calculation
+- [x] Booking confirmation
+
+### Booking Management
+- [x] Booking CRUD operations
+- [x] Conflict detection
+- [x] Cancellation policy
+- [x] Modification requests
+- [ ] Refund processing
+- [ ] QR code generation
+
+### Notifications
+- [ ] Email confirmations
+- [ ] SMS reminders
+- [ ] Calendar invites
+- [ ] Push notifications
+- [ ] In-app notifications
+
+---
+
+## 🛍️ E-commerce Module
+
+### Product Management
+- [ ] Product CRUD
+- [ ] Category management
+- [ ] Inventory tracking
+- [ ] Product variants
+- [ ] Image management
+- [ ] Pricing tiers
+
+### Shopping Cart
+- [ ] Add to cart functionality
+- [ ] Cart persistence
+- [ ] Quantity updates
+- [ ] Remove items
+- [ ] Apply coupons
+- [ ] Tax calculation
+
+### Checkout Process
+- [ ] Stripe Elements integration
+- [ ] Billing information
+- [ ] Shipping/pickup options
+- [ ] Order summary
+- [ ] Payment processing
+- [ ] Order confirmation
+
+### Order Management
+- [ ] Order history
+- [ ] Order status tracking
+- [ ] Invoice generation
+- [ ] Refund requests
+- [ ] Order notifications
+- [ ] Admin order management
+
+---
+
+## 📝 Blog System
+
+### Content Management
+- [ ] Article CRUD
+- [ ] Rich text editor (MDX)
+- [ ] Image upload/management
+- [ ] Draft/publish workflow
+- [ ] Scheduling posts
+- [ ] Version history
+
+### Blog Features
+- [ ] Categories & tags
+- [ ] Author profiles
+- [ ] Comment system
+- [ ] Like/share functionality
+- [ ] Related posts
+- [ ] Search functionality
+
+### SEO Optimization
+- [ ] Meta tags management
+- [ ] Sitemap generation
+- [ ] RSS feed
+- [ ] Schema markup
+- [ ] Open Graph tags
+- [ ] Performance optimization
+
+---
+
+## 💬 Internal Messaging
+
+### Chat Infrastructure
+- [ ] WebSocket setup
+- [ ] Message persistence
+- [ ] Real-time delivery
+- [ ] Offline message queue
+- [ ] Message encryption
+- [ ] File attachment support
+
+### Chat Features
+- [ ] Direct messages
+- [ ] Group channels
+- [ ] Message search
+- [ ] Emoji reactions
+- [ ] Message editing
+- [ ] Delete messages
+
+### Community Features
+- [ ] User presence
+- [ ] Typing indicators
+- [ ] Read receipts
+- [ ] User mentions
+- [ ] Channel management
+- [ ] Moderation tools
+
+---
+
+## 📊 Dashboard System
+
+### Admin Dashboard
+- [x] User management table
+- [ ] Role assignment
+- [ ] System settings
+- [ ] Revenue analytics
+- [ ] Booking analytics
+- [ ] Export functionality
+
+### Manager Dashboard
+- [ ] Occupancy reports
+- [ ] Revenue tracking
+- [ ] Member analytics
+- [ ] Booking patterns
+- [ ] Inventory management
+- [ ] Staff scheduling
+
+### Staff Dashboard
+- [ ] Daily bookings view
+- [ ] Check-in system
+- [ ] Order processing
+- [ ] Quick actions
+- [ ] Shift management
+- [ ] Issue reporting
+
+### Client Dashboard
+- [x] Booking overview
+- [x] Payment history
+- [x] Profile management
+- [x] Membership status
+- [x] Support tickets
+- [x] Preferences
+- [x] Statistics and analytics
+- [x] PDF receipt generation
+- [x] Booking modification/cancellation
+
+---
+
+## 📱 Mobile Optimization
+
+### Responsive Design
+- [x] Mobile navigation menu
+- [x] Touch-friendly interfaces
+- [x] Gesture support
+- [x] Viewport optimization
+- [x] Font size adjustments
+- [x] Image optimization
+
+### PWA Features
+- [ ] Service worker setup
+- [ ] Offline functionality
+- [ ] App manifest
+- [ ] Install prompts
+- [ ] Push notifications
+- [ ] Background sync
+
+### Performance
+- [x] Code splitting
+- [x] Lazy loading
+- [x] Image optimization
+- [x] Bundle optimization
+- [ ] Caching strategy
+- [ ] CDN configuration
+
+---
+
+## 🧪 Testing
+
+### Unit Tests
+- [ ] Component tests
+- [ ] API route tests
+- [ ] Utility function tests
+- [ ] Hook tests
+- [ ] Service tests
+- [ ] Model tests
+
+### Integration Tests
+- [ ] Auth flow tests
+- [ ] Booking flow tests
+- [ ] Payment flow tests
+- [ ] API integration tests
+- [ ] Database tests
+- [ ] Third-party service tests
+
+### E2E Tests
+- [ ] Critical user journeys
+- [ ] Cross-browser testing
+- [ ] Mobile testing
+- [ ] Performance testing
+- [ ] Accessibility testing
+- [ ] Security testing
+
+---
+
+## 🚀 Deployment & DevOps
+
+### Production Setup
+- [x] Vercel configuration
+- [ ] Domain setup
+- [ ] SSL certificates
+- [x] Environment variables
+- [x] Database indexes
+- [ ] Backup strategy
+
+### Monitoring
+- [ ] Error tracking (Sentry)
+- [ ] Performance monitoring
+- [ ] Uptime monitoring
+- [ ] Log aggregation
+- [ ] Alert configuration
+- [ ] Analytics setup
+
+### Documentation
+- [ ] API documentation
+- [ ] Developer guide
+- [ ] User manual
+- [ ] Deployment guide
+- [ ] Troubleshooting guide
+- [ ] Video tutorials
+
+---
+
+## 🎯 Priority Matrix
+
+### Critical (P0) - ✅ COMPLETED
+- [x] Authentication system
+- [x] Booking functionality
+- [x] Payment processing
+- [x] Admin dashboard (basic)
+- [x] Mobile responsiveness
+
+### High (P1) - 🔄 IN PROGRESS
+- [ ] E-commerce
+- [ ] Email notifications
+- [x] User profiles
+- [x] Basic analytics
+- [x] Security features
+
+### Medium (P2) - ⏳ PLANNED
+- [ ] Blog system
+- [ ] Internal messaging
+- [ ] Advanced analytics
+- [ ] PWA features
+- [ ] Multiple languages
+
+### Low (P3) - 📋 FUTURE
+- [ ] Social features
+- [ ] Advanced reporting
+- [ ] Third-party integrations
+- [ ] AI recommendations
+- [ ] Gamification
+
+---
+
+## 📈 Recent Accomplishments (Last Sprint)
+
+### ✅ Completed Features
+- **Dashboard Client Complet**: Interface moderne avec statistiques temps réel
+- **Gestion Réservations Avancée**: Modification, annulation, génération PDF
+- **API Statistics**: Endpoint `/api/bookings/stats` avec analytics utilisateur
+- **Corrections Techniques**: TypeScript strict mode, ESLint fixes
+- **Build Production**: Stable et optimisé
+
+### 🔧 Technical Improvements
+- **User Model**: Fixed JSON transform methods avec destructuring
+- **MongoDB Utils**: Résolution erreurs de types
+- **Framer Motion**: Animations optimisées
+- **UI Components**: Composants shadcn/ui manquants ajoutés
+
+### 📊 Current Status
+- **MVP Fonctionnel**: 95% ✅
+- **Core Features**: 100% ✅
+- **Client Interface**: 100% ✅
+- **Admin Interface**: 30% 🔄
+- **Notifications**: 0% ⏳
+
+---
+
+## 🚧 Next Sprint Goals
+
+### Priority 1: Notifications System
+- [ ] Email service configuration (SendGrid/Resend)
+- [ ] Notification templates
+- [ ] Job scheduler (node-cron)
+- [ ] API endpoints `/api/notifications`
+- [ ] User preferences interface
+
+### Priority 2: Admin Dashboard Enhancement
+- [ ] Spaces CRUD with image upload
+- [ ] Revenue analytics with charts
+- [ ] User management with role assignment
+- [ ] Export functionality (PDF/Excel)
+
+### Priority 3: E-commerce Foundation
+- [ ] Product management system
+- [ ] Shopping cart implementation
+- [ ] Order management workflow
+- [ ] Inventory tracking
+
+---
+
+## 🎯 Version Roadmap
+
+### Version 1.0 (MVP - 95% Complete)
+- [x] Core booking system
+- [x] Payment processing
+- [x] Client dashboard
+- [ ] Basic notifications
+
+### Version 1.1 (Q1 2025)
+- [ ] Complete admin dashboard
+- [ ] E-commerce module
+- [ ] Advanced notifications
+- [ ] PWA features
+
+### Version 1.2 (Q2 2025)
+- [ ] Blog system
+- [ ] Internal messaging
+- [ ] Mobile app (React Native)
+- [ ] Advanced analytics
+
+### Version 2.0 (Q3 2025)
+- [ ] Multi-location support
+- [ ] AI recommendations
+- [ ] Advanced integrations
+- [ ] Enterprise features
