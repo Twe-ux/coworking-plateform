@@ -1,13 +1,16 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
+// import { Inter } from 'next/font/google'
+import Footer from '@/components/Footer'
+import Navigation from '@/components/Navigation'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ToastProvider } from '@/components/ui/toast'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
+import { Nunito } from 'next/font/google'
+import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const nunito = Nunito({
+  subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
   title: 'Cow or King Café - Coworking Strasbourg',
@@ -34,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={nunito.className}>
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>

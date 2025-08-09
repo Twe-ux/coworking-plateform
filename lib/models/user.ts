@@ -1,6 +1,7 @@
 import { Document, Schema, model, models } from 'mongoose'
 import { ObjectId } from 'mongodb'
-import { UserRole } from '@/types/auth'
+
+type UserRole = 'admin' | 'manager' | 'staff' | 'client'
 
 // Interface pour le document User (compatible avec NextAuth)
 export interface IUser extends Document {
@@ -10,7 +11,7 @@ export interface IUser extends Document {
   firstName?: string
   lastName?: string
   name?: string
-  role: UserRole
+  role: 'admin' | 'manager' | 'staff' | 'client'
   permissions: string[]
   isActive: boolean
   status: 'active' | 'inactive' | 'suspended' | 'pending'
@@ -41,6 +42,11 @@ export interface IUser extends Document {
   twoFactorEnabled: boolean
   createdAt: Date
   updatedAt: Date
+  // Virtual properties
+  fullName: string
+  displayName: string
+  isEmailVerified: boolean
+  daysSinceLastLogin: number | null
 }
 
 // Schema Mongoose pour les utilisateurs
@@ -187,26 +193,16 @@ const userSchema = new Schema<IUser>(
       virtuals: true,
       transform: function(doc, ret) {
         // Supprimer les champs sensibles lors de la sérialisation JSON
-        delete ret.password
-        delete ret.resetPasswordToken
-        delete ret.resetPasswordExpires
-        delete ret.emailVerificationToken
-        delete ret.emailVerificationExpires
-        delete ret.twoFactorSecret
-        return ret
+        const { password, resetPasswordToken, resetPasswordExpires, emailVerificationToken, emailVerificationExpires, twoFactorSecret, ...sanitized } = ret
+        return sanitized
       }
     },
     toObject: { 
       virtuals: true,
       transform: function(doc, ret) {
         // Supprimer les champs sensibles lors de la conversion en objet
-        delete ret.password
-        delete ret.resetPasswordToken
-        delete ret.resetPasswordExpires
-        delete ret.emailVerificationToken
-        delete ret.emailVerificationExpires
-        delete ret.twoFactorSecret
-        return ret
+        const { password, resetPasswordToken, resetPasswordExpires, emailVerificationToken, emailVerificationExpires, twoFactorSecret, ...sanitized } = ret
+        return sanitized
       }
     },
   }

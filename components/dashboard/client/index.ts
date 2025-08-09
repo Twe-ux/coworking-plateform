@@ -1,4 +1,6 @@
 export { ClientLayout } from './client-layout'
-export { ClientSidebar } from './client-sidebar'
 export { ClientHeader } from './client-header'
-export { ClientCard, StatsCard, QuickActionCard } from './client-cards'
+export { DashboardCard } from './dashboard-card'
+export { StatsCard } from './stats-card'
+export { QuickActions } from './quick-actions'
+export { BookingCard } from './booking-card'
