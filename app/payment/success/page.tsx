@@ -27,9 +27,12 @@ export default function PaymentSuccessPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const sessionId = searchParams.get('session_id')
+    const sessionId = searchParams.get('session_id') // Stripe Checkout (ancien système)
+    const paymentIntent = searchParams.get('payment_intent') // Stripe Elements (nouveau système)
     const bookingId = searchParams.get('booking_id')
     const paymentMethod = searchParams.get('payment_method')
+    
+    console.log('🔍 Payment Success - Paramètres URL:', { sessionId, paymentIntent, bookingId, paymentMethod })
     
     if (!bookingId) {
       setError('ID de réservation manquant')
@@ -61,13 +64,21 @@ export default function PaymentSuccessPage() {
             bookingId: data.booking.id,
             status: data.booking.status
           })
-        } else {
-          // Paiement Stripe : vérifier auprès de Stripe
-          if (!sessionId) {
-            setError('Session de paiement manquante')
-            setLoading(false)
-            return
+        } else if (paymentMethod === 'card' && paymentIntent) {
+          // Nouveau système Stripe Elements : vérifier avec payment_intent
+          console.log('🎯 Vérification paiement Stripe Elements:', { paymentIntent, bookingId })
+          
+          const response = await fetch(`/api/payments?payment_intent=${paymentIntent}&booking_id=${bookingId}`)
+          const data = await response.json()
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Erreur lors de la vérification')
           }
+
+          setVerification(data)
+        } else if (sessionId) {
+          // Ancien système Stripe Checkout : vérifier avec session_id
+          console.log('🔄 Vérification paiement Stripe Checkout:', { sessionId, bookingId })
           
           const response = await fetch(`/api/payments?session_id=${sessionId}&booking_id=${bookingId}`)
           const data = await response.json()
@@ -77,6 +88,10 @@ export default function PaymentSuccessPage() {
           }
 
           setVerification(data)
+        } else {
+          setError('Informations de paiement manquantes (session_id ou payment_intent requis)')
+          setLoading(false)
+          return
         }
       } catch (error) {
         console.error('Booking verification error:', error)

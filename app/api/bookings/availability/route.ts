@@ -173,7 +173,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Informations sur les heures d'ouverture de l'espace pour cette date
-    const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][targetDate.getDay()]
+    // Utiliser l'heure locale française pour éviter les problèmes de timezone
+    const localDate = new Date(targetDate.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+    const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][localDate.getDay()]
+    
+    console.log('📅 [Availability] Conversion timezone:', {
+      originalDate: targetDate,
+      originalUTC: targetDate.toISOString(),
+      localDateParis: localDate,
+      originalDayIndex: targetDate.getDay(),
+      localDayIndex: localDate.getDay(),
+      originalDayName: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][targetDate.getDay()],
+      localDayName: dayName
+    })
     const openingHours = space.openingHours?.[dayName]
 
     return NextResponse.json({
