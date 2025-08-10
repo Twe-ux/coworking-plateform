@@ -1,8 +1,10 @@
 {
   "mcpServers": {
     "filesystem": {
-      "command": "node", 
-      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/filesystem.js"],
+      "command": "node",
+      "args": [
+        "/Users/twe/Developer/coworking-platform/mcp-servers/filesystem.js"
+      ],
       "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
       "env": {
         "FILESYSTEM_BASE_PATH": "/Users/twe/Developer/coworking-platform"
@@ -10,7 +12,9 @@
     },
     "mongodb": {
       "command": "node",
-      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/mongodb.js"],
+      "args": [
+        "/Users/twe/Developer/coworking-platform/mcp-servers/mongodb.js"
+      ],
       "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
       "env": {
         "MONGODB_URI": "mongodb+srv://user:password@cluster.mongodb.net/database"
@@ -27,17 +31,21 @@
     },
     "cloudinary": {
       "command": "node",
-      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/cloudinary.js"],
+      "args": [
+        "/Users/twe/Developer/coworking-platform/mcp-servers/cloudinary.js"
+      ],
       "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
       "env": {
-        "CLOUDINARY_CLOUD_NAME": "dcxm5txfz",
-        "CLOUDINARY_API_KEY": "299764295366364",
-        "CLOUDINARY_API_SECRET": "FqnG0npkqv_LLUF8F36qkOwrCew"
+        "CLOUDINARY_CLOUD_NAME": "your_cloud_name",
+        "CLOUDINARY_API_KEY": "your_api_key",
+        "CLOUDINARY_API_SECRET": "your_api_secret"
       }
     },
     "booking-server": {
       "command": "node",
-      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/booking.js"],
+      "args": [
+        "/Users/twe/Developer/coworking-platform/mcp-servers/booking.js"
+      ],
       "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
       "env": {
         "MONGODB_URI": "mongodb+srv://user:password@cluster.mongodb.net/database"
