@@ -12,12 +12,9 @@ export async function GET() {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -29,26 +26,28 @@ export async function GET() {
 
     await dbConnect()
 
-    // Récupérer toutes les réservations avec les informations utilisateur
+    // Récupérer toutes les réservations avec les informations utilisateur et espace
     const bookings = await Booking.find()
-      .populate('user', 'firstName lastName email')
+      .populate('userId', 'firstName lastName email')
+      .populate('spaceId', 'name location id')
       .sort({ createdAt: -1 }) // Plus récentes d'abord
       .lean()
 
     // Formater les données pour l'interface
-    const formattedBookings = bookings.map(booking => ({
+    const formattedBookings = bookings.map((booking) => ({
       _id: booking._id.toString(),
       user: {
-        firstName: booking.user?.firstName || 'N/A',
-        lastName: booking.user?.lastName || 'N/A',
-        email: booking.user?.email || 'N/A'
+        firstName: booking.userId?.firstName || 'N/A',
+        lastName: booking.userId?.lastName || 'N/A',
+        email: booking.userId?.email || 'N/A',
       },
-      spaceName: booking.spaceName,
+      spaceName: booking.spaceId?.name || 'Espace supprimé',
+      spaceLocation: booking.spaceId?.location || 'N/A',
       date: new Date(booking.date).toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       }),
       startTime: booking.startTime,
       endTime: booking.endTime,
@@ -58,23 +57,22 @@ export async function GET() {
       totalPrice: booking.totalPrice,
       paymentMethod: booking.paymentMethod,
       status: booking.status,
-      createdAt: booking.createdAt
+      createdAt: booking.createdAt,
     }))
 
     return NextResponse.json({
       success: true,
       data: formattedBookings,
       count: formattedBookings.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API Bookings Admin:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erreur lors de la récupération des réservations',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     )
@@ -88,12 +86,9 @@ export async function PATCH(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -113,10 +108,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!['pending', 'confirmed', 'cancelled'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Statut invalide' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Statut invalide' }, { status: 400 })
     }
 
     await dbConnect()
@@ -124,9 +116,9 @@ export async function PATCH(request: NextRequest) {
     // Mettre à jour la réservation
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      { 
+      {
         status,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     )
@@ -143,17 +135,16 @@ export async function PATCH(request: NextRequest) {
       message: 'Statut de la réservation mis à jour',
       data: {
         bookingId: updatedBooking._id,
-        newStatus: updatedBooking.status
-      }
+        newStatus: updatedBooking.status,
+      },
     })
-
   } catch (error: any) {
     console.error('❌ Erreur mise à jour réservation:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erreur lors de la mise à jour de la réservation',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     )

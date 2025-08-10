@@ -1,5 +1,7 @@
 'use client'
 
+import DynamicStats from '@/components/home/DynamicStats'
+import SpaceCarousel from '@/components/home/SpaceCarousel'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import {
   ArrowRight,
@@ -28,8 +30,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import SpaceCarousel from '@/components/home/SpaceCarousel'
-import DynamicStats from '@/components/home/DynamicStats'
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })

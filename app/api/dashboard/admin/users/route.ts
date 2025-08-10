@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { UserRole } from '@/types/auth'
 import dbConnect from '@/lib/mongodb'
-import User from '@/lib/models/User'
+import User from '@/lib/models/user'
 import Booking from '@/lib/models/booking'
 
 /**
@@ -13,12 +13,9 @@ export async function GET() {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -41,17 +38,17 @@ export async function GET() {
       users.map(async (user) => {
         // Compter les réservations
         const bookingsCount = await Booking.countDocuments({ user: user._id })
-        
+
         // Calculer le total dépensé
         const spentResult = await Booking.aggregate([
           { $match: { user: user._id, status: 'confirmed' } },
-          { $group: { _id: null, total: { $sum: '$totalPrice' } } }
+          { $group: { _id: null, total: { $sum: '$totalPrice' } } },
         ])
         const totalSpent = spentResult.length > 0 ? spentResult[0].total : 0
 
         // Dernière réservation
         const lastBooking = await Booking.findOne(
-          { user: user._id }, 
+          { user: user._id },
           { date: 1 }
         ).sort({ createdAt: -1 })
 
@@ -64,10 +61,10 @@ export async function GET() {
           isActive: user.isActive !== false, // Par défaut true si non défini
           bookingsCount,
           totalSpent: Math.round(totalSpent),
-          lastBooking: lastBooking 
+          lastBooking: lastBooking
             ? new Date(lastBooking.date).toLocaleDateString('fr-FR')
             : null,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
         }
       })
     )
@@ -76,16 +73,15 @@ export async function GET() {
       success: true,
       data: usersWithStats,
       count: usersWithStats.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API Users Admin:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erreur lors de la récupération des utilisateurs',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     )
@@ -99,12 +95,9 @@ export async function PATCH(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -145,9 +138,9 @@ export async function PATCH(request: NextRequest) {
     // Mettre à jour l'utilisateur
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { 
+      {
         isActive,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     )
@@ -157,17 +150,16 @@ export async function PATCH(request: NextRequest) {
       message: `Utilisateur ${isActive ? 'activé' : 'désactivé'} avec succès`,
       data: {
         userId: updatedUser._id,
-        isActive: updatedUser.isActive
-      }
+        isActive: updatedUser.isActive,
+      },
     })
-
   } catch (error: any) {
     console.error('❌ Erreur mise à jour utilisateur:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la mise à jour de l\'utilisateur',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la mise à jour de l'utilisateur",
+        details: error.message,
       },
       { status: 500 }
     )
