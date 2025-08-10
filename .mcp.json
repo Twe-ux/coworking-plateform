@@ -1,16 +1,55 @@
 {
   "mcpServers": {
     "filesystem": {
-      "command": "node",
-      "args": ["/Users/twe/.claude/mcp-servers/filesystem.js"],
+      "command": "node", 
+      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/filesystem.js"],
+      "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
       "env": {
         "FILESYSTEM_BASE_PATH": "/Users/twe/Developer/coworking-platform"
       }
     },
-    "memory": {
-      "command": "python",
-      "args": ["-m", "http.server", "8000"],
-      "disabled": true
+    "mongodb": {
+      "command": "node",
+      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/mongodb.js"],
+      "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
+      "env": {
+        "MONGODB_URI": "mongodb+srv://user:password@cluster.mongodb.net/database"
+      }
+    },
+    "stripe": {
+      "command": "node",
+      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/stripe.js"],
+      "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
+      "env": {
+        "STRIPE_API_KEY": "sk_test_your_stripe_secret_key_here",
+        "STRIPE_PUBLISHABLE_KEY": "pk_test_your_stripe_publishable_key_here"
+      }
+    },
+    "cloudinary": {
+      "command": "node",
+      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/cloudinary.js"],
+      "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
+      "env": {
+        "CLOUDINARY_CLOUD_NAME": "dcxm5txfz",
+        "CLOUDINARY_API_KEY": "299764295366364",
+        "CLOUDINARY_API_SECRET": "FqnG0npkqv_LLUF8F36qkOwrCew"
+      }
+    },
+    "booking-server": {
+      "command": "node",
+      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/booking.js"],
+      "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
+      "env": {
+        "MONGODB_URI": "mongodb+srv://user:password@cluster.mongodb.net/database"
+      }
+    },
+    "git": {
+      "command": "node",
+      "args": ["/Users/twe/Developer/coworking-platform/mcp-servers/git.js"],
+      "cwd": "/Users/twe/Developer/coworking-platform/mcp-servers",
+      "env": {
+        "GIT_REPO_PATH": "/Users/twe/Developer/coworking-platform"
+      }
     }
   }
 }

@@ -328,7 +328,7 @@ export default function UsersManagementPage() {
                 firstName: '',
                 lastName: '',
                 email: '',
-                role: 'USER',
+                role: 'client',
                 password: '',
               })
               setShowCreateModal(true)

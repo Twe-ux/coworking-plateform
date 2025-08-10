@@ -766,9 +766,7 @@ export default function BookingsManagementPage() {
           <div className="text-2xl font-bold text-purple-600">
             €
             {filteredBookings
-              .filter(
-                (b) => b.status === 'confirmed' || b.status === 'completed'
-              )
+              .filter((b) => b.status === 'confirmed')
               .reduce((sum, booking) => sum + booking.totalPrice, 0)}
           </div>
           <div className="text-sm text-gray-600">Revenus générés</div>

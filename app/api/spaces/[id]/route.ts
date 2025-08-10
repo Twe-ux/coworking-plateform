@@ -16,7 +16,7 @@ export async function GET(
     const spaceId = params.id
 
     // Récupérer l'espace par son ID personnalisé
-    const space = await Space.findOne({ id: spaceId, available: true }).lean()
+    const space: any = await Space.findOne({ id: spaceId, available: true }).lean()
 
     if (!space) {
       return NextResponse.json(
@@ -69,7 +69,7 @@ export async function GET(
       reviewCount: stats.totalBookings,
       description: space.description || '',
       images: [space.image], // Vous pouvez étendre pour plusieurs images
-      features: (space.features || []).map(feature => ({
+      features: (space.features || []).map((feature: any) => ({
         icon: 'Wifi', // Vous pouvez mapper les icônes selon les features
         name: feature,
         description: feature,
@@ -87,8 +87,8 @@ export async function GET(
         today: true, // Vous pouvez implémenter une logique plus sophistiquée
         nextAvailable: new Date()
       },
-      reviews: recentBookings.map(booking => ({
-        id: booking._id.toString(),
+      reviews: recentBookings.map((booking: any) => ({
+        id: booking._id?.toString() || booking.id,
         user: `${booking.user?.firstName || 'Utilisateur'} ${(booking.user?.lastName || '').charAt(0)}.`,
         rating: booking.rating || 5,
         comment: booking.review || 'Très bel espace !',
