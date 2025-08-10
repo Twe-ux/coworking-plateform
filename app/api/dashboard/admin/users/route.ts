@@ -35,7 +35,7 @@ export async function GET() {
 
     // Pour chaque utilisateur, calculer les statistiques de réservation
     const usersWithStats = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: any) => {
         // Compter les réservations
         const bookingsCount = await Booking.countDocuments({ user: user._id })
 
@@ -53,7 +53,7 @@ export async function GET() {
         ).sort({ createdAt: -1 })
 
         return {
-          _id: user._id.toString(),
+          _id: user._id?.toString() || user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,

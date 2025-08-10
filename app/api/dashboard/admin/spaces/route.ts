@@ -13,12 +13,9 @@ export async function GET() {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -31,44 +28,43 @@ export async function GET() {
     await dbConnect()
 
     // Récupérer tous les espaces
-    const spaces = await Space.find()
-      .sort({ createdAt: -1 })
-      .lean()
+    const spaces = await Space.find().sort({ createdAt: -1 }).lean()
 
     // Pour chaque espace, calculer les statistiques de réservation
     const spacesWithStats = await Promise.all(
-      spaces.map(async (space) => {
+      spaces.map(async (space: any) => {
         // Compter les réservations
-        const bookingsCount = await Booking.countDocuments({ 
+        const bookingsCount = await Booking.countDocuments({
           spaceName: space.name,
-          status: 'confirmed' 
+          status: 'confirmed',
         })
-        
+
         // Calculer le revenu total
         const revenueResult = await Booking.aggregate([
-          { 
-            $match: { 
-              spaceName: space.name, 
-              status: 'confirmed' 
-            } 
+          {
+            $match: {
+              spaceName: space.name,
+              status: 'confirmed',
+            },
           },
-          { 
-            $group: { 
-              _id: null, 
-              total: { $sum: '$totalPrice' } 
-            } 
-          }
+          {
+            $group: {
+              _id: null,
+              total: { $sum: '$totalPrice' },
+            },
+          },
         ])
-        const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0
+        const totalRevenue =
+          revenueResult.length > 0 ? revenueResult[0].total : 0
 
         // Dernière réservation
         const lastBooking = await Booking.findOne(
-          { spaceName: space.name }, 
+          { spaceName: space.name },
           { date: 1 }
         ).sort({ createdAt: -1 })
 
         return {
-          _id: space._id.toString(),
+          _id: space._id?.toString() || space.id,
           id: space.id,
           name: space.name,
           description: space.description || '',
@@ -88,11 +84,11 @@ export async function GET() {
           openingHours: space.openingHours,
           bookingsCount,
           totalRevenue: Math.round(totalRevenue),
-          lastBooking: lastBooking 
+          lastBooking: lastBooking
             ? new Date(lastBooking.date).toLocaleDateString('fr-FR')
             : null,
           createdAt: space.createdAt,
-          updatedAt: space.updatedAt
+          updatedAt: space.updatedAt,
         }
       })
     )
@@ -101,16 +97,15 @@ export async function GET() {
       success: true,
       data: spacesWithStats,
       count: spacesWithStats.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API Spaces Admin:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erreur lors de la récupération des espaces',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     )
@@ -124,12 +119,9 @@ export async function POST(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -142,7 +134,16 @@ export async function POST(request: NextRequest) {
     const spaceData = await request.json()
 
     // Validation des champs requis
-    const requiredFields = ['id', 'name', 'location', 'capacity', 'pricePerHour', 'pricePerDay', 'specialty', 'image']
+    const requiredFields = [
+      'id',
+      'name',
+      'location',
+      'capacity',
+      'pricePerHour',
+      'pricePerDay',
+      'specialty',
+      'image',
+    ]
     for (const field of requiredFields) {
       if (!spaceData[field]) {
         return NextResponse.json(
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest) {
       rating: spaceData.rating || 4.5,
       isPopular: spaceData.isPopular || false,
       features: spaceData.features || [],
-      amenities: spaceData.amenities || []
+      amenities: spaceData.amenities || [],
     })
 
     await newSpace.save()
@@ -183,31 +184,32 @@ export async function POST(request: NextRequest) {
       data: {
         _id: newSpace._id,
         id: newSpace.id,
-        name: newSpace.name
-      }
+        name: newSpace.name,
+      },
     })
-
   } catch (error: any) {
     console.error('❌ Erreur création espace:', error)
-    
+
     // Gestion des erreurs de validation MongoDB
     if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((err: any) => err.message)
+      const messages = Object.values(error.errors).map(
+        (err: any) => err.message
+      )
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Erreur de validation',
-          details: messages 
+          details: messages,
         },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la création de l\'espace',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la création de l'espace",
+        details: error.message,
       },
       { status: 500 }
     )
@@ -221,12 +223,9 @@ export async function PUT(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -239,10 +238,7 @@ export async function PUT(request: NextRequest) {
     const { spaceId, ...updateData } = await request.json()
 
     if (!spaceId) {
-      return NextResponse.json(
-        { error: 'spaceId est requis' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'spaceId est requis' }, { status: 400 })
     }
 
     await dbConnect()
@@ -250,10 +246,7 @@ export async function PUT(request: NextRequest) {
     // Vérifier que l'espace existe
     const existingSpace = await Space.findById(spaceId)
     if (!existingSpace) {
-      return NextResponse.json(
-        { error: 'Espace non trouvé' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Espace non trouvé' }, { status: 404 })
     }
 
     // Si l'ID personnalisé change, vérifier qu'il n'existe pas déjà
@@ -272,11 +265,11 @@ export async function PUT(request: NextRequest) {
       spaceId,
       {
         ...updateData,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
-      { 
+      {
         new: true,
-        runValidators: true
+        runValidators: true,
       }
     )
 
@@ -286,31 +279,32 @@ export async function PUT(request: NextRequest) {
       data: {
         _id: updatedSpace._id,
         id: updatedSpace.id,
-        name: updatedSpace.name
-      }
+        name: updatedSpace.name,
+      },
     })
-
   } catch (error: any) {
     console.error('❌ Erreur mise à jour espace:', error)
-    
+
     // Gestion des erreurs de validation MongoDB
     if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((err: any) => err.message)
+      const messages = Object.values(error.errors).map(
+        (err: any) => err.message
+      )
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Erreur de validation',
-          details: messages 
+          details: messages,
         },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la mise à jour de l\'espace',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la mise à jour de l'espace",
+        details: error.message,
       },
       { status: 500 }
     )
@@ -324,12 +318,9 @@ export async function DELETE(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     if (session.user.role !== UserRole.ADMIN) {
@@ -342,10 +333,7 @@ export async function DELETE(request: NextRequest) {
     const { spaceId } = await request.json()
 
     if (!spaceId) {
-      return NextResponse.json(
-        { error: 'spaceId est requis' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'spaceId est requis' }, { status: 400 })
     }
 
     await dbConnect()
@@ -353,24 +341,22 @@ export async function DELETE(request: NextRequest) {
     // Vérifier que l'espace existe
     const existingSpace = await Space.findById(spaceId)
     if (!existingSpace) {
-      return NextResponse.json(
-        { error: 'Espace non trouvé' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Espace non trouvé' }, { status: 404 })
     }
 
     // Vérifier s'il y a des réservations actives
     const activeBookings = await Booking.countDocuments({
       spaceName: existingSpace.name,
       status: { $in: ['pending', 'confirmed'] },
-      date: { $gte: new Date() }
+      date: { $gte: new Date() },
     })
 
     if (activeBookings > 0) {
       return NextResponse.json(
-        { 
-          error: 'Impossible de supprimer cet espace car il a des réservations actives',
-          activeBookings 
+        {
+          error:
+            'Impossible de supprimer cet espace car il a des réservations actives',
+          activeBookings,
         },
         { status: 400 }
       )
@@ -381,16 +367,15 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Espace supprimé avec succès'
+      message: 'Espace supprimé avec succès',
     })
-
   } catch (error: any) {
     console.error('❌ Erreur suppression espace:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la suppression de l\'espace',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la suppression de l'espace",
+        details: error.message,
       },
       { status: 500 }
     )

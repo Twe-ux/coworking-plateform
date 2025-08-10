@@ -1,7 +1,8 @@
 'use client'
 
 import { RouteGuard } from '@/components/auth/route-guard'
-import { AdminSidebar } from '@/components/dashboard/admin/admin-sidebar'
+import { AppSidebar } from '@/components/dashboard/admin/advanced/app-sidebar'
+import { SidebarProvider } from '@/components/dashboard/admin/advanced/ui/sidebar'
 import { Header } from '@/components/dashboard/header'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { UserRole } from '@/types/auth'
@@ -27,10 +28,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Client utilise le layout café personnalisé */}
       {userRole === 'client' ? (
         children // Le ClientLayout est géré dans chaque page client individuellement
+      ) : /* Layout traditionnel pour admin, staff, manager */
+      userRole === 'admin' ? (
+        <SidebarProvider>
+          <div className="mt-24 flex w-full">
+            <AppSidebar />
+            <div className="flex flex-1 flex-col">
+              <main className="flex-1 bg-gray-50 p-6">{children}</main>
+            </div>
+          </div>
+        </SidebarProvider>
       ) : (
-        /* Layout traditionnel pour admin, staff, manager */
         <div className="flex min-h-screen">
-          {userRole === 'admin' ? <AdminSidebar /> : <Sidebar />}
+          <Sidebar />
           <div className="flex flex-1 flex-col">
             <Header />
             <main className="flex-1 bg-gray-50 p-6">{children}</main>

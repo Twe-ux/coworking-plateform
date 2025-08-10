@@ -7,11 +7,10 @@ import Booking from '@/lib/models/booking'
 import User from '@/lib/models/user'
 
 /**
- * API pour récupérer les statistiques du dashboard administrateur
+ * API pour récupérer les statistiques du dashboard avancé
  */
 export async function GET() {
   try {
-    // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
@@ -48,6 +47,7 @@ export async function GET() {
       activeUsers,
       confirmedBookings,
       pendingBookings,
+      cancelledBookings,
       todayBookings,
       thisWeekBookings,
       lastWeekBookings,
@@ -63,11 +63,14 @@ export async function GET() {
       // Utilisateurs actifs
       User.countDocuments({ isActive: { $ne: false } }),
 
-      // Réservations confirmées (pour le taux d'occupation)
+      // Réservations confirmées
       Booking.countDocuments({ status: 'confirmed' }),
 
       // Réservations en attente
       Booking.countDocuments({ status: 'pending' }),
+
+      // Réservations annulées
+      Booking.countDocuments({ status: 'cancelled' }),
 
       // Réservations d'aujourd'hui
       Booking.countDocuments({
@@ -93,9 +96,9 @@ export async function GET() {
         },
       }),
 
-      // Chiffre d'affaires total (confirmées seulement, excluant les annulées)
+      // Chiffre d'affaires total (confirmées seulement)
       Booking.aggregate([
-        { $match: { status: { $in: ['confirmed', 'completed'] } } },
+        { $match: { status: 'confirmed' } },
         { $group: { _id: null, total: { $sum: '$totalPrice' } } },
       ]),
 
@@ -103,12 +106,11 @@ export async function GET() {
       User.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
     ])
 
-    // Calcul du taux d'occupation (basé uniquement sur les réservations confirmées)
-    // Assuming 8 slots per day (8h-20h) and 7 days a week
+    // Calcul du taux d'occupation
     const totalSlotsPerWeek = 8 * 7
     const occupancyRate =
       confirmedBookings > 0
-        ? Math.round((confirmedBookings / (totalSlotsPerWeek * 4)) * 100) // 4 weeks estimation, excluant les annulées
+        ? Math.round((confirmedBookings / (totalSlotsPerWeek * 4)) * 100)
         : 0
 
     // Calcul de la croissance hebdomadaire
@@ -126,7 +128,7 @@ export async function GET() {
 
     // Transformation de la répartition par rôle
     const roleDistribution = usersByRole.reduce(
-      (acc, item) => {
+      (acc: any, item: any) => {
         acc[item._id || 'client'] = item.count
         return acc
       },
@@ -143,13 +145,14 @@ export async function GET() {
       totalUsers,
       activeUsers,
       totalRevenue: Math.round(revenue),
-      occupancyRate: Math.min(occupancyRate, 100), // Cap à 100%
+      occupancyRate: Math.min(occupancyRate, 100),
       todayBookings,
       weeklyGrowth,
       usersByRole: roleDistribution,
       bookingsByStatus: {
         confirmed: confirmedBookings,
         pending: pendingBookings,
+        cancelled: cancelledBookings,
         total: totalBookings,
       },
     }
@@ -160,7 +163,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     })
   } catch (error: any) {
-    console.error('❌ Erreur API Dashboard Admin:', error)
+    console.error('❌ Erreur API Dashboard Advanced:', error)
     return NextResponse.json(
       {
         success: false,
