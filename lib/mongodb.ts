@@ -1,4 +1,5 @@
 import { MongoClient, Db, MongoClientOptions } from 'mongodb'
+import mongoose from 'mongoose'
 
 if (!process.env.MONGODB_URI) {
   throw new Error("Variable d'environnement MONGODB_URI manquante")
@@ -214,4 +215,46 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 }
 
-export default clientPromise
+/**
+ * Fonction de connexion Mongoose pour compatibilité avec les modèles Space et Booking
+ */
+interface CachedConnection {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+let cached: CachedConnection = (global as any).mongoose;
+
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
+}
+
+export default async function dbConnect(): Promise<typeof mongoose> {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(uri)
+      .then((mongoose) => {
+        console.log('✅ MongoDB connecté via Mongoose')
+        return mongoose;
+      })
+      .catch((reason) => {
+        console.error("❌ Échec connexion MongoDB Mongoose:", reason);
+        throw reason;
+      });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
+}
+
+// Les autres fonctions sont déjà exportées individuellement

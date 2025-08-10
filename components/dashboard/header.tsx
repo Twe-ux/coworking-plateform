@@ -21,22 +21,27 @@ export function Header() {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="mt-[110px] border-b border-gray-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">
             Tableau de bord
           </h1>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           {session?.user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative w-8 h-8 rounded-full">
-                  <Avatar className="w-8 h-8">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {session.user.firstName?.[0]?.toUpperCase() || session.user.email?.[0]?.toUpperCase() || 'U'}
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white">
+                      {session.user.firstName?.[0]?.toUpperCase() ||
+                        session.user.email?.[0]?.toUpperCase() ||
+                        'U'}
                     </div>
                   </Avatar>
                 </Button>
@@ -44,15 +49,15 @@ export function Header() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {session.user.firstName && session.user.lastName 
+                    <p className="text-sm leading-none font-medium">
+                      {session.user.firstName && session.user.lastName
                         ? `${session.user.firstName} ${session.user.lastName}`
                         : session.user.email}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-muted-foreground text-xs leading-none">
                       {session.user.email}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground capitalize">
+                    <p className="text-muted-foreground text-xs leading-none capitalize">
                       Rôle: {session.user.role}
                     </p>
                   </div>

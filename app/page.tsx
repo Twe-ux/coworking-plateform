@@ -28,6 +28,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import SpaceCarousel from '@/components/home/SpaceCarousel'
+import DynamicStats from '@/components/home/DynamicStats'
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -173,25 +175,7 @@ export default function Home() {
             variants={itemVariants}
             className="mx-auto grid max-w-2xl grid-cols-2 gap-8 md:grid-cols-4"
           >
-            {[
-              { icon: Coffee, label: '3 espaces', value: 'disponibles' },
-              { icon: Users, label: '50+', value: 'membres' },
-              { icon: MapPin, label: 'Strasbourg', value: 'centre-ville' },
-              { icon: Star, label: '4.8/5', value: 'satisfaction' },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                className="text-center"
-                whileHover={{ scale: 1.1 }}
-                transition={{ type: 'spring' as const, stiffness: 300 }}
-              >
-                <stat.icon className="text-coffee-accent mx-auto mb-2 h-8 w-8" />
-                <div className="text-coffee-primary text-2xl font-bold">
-                  {stat.label}
-                </div>
-                <div className="text-sm text-gray-600">{stat.value}</div>
-              </motion.div>
-            ))}
+            <DynamicStats />
           </motion.div>
         </motion.div>
 
@@ -298,119 +282,7 @@ export default function Home() {
             </motion.p>
           </div>
 
-          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
-            {[
-              {
-                id: 'verriere',
-                name: 'Salle Verrière',
-                location: 'Niveau intermédiaire',
-                image: 'bg-gradient-to-br from-coffee-primary to-coffee-accent',
-                capacity: '8 places',
-                specialty: 'Luminosité naturelle',
-                rating: 4.9,
-                features: [
-                  'Lumière naturelle',
-                  'Espace privé',
-                  'Tableau blanc',
-                  'Climatisation',
-                ],
-              },
-              {
-                id: 'places',
-                name: 'Places',
-                location: 'Rez-de-chaussée',
-                image: 'bg-gradient-to-br from-coffee-accent to-coffee-primary',
-                capacity: '12 places',
-                specialty: 'Ambiance café conviviale',
-                rating: 4.8,
-                features: [
-                  'WiFi Fibre',
-                  'Prises à chaque place',
-                  'Vue sur rue',
-                  'Accès boissons',
-                ],
-              },
-              {
-                id: 'etage',
-                name: 'Étage',
-                location: 'Premier étage',
-                image: 'bg-gradient-to-br from-coffee-primary to-coffee-accent',
-                capacity: '15 places',
-                specialty: 'Calme et concentration',
-                rating: 4.7,
-                features: [
-                  'Zone silencieuse',
-                  'Écrans partagés',
-                  'Salon détente',
-                  'Vue dégagée',
-                ],
-              },
-            ].map((space, index) => (
-              <motion.div
-                key={index}
-                className="group relative cursor-pointer overflow-hidden rounded-2xl shadow-xl"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ scale: 1.03, y: -5 }}
-                viewport={{ once: true }}
-              >
-                {/* Image Background */}
-                <div className={`${space.image} relative h-64`}>
-                  <div className="absolute inset-0 bg-black/40 transition-colors duration-300 group-hover:bg-black/20" />
-                  <div className="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 backdrop-blur-sm">
-                    <Star className="h-4 w-4 fill-current text-yellow-500" />
-                    <span className="text-sm font-semibold">
-                      {space.rating}
-                    </span>
-                  </div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="mb-1 text-2xl font-bold">{space.name}</h3>
-                    <p className="flex items-center gap-1 text-white/90">
-                      <MapPin className="h-4 w-4" />
-                      {space.location}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="bg-white p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="text-coffee-accent font-semibold">
-                      {space.capacity}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {space.specialty}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {space.features.map((feature, featureIndex) => (
-                      <div
-                        key={featureIndex}
-                        className="flex items-center gap-2 text-sm text-gray-700"
-                      >
-                        <div className="bg-coffee-primary h-1.5 w-1.5 rounded-full" />
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-
-                  <Link href={`/reservation/${space.id}`}>
-                    <motion.button
-                      className="from-coffee-primary to-coffee-accent mt-4 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r py-4 font-semibold text-white opacity-0 transition-all duration-300 group-hover:opacity-100"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      aria-label={`Réserver l'espace ${space.name}`}
-                    >
-                      <Calendar className="h-5 w-5" />
-                      Réserver cet espace
-                    </motion.button>
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <SpaceCarousel />
 
           <motion.div
             className="mt-16 text-center"

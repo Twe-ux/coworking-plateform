@@ -1,5 +1,6 @@
 'use client'
 
+import { useSpaces } from '@/hooks/useSpaces'
 import {
   addDays,
   addMonths,
@@ -48,6 +49,7 @@ interface Space {
   rating: number
   specialty: string
   isPopular?: boolean
+  color?: string
   openingHours?: {
     monday: { open: string; close: string; closed?: boolean } | { closed: true }
     tuesday:
@@ -94,99 +96,7 @@ interface PaymentMethod {
   available: boolean
 }
 
-const SPACES: Space[] = [
-  {
-    id: 'verriere',
-    name: 'Salle Verrière',
-    location: 'Niveau intermédiaire',
-    capacity: 8,
-    pricePerHour: 12,
-    pricePerDay: 45,
-    pricePerWeek: 189,
-    pricePerMonth: 499,
-    features: [
-      'Lumière naturelle',
-      'Espace privé',
-      'Tableau blanc',
-      'Climatisation',
-      'Calme',
-    ],
-    image: 'bg-linear-to-br from-blue-400 to-indigo-600',
-    available: true,
-    rating: 4.9,
-    specialty: 'Luminosité naturelle',
-    openingHours: {
-      monday: { open: '09:00', close: '20:00' },
-      tuesday: { open: '09:00', close: '20:00' },
-      wednesday: { open: '09:00', close: '20:00' },
-      thursday: { open: '09:00', close: '20:00' },
-      friday: { open: '09:00', close: '20:00' },
-      saturday: { open: '10:00', close: '20:00' },
-      sunday: { open: '10:00', close: '20:00' },
-    },
-  },
-  {
-    id: 'places',
-    name: 'Places',
-    location: 'Rez-de-chaussée',
-    capacity: 12,
-    pricePerHour: 8,
-    pricePerDay: 35,
-    pricePerWeek: 149,
-    pricePerMonth: 399,
-    features: [
-      'WiFi Fibre',
-      'Prises électriques',
-      'Vue sur rue',
-      'Accès boissons',
-      'Ambiance café',
-    ],
-    image: 'bg-linear-to-br from-coffee-primary to-coffee-accent',
-    available: true,
-    rating: 4.8,
-    specialty: 'Ambiance café conviviale',
-    isPopular: true,
-    openingHours: {
-      monday: { open: '09:00', close: '20:00' },
-      tuesday: { open: '09:00', close: '20:00' },
-      wednesday: { open: '09:00', close: '20:00' },
-      thursday: { open: '09:00', close: '20:00' },
-      friday: { open: '09:00', close: '20:00' },
-      saturday: { open: '10:00', close: '20:00' },
-      sunday: { open: '10:00', close: '20:00' },
-    },
-  },
-  {
-    id: 'etage',
-    name: 'Étage',
-    location: 'Premier étage',
-    capacity: 15,
-    pricePerHour: 10,
-    pricePerDay: 40,
-    pricePerWeek: 169,
-    pricePerMonth: 449,
-    features: [
-      'Zone silencieuse',
-      'Écrans partagés',
-      'Salon détente',
-      'Vue dégagée',
-      'Concentration',
-    ],
-    image: 'bg-linear-to-br from-green-400 to-emerald-600',
-    available: true,
-    rating: 4.7,
-    specialty: 'Calme et concentration',
-    openingHours: {
-      monday: { open: '09:00', close: '20:00' },
-      tuesday: { open: '09:00', close: '20:00' },
-      wednesday: { open: '09:00', close: '20:00' },
-      thursday: { open: '09:00', close: '20:00' },
-      friday: { open: '09:00', close: '20:00' },
-      saturday: { open: '10:00', close: '20:00' },
-      sunday: { open: '10:00', close: '20:00' },
-    },
-  },
-]
+// SPACES are now loaded dynamically from the database
 
 const TIME_SLOTS: TimeSlot[] = [
   { time: '09:00', available: true, isPopular: true },
@@ -480,6 +390,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
 export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
   const { data: session } = useSession()
   const router = useRouter()
+  const { spaces, isLoading: spacesLoading, error: spacesError } = useSpaces()
   const [step, setStep] = useState(preSelectedSpace ? 2 : 1) // Étape 1 si pas d'espace présélectionné
 
   const [bookingData, setBookingData] = useState<BookingData>({
@@ -1358,115 +1269,134 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
 
                   {/* Responsive Grid: Stack on mobile, flex-row on larger screens */}
                   <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                    {SPACES.map((space, index) => (
-                      <motion.div
-                        key={space.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * index + 0.4 }}
-                        className={`group relative cursor-pointer overflow-hidden rounded-2xl transition-all duration-500 ${
-                          bookingData.space?.id === space.id
-                            ? 'ring-coffee-primary scale-105 shadow-2xl ring-2'
-                            : 'hover:scale-105 hover:shadow-xl'
-                        }`}
-                        whileHover={{ y: -5 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => updateBookingData({ space })}
-                      >
-                        {/* Background Image/Gradient */}
-                        <div className={`absolute inset-0 ${space.image}`}>
-                          <div className="absolute inset-0 bg-linear-to-br from-black/20 via-transparent to-black/40" />
+                    {spacesLoading ? (
+                      // Skeleton loading pour les espaces
+                      [...Array(3)].map((_, index) => (
+                        <div key={index} className="animate-pulse">
+                          <div className="mb-4 h-64 rounded-2xl bg-gray-200"></div>
+                          <div className="mb-2 h-4 rounded bg-gray-200"></div>
+                          <div className="h-4 w-2/3 rounded bg-gray-200"></div>
                         </div>
-
-                        {/* Popular Star Badge */}
-                        {space.isPopular && (
-                          <div className="absolute top-3 right-3 z-10">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r from-yellow-400 to-yellow-500 shadow-lg">
-                              <Star className="h-4 w-4 fill-current text-white" />
-                            </div>
+                      ))
+                    ) : spacesError ? (
+                      <div className="col-span-full py-8 text-center">
+                        <p className="text-red-500">
+                          Erreur lors du chargement des espaces: {spacesError}
+                        </p>
+                      </div>
+                    ) : (
+                      spaces.map((space, index) => (
+                        <motion.div
+                          key={space.id}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 * index + 0.4 }}
+                          className={`group relative cursor-pointer overflow-hidden rounded-2xl transition-all duration-500 ${
+                            bookingData.space?.id === space.id
+                              ? 'ring-coffee-primary scale-105 shadow-2xl ring-2'
+                              : 'hover:scale-105 hover:shadow-xl'
+                          }`}
+                          whileHover={{ y: -5 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => updateBookingData({ space })}
+                        >
+                          {/* Background Color/Gradient (priorité au gradient) */}
+                          <div
+                            className={`absolute inset-0 bg-gradient-to-br ${space.color || 'from-coffee-primary to-coffee-accent'}`}
+                          >
+                            <div className="absolute inset-0 bg-linear-to-br from-black/20 via-transparent to-black/40" />
                           </div>
-                        )}
 
-                        {/* Glass Card Content */}
-                        <div className="relative h-full border border-white/20 bg-white/90 p-6 backdrop-blur-md">
-                          {/* Header */}
-                          <div className="mb-4 flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="mb-2 flex items-center gap-2">
-                                <h3 className="text-coffee-primary text-xl font-bold">
-                                  {space.name}
-                                </h3>
-                                <div className="flex items-center gap-1">
-                                  <Star className="h-4 w-4 fill-current text-yellow-500" />
-                                  <span className="text-sm font-medium text-yellow-600">
-                                    {space.rating}
+                          {/* Popular Star Badge */}
+                          {space.isPopular && (
+                            <div className="absolute top-3 right-3 z-10">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r from-yellow-400 to-yellow-500 shadow-lg">
+                                <Star className="h-4 w-4 fill-current text-white" />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Glass Card Content */}
+                          <div className="relative h-full border border-white/20 bg-white/70 p-6 backdrop-blur-md">
+                            {/* Header */}
+                            <div className="mb-4 flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="mb-2 flex items-center gap-2">
+                                  <h3 className="text-coffee-primary text-xl font-bold">
+                                    {space.name}
+                                  </h3>
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-4 w-4 fill-current text-yellow-500" />
+                                    <span className="text-sm font-medium text-yellow-600">
+                                      {space.rating}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="text-coffee-accent/70 mb-1 text-sm">
+                                  {space.location}
+                                </p>
+                                <p className="text-coffee-accent/60 text-xs font-medium">
+                                  {space.capacity} places • {space.specialty}
+                                </p>
+                              </div>
+
+                              {/* Selection Indicator */}
+                              {bookingData.space?.id === space.id && (
+                                <motion.div
+                                  initial={{ scale: 0, rotate: -180 }}
+                                  animate={{ scale: 1, rotate: 0 }}
+                                  className="from-coffee-primary to-coffee-accent flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r shadow-lg"
+                                >
+                                  <Check className="h-5 w-5 text-white" />
+                                </motion.div>
+                              )}
+                            </div>
+
+                            {/* Features */}
+                            <div className="mb-4 flex flex-wrap gap-1">
+                              {space.features
+                                .slice(0, 3)
+                                .map((feature, index) => (
+                                  <span
+                                    key={index}
+                                    className="bg-coffee-primary/10 text-coffee-primary border-coffee-primary/20 rounded-full border px-2 py-1 text-xs"
+                                  >
+                                    {feature}
                                   </span>
+                                ))}
+                              {space.features.length > 3 && (
+                                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                                  +{space.features.length - 3}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Pricing */}
+                            <div className="border-coffee-primary/10 flex items-center justify-between border-t pt-4">
+                              <div>
+                                <span className="text-coffee-accent text-2xl font-bold">
+                                  {space.pricePerHour}€
+                                </span>
+                                <span className="text-coffee-primary/60 text-sm">
+                                  /heure
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-coffee-primary text-sm font-medium">
+                                  {space.pricePerDay}€/jour
+                                </div>
+                                <div className="text-coffee-primary/60 text-xs">
+                                  Dès {space.pricePerWeek}€/sem
                                 </div>
                               </div>
-                              <p className="text-coffee-primary/70 mb-1 text-sm">
-                                {space.location}
-                              </p>
-                              <p className="text-coffee-primary/60 text-xs font-medium">
-                                {space.capacity} places • {space.specialty}
-                              </p>
                             </div>
 
-                            {/* Selection Indicator */}
-                            {bookingData.space?.id === space.id && (
-                              <motion.div
-                                initial={{ scale: 0, rotate: -180 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                className="from-coffee-primary to-coffee-accent flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r shadow-lg"
-                              >
-                                <Check className="h-5 w-5 text-white" />
-                              </motion.div>
-                            )}
+                            {/* Hover Effect Overlay */}
+                            <div className="from-coffee-primary/5 to-coffee-accent/5 absolute inset-0 rounded-2xl bg-linear-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                           </div>
-
-                          {/* Features */}
-                          <div className="mb-4 flex flex-wrap gap-1">
-                            {space.features
-                              .slice(0, 3)
-                              .map((feature, index) => (
-                                <span
-                                  key={index}
-                                  className="bg-coffee-primary/10 text-coffee-primary border-coffee-primary/20 rounded-full border px-2 py-1 text-xs"
-                                >
-                                  {feature}
-                                </span>
-                              ))}
-                            {space.features.length > 3 && (
-                              <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                                +{space.features.length - 3}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Pricing */}
-                          <div className="border-coffee-primary/10 flex items-center justify-between border-t pt-4">
-                            <div>
-                              <span className="text-coffee-accent text-2xl font-bold">
-                                {space.pricePerHour}€
-                              </span>
-                              <span className="text-coffee-primary/60 text-sm">
-                                /heure
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-coffee-primary text-sm font-medium">
-                                {space.pricePerDay}€/jour
-                              </div>
-                              <div className="text-coffee-primary/60 text-xs">
-                                Dès {space.pricePerWeek}€/sem
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Hover Effect Overlay */}
-                          <div className="from-coffee-primary/5 to-coffee-accent/5 absolute inset-0 rounded-2xl bg-linear-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))
+                    )}
                   </div>
 
                   {/* Continue Button */}

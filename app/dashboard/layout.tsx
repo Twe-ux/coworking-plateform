@@ -1,12 +1,11 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { RouteGuard } from '@/components/auth/route-guard'
+import { AdminSidebar } from '@/components/dashboard/admin/admin-sidebar'
 import { Header } from '@/components/dashboard/header'
 import { Sidebar } from '@/components/dashboard/sidebar'
-import { ClientLayout } from '@/components/dashboard/client/client-layout'
-import { AdminSidebar } from '@/components/dashboard/admin/admin-sidebar'
-import { RouteGuard } from '@/components/auth/route-guard'
 import { UserRole } from '@/types/auth'
+import { useSession } from 'next-auth/react'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -31,16 +30,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ) : (
         /* Layout traditionnel pour admin, staff, manager */
         <div className="flex min-h-screen">
-          {userRole === 'admin' ? (
-            <AdminSidebar />
-          ) : (
-            <Sidebar />
-          )}
+          {userRole === 'admin' ? <AdminSidebar /> : <Sidebar />}
           <div className="flex flex-1 flex-col">
             <Header />
-            <main className="flex-1 bg-gray-50 p-6">
-              {children}
-            </main>
+            <main className="flex-1 bg-gray-50 p-6">{children}</main>
           </div>
         </div>
       )}

@@ -20,6 +20,7 @@ export interface ISpace extends Document {
   isPopular: boolean
   description?: string
   amenities?: string[]
+  color?: string // Couleur pour l'affichage des cartes
   openingHours?: {
     monday: { open: string; close: string; closed?: boolean } | { closed: true }
     tuesday: { open: string; close: string; closed?: boolean } | { closed: true }
@@ -170,6 +171,12 @@ const spaceSchema = new Schema<ISpace>(
         maxlength: [50, 'Chaque équipement ne peut dépasser 50 caractères'],
       },
     ],
+    color: {
+      type: String,
+      trim: true,
+      default: 'from-coffee-primary to-coffee-accent', // Couleur par défaut
+      maxlength: [100, 'La couleur ne peut dépasser 100 caractères'],
+    },
     openingHours: {
       monday: {
         open: {
@@ -457,6 +464,7 @@ export const defaultSpaces: Partial<ISpace>[] = [
       'Chaises ergonomiques',
       'Éclairage naturel',
     ],
+    color: 'from-amber-400 to-orange-500',
     openingHours: {
       monday: { open: '09:00', close: '20:00' },
       tuesday: { open: '09:00', close: '20:00' },
@@ -498,6 +506,7 @@ export const defaultSpaces: Partial<ISpace>[] = [
       'Connexion HDMI',
       'Service traiteur sur demande',
     ],
+    color: 'from-emerald-400 to-teal-500',
     openingHours: {
       monday: { open: '08:00', close: '20:00' },
       tuesday: { open: '08:00', close: '20:00' },
@@ -540,6 +549,7 @@ export const defaultSpaces: Partial<ISpace>[] = [
       'Coin lecture',
       'Distributeur automatique',
     ],
+    color: 'from-blue-400 to-purple-500',
     openingHours: {
       monday: { open: '07:00', close: '22:00' },
       tuesday: { open: '07:00', close: '22:00' },
