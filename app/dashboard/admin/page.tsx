@@ -52,6 +52,11 @@ export default function AdminDashboardPage() {
       manager: 0,
       admin: 0,
     },
+    bookingsByStatus: {
+      confirmed: 0,
+      pending: 0,
+      total: 0,
+    },
   })
 
   const [isLoading, setIsLoading] = useState(true)
