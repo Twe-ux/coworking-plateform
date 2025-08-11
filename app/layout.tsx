@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 // import { Inter } from 'next/font/google'
-import Footer from '@/components/Footer'
-import Navigation from '@/components/Navigation'
+import ConditionalFooter from '@/components/ConditionalFooter'
+import ConditionalNavigation from '@/components/ConditionalNavigation'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ToastProvider } from '@/components/ui/toast'
@@ -41,9 +41,9 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
-              <Navigation />
+              <ConditionalNavigation />
               {children}
-              <Footer />
+              <ConditionalFooter />
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

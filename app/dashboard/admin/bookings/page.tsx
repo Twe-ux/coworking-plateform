@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 
 interface Booking {
-  _id: string
+  id: string
   user: {
     firstName: string
     lastName: string
@@ -104,7 +104,7 @@ export default function BookingsManagementPage() {
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     // Demander confirmation pour les annulations
     if (newStatus === 'cancelled') {
-      const booking = bookings.find((b) => b._id === bookingId)
+      const booking = bookings.find((b) => b.id === bookingId)
       const confirmMessage =
         `Êtes-vous sûr de vouloir annuler cette réservation ?\n\n` +
         `Client: ${booking?.user.firstName} ${booking?.user.lastName}\n` +
@@ -128,7 +128,7 @@ export default function BookingsManagementPage() {
         // Mettre à jour la liste des réservations
         setBookings(
           bookings.map((booking) =>
-            booking._id === bookingId
+            booking.id === bookingId
               ? { ...booking, status: newStatus as any }
               : booking
           )
@@ -136,7 +136,7 @@ export default function BookingsManagementPage() {
 
         // Message de succès
         if (newStatus === 'cancelled') {
-          const booking = bookings.find((b) => b._id === bookingId)
+          const booking = bookings.find((b) => b.id === bookingId)
           alert(
             `✅ Réservation annulée avec succès.\n💰 €${booking?.totalPrice} déduit des revenus totaux.`
           )
@@ -314,7 +314,7 @@ export default function BookingsManagementPage() {
 
               return (
                 <div
-                  key={booking._id}
+                  key={booking.id}
                   className={`rounded-lg border bg-white ${statusInfo.borderColor} overflow-hidden transition-shadow hover:shadow-lg`}
                 >
                   {/* En-tête de la carte */}
@@ -418,7 +418,7 @@ export default function BookingsManagementPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() =>
-                              updateBookingStatus(booking._id, 'confirmed')
+                              updateBookingStatus(booking.id, 'confirmed')
                             }
                             className="rounded-md bg-green-600 px-3 py-1 text-xs text-white transition-colors hover:bg-green-700"
                           >
@@ -426,7 +426,7 @@ export default function BookingsManagementPage() {
                           </button>
                           <button
                             onClick={() =>
-                              updateBookingStatus(booking._id, 'cancelled')
+                              updateBookingStatus(booking.id, 'cancelled')
                             }
                             className="rounded-md bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700"
                           >
@@ -438,7 +438,7 @@ export default function BookingsManagementPage() {
                       {booking.status === 'confirmed' && (
                         <button
                           onClick={() =>
-                            updateBookingStatus(booking._id, 'cancelled')
+                            updateBookingStatus(booking.id, 'cancelled')
                           }
                           className="rounded-md bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700"
                         >
@@ -479,7 +479,7 @@ export default function BookingsManagementPage() {
 
                   return (
                     <div
-                      key={booking._id}
+                      key={booking.id}
                       className="grid grid-cols-12 gap-4 p-4 transition-colors hover:bg-gray-50"
                     >
                       {/* Client & Espace */}
@@ -571,7 +571,7 @@ export default function BookingsManagementPage() {
                             <button
                               title="Confirmer"
                               onClick={() =>
-                                updateBookingStatus(booking._id, 'confirmed')
+                                updateBookingStatus(booking.id, 'confirmed')
                               }
                               className="rounded p-1 text-green-600 transition-colors hover:bg-green-100"
                             >
@@ -580,7 +580,7 @@ export default function BookingsManagementPage() {
                             <button
                               title="Annuler"
                               onClick={() =>
-                                updateBookingStatus(booking._id, 'cancelled')
+                                updateBookingStatus(booking.id, 'cancelled')
                               }
                               className="rounded p-1 text-red-600 transition-colors hover:bg-red-100"
                             >
@@ -593,7 +593,7 @@ export default function BookingsManagementPage() {
                           <button
                             title="Annuler"
                             onClick={() =>
-                              updateBookingStatus(booking._id, 'cancelled')
+                              updateBookingStatus(booking.id, 'cancelled')
                             }
                             className="rounded p-1 text-red-600 transition-colors hover:bg-red-100"
                           >

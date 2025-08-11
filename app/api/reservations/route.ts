@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
     
     const [reservations, total] = await Promise.all([
-      db.collection('reservations')
+      db.collection('bookings')
         .aggregate([
           { $match: filter },
           {
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
           { $limit: limit }
         ])
         .toArray(),
-      db.collection('reservations').countDocuments(filter)
+      db.collection('bookings').countDocuments(filter)
     ])
 
     return NextResponse.json({
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     const startDate = new Date(startTime)
     const endDate = new Date(endTime)
     
-    const conflictingReservation = await db.collection('reservations').findOne({
+    const conflictingReservation = await db.collection('bookings').findOne({
       spaceId: new ObjectId(spaceId),
       status: { $in: ['confirmed', 'pending'] },
       $or: [
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date()
     }
 
-    const result = await db.collection('reservations').insertOne(reservation)
+    const result = await db.collection('bookings').insertOne(reservation)
     
     return NextResponse.json({
       reservation: { ...reservation, _id: result.insertedId },

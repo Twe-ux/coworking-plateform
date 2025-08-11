@@ -2,7 +2,10 @@
 
 import { RouteGuard } from '@/components/auth/route-guard'
 import { AppSidebar } from '@/components/dashboard/admin/advanced/app-sidebar'
-import { SidebarProvider } from '@/components/dashboard/admin/advanced/ui/sidebar'
+import {
+  SidebarInset,
+  SidebarProvider,
+} from '@/components/dashboard/admin/advanced/ui/sidebar'
 import { Header } from '@/components/dashboard/header'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { UserRole } from '@/types/auth'
@@ -31,12 +34,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ) : /* Layout traditionnel pour admin, staff, manager */
       userRole === 'admin' ? (
         <SidebarProvider>
-          <div className="mt-24 flex w-full">
-            <AppSidebar />
+          <AppSidebar />
+          <SidebarInset>
             <div className="flex flex-1 flex-col">
-              <main className="flex-1 bg-gray-50 p-6">{children}</main>
+              <main className="flex-1 bg-gray-50">{children}</main>
             </div>
-          </div>
+          </SidebarInset>
         </SidebarProvider>
       ) : (
         <div className="flex min-h-screen">

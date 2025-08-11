@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui'
 import { Coffee } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 
@@ -21,15 +22,21 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <Link href="/" className="group inline-block">
             <div className="mb-2 flex items-center justify-center gap-3">
               <div className="from-coffee-primary to-coffee-accent rounded-full bg-gradient-to-r p-3 transition-transform group-hover:scale-105">
-                <Coffee className="h-6 w-6 text-white" />
+                <Image
+                  src="/logo.svg"
+                  alt="Logo"
+                  width={40}
+                  height={40}
+                  className="h-20 w-20"
+                />
               </div>
             </div>
             <div className="from-coffee-primary via-coffee-accent to-coffee-primary bg-gradient-to-r bg-clip-text text-3xl font-bold text-transparent">
               Cow or King Café
             </div>
-            <p className="text-coffee-accent mt-1 text-sm">
+            {/* <p className="text-coffee-accent mt-1 text-sm">
               Coworking à Strasbourg
-            </p>
+            </p> */}
           </Link>
         </div>
 

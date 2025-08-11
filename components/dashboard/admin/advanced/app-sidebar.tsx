@@ -89,6 +89,10 @@ const data = {
           url: '/dashboard/admin/spaces',
         },
         {
+          title: 'Gestion avancée',
+          url: '/dashboard/admin/spaces/manage',
+        },
+        {
           title: 'Ajouter un espace',
           url: '/dashboard/admin/spaces/create',
         },
@@ -121,20 +125,6 @@ const data = {
       title: 'Analytics',
       url: '/dashboard/admin/analytics',
       icon: BarChart3,
-      items: [
-        {
-          title: 'Rapports financiers',
-          url: '/dashboard/admin/analytics/revenue',
-        },
-        {
-          title: 'Utilisation des espaces',
-          url: '/dashboard/admin/analytics/occupancy',
-        },
-        {
-          title: 'Satisfaction client',
-          url: '/dashboard/admin/analytics/satisfaction',
-        },
-      ],
     },
   ],
   navSecondary: [

@@ -43,7 +43,7 @@ export default function Navigation() {
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="mx-auto max-w-(--breakpoint-xl) px-4">
+      <div className="mx-auto max-w-(--breakpoint-xl) px-4 py-2">
         <div className="flex h-24 items-center justify-between">
           {/* Logo */}
           <Link

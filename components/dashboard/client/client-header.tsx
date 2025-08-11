@@ -96,6 +96,9 @@ export function ClientHeader() {
                   <Link href="/dashboard/client/profile">Mon profil</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/dashboard/client/notifications">Notifications</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/dashboard/client/settings">Paramètres</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

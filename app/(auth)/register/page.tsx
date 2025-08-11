@@ -121,9 +121,9 @@ export default function RegisterPage() {
     <>
       <CardHeader className="space-y-1 pb-4 text-center">
         <CardTitle className="text-2xl font-bold">Créer un compte</CardTitle>
-        <CardDescription>
-          Rejoignez notre communauté de coworking
-        </CardDescription>
+        {/* <CardDescription>
+          Connectez-vous à votre compte pour accéder à votre espace
+        </CardDescription> */}
       </CardHeader>
 
       <CardContent className="space-y-4">
