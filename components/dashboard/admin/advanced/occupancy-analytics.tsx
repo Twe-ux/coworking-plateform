@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -93,11 +93,7 @@ export function OccupancyAnalytics() {
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d')
   const [selectedSpace, setSelectedSpace] = useState<string>('all')
 
-  useEffect(() => {
-    loadAnalytics()
-  }, [period, selectedSpace])
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -131,13 +127,17 @@ export function OccupancyAnalytics() {
       console.error('Erreur chargement analytics occupation:', error)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les analytics d'occupation",
+        description: "Impossible de charger les analytics d&apos;occupation",
         variant: "destructive"
       })
     } finally {
       setLoading(false)
     }
-  }
+  }, [period, selectedSpace, toast])
+
+  useEffect(() => {
+    loadAnalytics()
+  }, [loadAnalytics])
 
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`
   const formatHours = (value: number) => `${value.toFixed(1)}h`
@@ -163,7 +163,7 @@ export function OccupancyAnalytics() {
       {/* En-tête avec contrôles */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics d'occupation</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Analytics d&apos;occupation</h2>
           <p className="text-gray-600">
             Utilisation et performance des espaces de travail
           </p>
@@ -216,7 +216,7 @@ export function OccupancyAnalytics() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Taux d'occupation moyen</p>
+                <p className="text-sm text-gray-600">Taux d&apos;occupation moyen</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {formatPercentage(analytics.averageOccupancyRate)}
                 </p>
@@ -286,7 +286,7 @@ export function OccupancyAnalytics() {
         <CardHeader>
           <CardTitle>Performance par espace</CardTitle>
           <CardDescription>
-            Taux d'occupation et utilisation de chaque espace
+            Taux d&apos;occupation et utilisation de chaque espace
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -313,7 +313,7 @@ export function OccupancyAnalytics() {
                 <Tooltip 
                   formatter={(value: number, name: string) => [
                     name === 'occupancyRate' ? formatPercentage(value) : value,
-                    name === 'occupancyRate' ? 'Taux d\'occupation' : 'Réservations'
+                    name === 'occupancyRate' ? 'Taux d&apos;occupation' : 'Réservations'
                   ]}
                 />
                 <Bar 
@@ -429,7 +429,7 @@ export function OccupancyAnalytics() {
         <CardHeader>
           <CardTitle>Évolution hebdomadaire</CardTitle>
           <CardDescription>
-            Comparaison des taux d'occupation par semaine
+            Comparaison des taux d&apos;occupation par semaine
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -442,7 +442,7 @@ export function OccupancyAnalytics() {
                 <Tooltip 
                   formatter={(value: number, name: string) => [
                     name === 'occupancyRate' ? formatPercentage(value) : value,
-                    name === 'occupancyRate' ? 'Taux d\'occupation' : 'Réservations'
+                    name === 'occupancyRate' ? 'Taux d&apos;occupation' : 'Réservations'
                   ]}
                 />
                 <Bar dataKey="occupancyRate" fill="#10b981" />

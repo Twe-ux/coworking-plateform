@@ -23,7 +23,7 @@ export default function AdminAnalyticsPage() {
     {
       id: 'occupancy' as const, 
       title: 'Occupation',
-      description: 'Taux d\'utilisation des espaces',
+      description: 'Taux d&apos;utilisation des espaces',
       icon: Building,
       color: 'bg-blue-500'
     },
@@ -74,7 +74,7 @@ export default function AdminAnalyticsPage() {
         <CardHeader>
           <CardTitle>Tableaux de bord</CardTitle>
           <CardDescription>
-            Sélectionnez le type d'analyse que vous souhaitez consulter
+            Sélectionnez le type d&apos;analyse que vous souhaitez consulter
           </CardDescription>
         </CardHeader>
         <CardContent>

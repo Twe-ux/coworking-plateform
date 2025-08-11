@@ -1,13 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState } from 'react'
 // import { Switch } from '@/components/ui/switch' // Pas disponible
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { toast } from '@/components/ui/use-toast'
-import { Bell, Mail, Smartphone, Monitor } from 'lucide-react'
+import { Bell, Mail, Monitor, Smartphone } from 'lucide-react'
 
 interface NotificationPreferences {
   email: boolean
@@ -29,14 +35,14 @@ export function NotificationsPreferences() {
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     email: true,
     sms: false,
-    push: true
+    push: true,
   })
   const [emailSettings, setEmailSettings] = useState<EmailSettings>({
     bookingConfirmation: true,
     bookingReminder24h: true,
     bookingReminder2h: true,
     bookingCancellation: true,
-    promotions: false
+    promotions: false,
   })
 
   useEffect(() => {
@@ -46,7 +52,7 @@ export function NotificationsPreferences() {
         setNotifications({
           email: prefs.email ?? true,
           sms: prefs.sms ?? false,
-          push: prefs.push ?? true
+          push: prefs.push ?? true,
         })
       }
 
@@ -66,8 +72,8 @@ export function NotificationsPreferences() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           notifications,
-          emailSettings
-        })
+          emailSettings,
+        }),
       })
 
       const data = await response.json()
@@ -84,22 +90,24 @@ export function NotificationsPreferences() {
           preferences: {
             ...(session?.user as any)?.preferences,
             notifications,
-            emailSettings
-          }
-        }
+            emailSettings,
+          },
+        },
       })
 
       toast({
-        title: "Préférences sauvegardées",
-        description: "Vos préférences de notifications ont été mises à jour.",
+        title: 'Préférences sauvegardées',
+        description: 'Vos préférences de notifications ont été mises à jour.',
       })
-
     } catch (error) {
       console.error('Erreur sauvegarde préférences:', error)
       toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible de sauvegarder les préférences",
-        variant: "destructive"
+        title: 'Erreur',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Impossible de sauvegarder les préférences',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -134,12 +142,13 @@ export function NotificationsPreferences() {
                 </p>
               </div>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="email-notifications"
               checked={notifications.email}
               onChange={(e) => {
                 const checked = e.target.checked
-                setNotifications(prev => ({ ...prev, email: checked }))
+                setNotifications((prev) => ({ ...prev, email: checked }))
               }}
             />
           </div>
@@ -156,15 +165,15 @@ export function NotificationsPreferences() {
                 </p>
               </div>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="sms-notifications"
               checked={notifications.sms}
               disabled
               onChange={(e) => {
                 const checked = e.target.checked
-                setNotifications(prev => ({ ...prev, sms: checked }))
+                setNotifications((prev) => ({ ...prev, sms: checked }))
               }}
-              disabled
             />
           </div>
 
@@ -180,12 +189,13 @@ export function NotificationsPreferences() {
                 </p>
               </div>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="push-notifications"
               checked={notifications.push}
               onChange={(e) => {
                 const checked = e.target.checked
-                setNotifications(prev => ({ ...prev, push: checked }))
+                setNotifications((prev) => ({ ...prev, push: checked }))
               }}
             />
           </div>
@@ -198,9 +208,9 @@ export function NotificationsPreferences() {
           <div className="flex items-center space-x-2">
             <Mail className="h-5 w-5 text-blue-600" />
             <div>
-              <CardTitle>Préférences d'emails</CardTitle>
+              <CardTitle>Préférences d&apos;emails</CardTitle>
               <CardDescription>
-                Personnalisez quels types d'emails vous souhaitez recevoir
+                Personnalisez quels types d&apos;emails vous souhaitez recevoir
               </CardDescription>
             </div>
           </div>
@@ -215,11 +225,16 @@ export function NotificationsPreferences() {
                 Email immédiat après chaque réservation
               </p>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="booking-confirmation"
               checked={emailSettings.bookingConfirmation}
-              onChange={(e) => {const checked = e.target.checked;
-                setEmailSettings(prev => ({ ...prev, bookingConfirmation: checked }))
+              onChange={(e) => {
+                const checked = e.target.checked
+                setEmailSettings((prev) => ({
+                  ...prev,
+                  bookingConfirmation: checked,
+                }))
               }}
               disabled={!notifications.email}
             />
@@ -234,11 +249,16 @@ export function NotificationsPreferences() {
                 Rappel la veille de votre réservation
               </p>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="reminder-24h"
               checked={emailSettings.bookingReminder24h}
-              onChange={(e) => {const checked = e.target.checked;
-                setEmailSettings(prev => ({ ...prev, bookingReminder24h: checked }))
+              onChange={(e) => {
+                const checked = e.target.checked
+                setEmailSettings((prev) => ({
+                  ...prev,
+                  bookingReminder24h: checked,
+                }))
               }}
               disabled={!notifications.email}
             />
@@ -253,11 +273,16 @@ export function NotificationsPreferences() {
                 Rappel le jour même de votre réservation
               </p>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="reminder-2h"
               checked={emailSettings.bookingReminder2h}
-              onChange={(e) => {const checked = e.target.checked;
-                setEmailSettings(prev => ({ ...prev, bookingReminder2h: checked }))
+              onChange={(e) => {
+                const checked = e.target.checked
+                setEmailSettings((prev) => ({
+                  ...prev,
+                  bookingReminder2h: checked,
+                }))
               }}
               disabled={!notifications.email}
             />
@@ -266,17 +291,22 @@ export function NotificationsPreferences() {
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="cancellation" className="text-base">
-                Confirmations d'annulation
+                Confirmations d&apos;annulation
               </Label>
               <p className="text-sm text-gray-500">
-                Email lors de l'annulation d'une réservation
+                Email lors de l&apos;annulation d&apos;une réservation
               </p>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="cancellation"
               checked={emailSettings.bookingCancellation}
-              onChange={(e) => {const checked = e.target.checked;
-                setEmailSettings(prev => ({ ...prev, bookingCancellation: checked }))
+              onChange={(e) => {
+                const checked = e.target.checked
+                setEmailSettings((prev) => ({
+                  ...prev,
+                  bookingCancellation: checked,
+                }))
               }}
               disabled={!notifications.email}
             />
@@ -291,11 +321,13 @@ export function NotificationsPreferences() {
                 Recevez nos offres spéciales et événements
               </p>
             </div>
-            <input type="checkbox"
+            <input
+              type="checkbox"
               id="promotions"
               checked={emailSettings.promotions}
-              onChange={(e) => {const checked = e.target.checked;
-                setEmailSettings(prev => ({ ...prev, promotions: checked }))
+              onChange={(e) => {
+                const checked = e.target.checked
+                setEmailSettings((prev) => ({ ...prev, promotions: checked }))
               }}
               disabled={!notifications.email}
             />
@@ -305,7 +337,7 @@ export function NotificationsPreferences() {
 
       {/* Bouton de sauvegarde */}
       <div className="flex justify-end">
-        <Button 
+        <Button
           onClick={handleSave}
           disabled={loading}
           className="bg-amber-600 hover:bg-amber-700"

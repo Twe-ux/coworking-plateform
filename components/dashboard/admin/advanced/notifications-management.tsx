@@ -274,7 +274,7 @@ export function NotificationsManagement() {
                   id="booking-id"
                   value={testBookingId}
                   onChange={(e) => setTestBookingId(e.target.value)}
-                  placeholder="Saisir l'ID d'une réservation..."
+                  placeholder="Saisir l&apos;ID d&apos;une réservation..."
                   className="mt-1"
                 />
               </div>
@@ -290,7 +290,7 @@ export function NotificationsManagement() {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Envoie un rappel immédiat pour tester le système d'email
+              Envoie un rappel immédiat pour tester le système d&apos;email
             </p>
           </div>
         </CardContent>
@@ -301,8 +301,8 @@ export function NotificationsManagement() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Le service email n'est pas configuré. Les notifications ne seront pas envoyées.
-            Vérifiez la variable d'environnement RESEND_API_KEY.
+            Le service email n&apos;est pas configuré. Les notifications ne seront pas envoyées.
+            Vérifiez la variable d&apos;environnement RESEND_API_KEY.
           </AlertDescription>
         </Alert>
       )}

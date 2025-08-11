@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -25,6 +25,7 @@ import {
   Shield,
   RefreshCw
 } from 'lucide-react'
+import Image from 'next/image'
 
 interface Space {
   _id: string
@@ -102,11 +103,7 @@ export function SpaceManagement() {
     }
   })
 
-  useEffect(() => {
-    loadSpaces()
-  }, [])
-
-  const loadSpaces = async () => {
+  const loadSpaces = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/dashboard/admin/spaces')
@@ -127,7 +124,11 @@ export function SpaceManagement() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    loadSpaces()
+  }, [loadSpaces])
 
   const resetForm = () => {
     setFormData({
@@ -192,7 +193,7 @@ export function SpaceManagement() {
         if (!file.type.startsWith('image/')) {
           toast({
             title: "Erreur",
-            description: `${file.name} n'est pas une image valide`,
+            description: `${file.name} n&apos;est pas une image valide`,
             variant: "destructive"
           })
           continue
@@ -239,7 +240,7 @@ export function SpaceManagement() {
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Erreur lors de l'upload des images",
+        description: "Erreur lors de l&apos;upload des images",
         variant: "destructive"
       })
     } finally {
@@ -281,7 +282,7 @@ export function SpaceManagement() {
       if (!formData.name.trim()) {
         toast({
           title: "Erreur",
-          description: "Le nom de l'espace est requis",
+          description: "Le nom de l&apos;espace est requis",
           variant: "destructive"
         })
         return
@@ -321,7 +322,7 @@ export function SpaceManagement() {
   }
 
   const handleDelete = async (spaceId: string, spaceName: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'espace "${spaceName}" ? Cette action est irréversible.`)) {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l&apos;espace "${spaceName}" ? Cette action est irréversible.`)) {
       return
     }
 
@@ -335,7 +336,7 @@ export function SpaceManagement() {
       if (data.success) {
         toast({
           title: "Espace supprimé",
-          description: `L'espace "${spaceName}" a été supprimé`
+          description: `L&apos;espace "${spaceName}" a été supprimé`
         })
         loadSpaces()
       } else {
@@ -344,7 +345,7 @@ export function SpaceManagement() {
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer l'espace",
+        description: "Impossible de supprimer l&apos;espace",
         variant: "destructive"
       })
     }
@@ -399,7 +400,7 @@ export function SpaceManagement() {
               {isCreateMode ? 'Créer un nouvel espace' : `Modifier ${editingSpace?.name}`}
             </CardTitle>
             <CardDescription>
-              Remplissez les informations de l'espace de travail
+              Remplissez les informations de l&apos;espace de travail
             </CardDescription>
           </CardHeader>
           
@@ -407,7 +408,7 @@ export function SpaceManagement() {
             {/* Informations de base */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Nom de l'espace *</Label>
+                <Label htmlFor="name">Nom de l&apos;espace *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -433,7 +434,7 @@ export function SpaceManagement() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Décrivez l'ambiance et les caractéristiques de cet espace..."
+                placeholder="Décrivez l&apos;ambiance et les caractéristiques de cet espace..."
                 className="w-full p-2 border rounded-md min-h-20"
               />
             </div>
@@ -527,7 +528,7 @@ export function SpaceManagement() {
 
             {/* Upload d'images */}
             <div>
-              <Label>Images de l'espace</Label>
+              <Label>Images de l&apos;espace</Label>
               <div className="space-y-4 mt-2">
                 <Button
                   type="button"
@@ -553,9 +554,11 @@ export function SpaceManagement() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {formData.images.map((image, index) => (
                       <div key={index} className="relative">
-                        <img
+                        <Image
                           src={image}
                           alt={`Image ${index + 1}`}
+                          width={200}
+                          height={96}
                           className="w-full h-24 object-cover rounded border"
                         />
                         <Button
@@ -576,7 +579,7 @@ export function SpaceManagement() {
 
             {/* Horaires d'ouverture */}
             <div>
-              <Label>Horaires d'ouverture</Label>
+              <Label>Horaires d&apos;ouverture</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                 {DAYS_OF_WEEK.map((day) => {
                   const hours = formData.openingHours[day.key]
@@ -656,9 +659,11 @@ export function SpaceManagement() {
           <Card key={space._id} className="overflow-hidden">
             <div className="relative">
               {space.images && space.images.length > 0 ? (
-                <img
+                <Image
                   src={space.images[0]}
                   alt={space.name}
+                  width={400}
+                  height={160}
                   className="w-full h-40 object-cover"
                 />
               ) : (

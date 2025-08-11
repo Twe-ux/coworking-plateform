@@ -389,7 +389,7 @@ export default function BookingsPage() {
                   Mes Réservations
                 </h1>
                 <p className="text-gray-600">
-                  Gérez toutes vos réservations d'espaces
+                  Gérez toutes vos réservations d&apos;espaces
                 </p>
               </div>
             </div>

@@ -50,7 +50,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <p>
             En continuant, vous acceptez nos{' '}
             <Link href="/terms" className="hover:text-coffee-primary underline">
-              conditions d'utilisation
+              conditions d&apos;utilisation
             </Link>{' '}
             et notre{' '}
             <Link

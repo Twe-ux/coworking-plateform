@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -83,11 +83,7 @@ export function RevenueAnalytics() {
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
   const [selectedMetric, setSelectedMetric] = useState<'revenue' | 'bookings' | 'average'>('revenue')
 
-  useEffect(() => {
-    loadAnalytics()
-  }, [period])
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -130,7 +126,11 @@ export function RevenueAnalytics() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [period, toast])
+
+  useEffect(() => {
+    loadAnalytics()
+  }, [loadAnalytics])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -170,7 +170,7 @@ export function RevenueAnalytics() {
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible d'exporter le rapport",
+        description: "Impossible d&apos;exporter le rapport",
         variant: "destructive"
       })
     }

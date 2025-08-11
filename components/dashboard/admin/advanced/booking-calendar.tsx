@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -73,15 +73,7 @@ export function BookingCalendar() {
   const [spaceFilter, setSpaceFilter] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
 
-  useEffect(() => {
-    loadBookings()
-  }, [currentDate, viewMode])
-
-  useEffect(() => {
-    filterBookings()
-  }, [bookings, searchTerm, statusFilter, spaceFilter])
-
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -114,9 +106,9 @@ export function BookingCalendar() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentDate, viewMode, toast])
 
-  const filterBookings = () => {
+  const filterBookings = useCallback(() => {
     let filtered = [...bookings]
 
     if (searchTerm) {
@@ -138,7 +130,15 @@ export function BookingCalendar() {
     }
 
     setFilteredBookings(filtered)
-  }
+  }, [bookings, searchTerm, statusFilter, spaceFilter])
+
+  useEffect(() => {
+    loadBookings()
+  }, [loadBookings])
+
+  useEffect(() => {
+    filterBookings()
+  }, [filterBookings])
 
   const generateCalendarDays = (): CalendarDay[] => {
     const startDate = startOfMonth(currentDate)
@@ -243,7 +243,7 @@ export function BookingCalendar() {
                 <span>Calendrier des réservations</span>
               </CardTitle>
               <CardDescription>
-                Vue d'ensemble des réservations par date
+                Vue d&apos;ensemble des réservations par date
               </CardDescription>
             </div>
             

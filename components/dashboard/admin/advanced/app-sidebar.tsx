@@ -35,156 +35,163 @@ import {
   SidebarRail,
 } from '@/components/dashboard/admin/advanced/ui/sidebar'
 import { cn } from '@/lib/utils'
-import {
-  BarChart3,
-  Bell,
-  Building,
-  Calendar,
-  ChevronRight,
-  CreditCard,
-  FileText,
-  Headphones,
-  Home,
-  Plus,
-  Settings,
-  Shield,
-  Users,
-} from 'lucide-react'
+import { Bell, Building, ChevronRight, Plus, Settings } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const data = {
-  navMain: [
-    {
-      title: 'Dashboard',
-      url: '/dashboard/admin',
-      icon: Home,
-    },
-    {
-      title: 'Réservations',
-      url: '/dashboard/admin/bookings',
-      icon: Calendar,
-      items: [
-        {
-          title: 'Toutes les réservations',
-          url: '/dashboard/admin/bookings',
-        },
-        {
-          title: 'Créer une réservation',
-          url: '/dashboard/admin/bookings/create',
-        },
-        {
-          title: 'Calendrier',
-          url: '/dashboard/admin/calendar',
-        },
-      ],
-    },
-    {
-      title: 'Espaces',
-      url: '/dashboard/admin/spaces',
-      icon: Building,
-      items: [
-        {
-          title: 'Gérer les espaces',
-          url: '/dashboard/admin/spaces',
-        },
-        {
-          title: 'Gestion avancée',
-          url: '/dashboard/admin/spaces/manage',
-        },
-        {
-          title: 'Ajouter un espace',
-          url: '/dashboard/admin/spaces/create',
-        },
-        {
-          title: 'Configuration',
-          url: '/dashboard/admin/spaces/settings',
-        },
-      ],
-    },
-    {
-      title: 'Utilisateurs',
-      url: '/dashboard/admin/users',
-      icon: Users,
-      items: [
-        {
-          title: 'Tous les utilisateurs',
-          url: '/dashboard/admin/users',
-        },
-        {
-          title: 'Rôles et permissions',
-          url: '/dashboard/admin/users/roles',
-        },
-        {
-          title: 'Invitations',
-          url: '/dashboard/admin/users/invitations',
-        },
-      ],
-    },
-    {
-      title: 'Analytics',
-      url: '/dashboard/admin/analytics',
-      icon: BarChart3,
-    },
-  ],
-  navSecondary: [
-    {
-      title: 'Paiements',
-      url: '/dashboard/admin/payments',
-      icon: CreditCard,
-    },
-    {
-      title: 'Notifications',
-      url: '/dashboard/admin/notifications',
-      icon: Bell,
-    },
-    {
-      title: 'Support',
-      url: '/dashboard/admin/support',
-      icon: Headphones,
-    },
-    {
-      title: 'Sécurité',
-      url: '/dashboard/admin/security',
-      icon: Shield,
-    },
-    {
-      title: 'Rapports',
-      url: '/dashboard/admin/reports',
-      icon: FileText,
-    },
-    {
-      title: 'Paramètres',
-      url: '/dashboard/admin/settings',
-      icon: Settings,
-    },
-  ],
-}
+// const data = {
+//   navMain: [
+//     {
+//       title: 'Dashboard',
+//       url: '/dashboard/admin',
+//       icon: Home,
+//     },
+//     {
+//       title: 'Réservations',
+//       url: '/dashboard/admin/bookings',
+//       icon: Calendar,
+//       items: [
+//         {
+//           title: 'Toutes les réservations',
+//           url: '/dashboard/admin/bookings',
+//         },
+//         {
+//           title: 'Créer une réservation',
+//           url: '/dashboard/admin/bookings/create',
+//         },
+//         {
+//           title: 'Calendrier',
+//           url: '/dashboard/admin/calendar',
+//         },
+//       ],
+//     },
+//     {
+//       title: 'Espaces',
+//       url: '/dashboard/admin/spaces',
+//       icon: Building,
+//       items: [
+//         {
+//           title: 'Gérer les espaces',
+//           url: '/dashboard/admin/spaces',
+//         },
+//         {
+//           title: 'Gestion avancée',
+//           url: '/dashboard/admin/spaces/manage',
+//         },
+//         {
+//           title: 'Ajouter un espace',
+//           url: '/dashboard/admin/spaces/create',
+//         },
+//         {
+//           title: 'Configuration',
+//           url: '/dashboard/admin/spaces/settings',
+//         },
+//       ],
+//     },
+//     {
+//       title: 'Utilisateurs',
+//       url: '/dashboard/admin/users',
+//       icon: Users,
+//       items: [
+//         {
+//           title: 'Tous les utilisateurs',
+//           url: '/dashboard/admin/users',
+//         },
+//         {
+//           title: 'Rôles et permissions',
+//           url: '/dashboard/admin/users/roles',
+//         },
+//         {
+//           title: 'Invitations',
+//           url: '/dashboard/admin/users/invitations',
+//         },
+//       ],
+//     },
+//     {
+//       title: 'Analytics',
+//       url: '/dashboard/admin/analytics',
+//       icon: BarChart3,
+//     },
+//   ],
+//   navSecondary: [
+//     {
+//       title: 'Paiements',
+//       url: '/dashboard/admin/payments',
+//       icon: CreditCard,
+//     },
+//     {
+//       title: 'Notifications',
+//       url: '/dashboard/admin/notifications',
+//       icon: Bell,
+//     },
+//     {
+//       title: 'Support',
+//       url: '/dashboard/admin/support',
+//       icon: Headphones,
+//     },
+//     {
+//       title: 'Sécurité',
+//       url: '/dashboard/admin/security',
+//       icon: Shield,
+//     },
+//     {
+//       title: 'Rapports',
+//       url: '/dashboard/admin/reports',
+//       icon: FileText,
+//     },
+//     {
+//       title: 'Paramètres',
+//       url: '/dashboard/admin/settings',
+//       icon: Settings,
+//     },
+//   ],
+// }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   variant?: 'sidebar' | 'inset'
+  data: {
+    user: {
+      name: string
+      email: string
+      avatar?: string
+    }
+    navMain: {
+      title: string
+      url: string
+      icon: React.ComponentType<any>
+      items?: { title: string; url: string }[]
+    }[]
+    navSecondary: {
+      title: string
+      url: string
+      icon: React.ComponentType<any>
+    }[]
+  }
 }
 
-export function AppSidebar({ variant = 'sidebar', ...props }: AppSidebarProps) {
+export function AppSidebar({
+  variant = 'sidebar',
+  data,
+  ...props
+}: AppSidebarProps) {
   const pathname = usePathname()
 
   return (
     <Sidebar
       collapsible="icon"
-      variant={variant}
-      className={cn('!bg-sidebar', variant === 'inset' && 'border-0')}
+      // variant={variant}
+      // className={cn('!bg-sidebar', variant === 'inset' && 'border-0')}
       {...props}
     >
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-2">
-          <div className="bg-coffee-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <Building className="size-4" />
-          </div>
+        <Link href="/" className="flex items-center gap-2 px-4 py-2">
+          <Image src="/logo-circle.webp" alt="Logo" width={40} height={40} />
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">Café Coworking</span>
-            <span className="truncate text-xs">Administration</span>
+            <span className="truncate text-xs">{data.user.name}</span>
           </div>
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
