@@ -36,7 +36,7 @@ export default function PaymentCancelPage() {
               Paiement annulé
             </h1>
             <p className="text-gray-600">
-              Votre paiement a été annulé et aucun montant n'a été prélevé
+              Votre paiement a été annulé et aucun montant n&apos;a été prélevé
             </p>
           </div>
 
@@ -44,15 +44,15 @@ export default function PaymentCancelPage() {
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 text-left">
             <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Que s'est-il passé ?
+              Que s&apos;est-il passé ?
             </h2>
             
             <div className="space-y-3 text-gray-600">
               <p>
-                Vous avez choisi d'annuler le processus de paiement avant sa finalisation.
+                Vous avez choisi d&apos;annuler le processus de paiement avant sa finalisation.
               </p>
               <p>
-                Aucun montant n'a été débité de votre compte et votre réservation n'a pas été confirmée.
+                Aucun montant n&apos;a été débité de votre compte et votre réservation n&apos;a pas été confirmée.
               </p>
               <p className="text-sm text-orange-600 bg-orange-50 p-3 rounded">
                 💡 La réservation en attente sera automatiquement supprimée après 24h.
@@ -80,7 +80,7 @@ export default function PaymentCancelPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 mt-1">•</span>
-                Explorer d'autres créneaux horaires
+                Explorer d&apos;autres créneaux horaires
               </li>
             </ul>
           </div>
@@ -107,7 +107,7 @@ export default function PaymentCancelPage() {
           {/* Support */}
           <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
             <p>
-              Besoin d'aide ? Contactez-nous à{' '}
+              Besoin d&apos;aide ? Contactez-nous à{' '}
               <a 
                 href="mailto:support@coworking-platform.com" 
                 className="text-coffee-primary hover:underline"

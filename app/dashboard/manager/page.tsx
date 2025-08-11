@@ -35,13 +35,13 @@ export default function ManagerDashboard() {
                 <div className="rounded-lg border border-gray-200 p-4">
                   <h3 className="font-medium text-gray-900">Gestion équipe</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Gérer les membres de l'équipe
+                    Gérer les membres de l&apos;équipe
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 p-4">
                   <h3 className="font-medium text-gray-900">Rapports</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Consulter les rapports d'activité
+                    Consulter les rapports d&apos;activité
                   </p>
                 </div>
               </div>

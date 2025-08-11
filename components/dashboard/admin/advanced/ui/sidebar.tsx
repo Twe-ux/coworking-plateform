@@ -204,7 +204,9 @@ function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
 function SidebarHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('flex flex-col gap-2 border-b p-4', className)}
+      data-slot="sidebar-header"
+      data-sidebar="header"
+      className={cn('flex-col gap-2 p-2', className)}
       {...props}
     />
   )

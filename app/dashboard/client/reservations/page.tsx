@@ -201,7 +201,7 @@ export default function ClientReservationsPage() {
             Mes réservations
           </h1>
           <p style={{ color: 'var(--color-client-muted)' }}>
-            Gérez toutes vos réservations d'espaces de coworking
+            Gérez toutes vos réservations d&apos;espaces de coworking
           </p>
         </div>
 
