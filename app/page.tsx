@@ -1,7 +1,9 @@
 'use client'
 
+import ClientOnly from '@/components/ClientOnly'
 import DynamicStats from '@/components/home/DynamicStats'
 import SpaceCarousel from '@/components/home/SpaceCarousel'
+import Logo from '@/components/Logo'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import {
   ArrowRight,
@@ -69,7 +71,7 @@ export default function Home() {
   }
 
   return (
-    <main className="from-coffee-light via-coffee-light/80 to-coffee-light/60 relative min-h-screen overflow-hidden bg-gradient-to-br p-10">
+    <main className="bg-coffee-light md:from-coffee-light md:via-coffee-light/80 md:to-coffee-light/60 relative min-h-screen overflow-hidden p-4 sm:p-10 md:bg-gradient-to-br">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -93,18 +95,19 @@ export default function Home() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative flex min-h-screen items-center justify-center px-4">
+      <section className="relative flex min-h-screen items-center justify-center px-2 sm:px-4">
         <motion.div
           className="z-10 mx-auto max-w-6xl text-center"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* <motion.div
+          {/* Logo centré sur mobile uniquement */}
+          <motion.div
             variants={itemVariants}
-            className="mb-8 flex flex-col items-center"
+            className="mb-6 flex flex-col items-center justify-center md:hidden"
           >
-            <div className="mb-4">
+            <div className="mt-4">
               <ClientOnly>
                 <Logo
                   size="xl"
@@ -114,18 +117,18 @@ export default function Home() {
                 />
               </ClientOnly>
             </div>
-            <span className="bg-coffee-primary/10 text-coffee-primary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium">
+            {/* <span className="bg-coffee-primary/10 text-coffee-primary inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
               ☕ Coworking à Strasbourg
-            </span>
-          </motion.div> */}
+            </span> */}
+          </motion.div>
 
           <motion.h1
             variants={itemVariants}
-            className="from-coffee-accent via-coffee-primary to-coffee-accent mb-6 bg-gradient-to-r bg-clip-text text-5xl leading-tight font-bold text-transparent md:text-7xl"
+            className="from-coffee-accent via-coffee-primary to-coffee-accent mb-4 bg-gradient-to-r bg-clip-text text-4xl leading-tight font-bold text-transparent sm:mb-6 sm:text-5xl md:text-7xl"
           >
             Cow or King
             <br />
-            <span className="from-coffee-accent via-coffee-primary to-coffee-accent relative bg-gradient-to-r bg-clip-text pb-4 text-5xl leading-tight font-bold text-transparent md:text-7xl">
+            <span className="from-coffee-accent via-coffee-primary to-coffee-accent relative bg-gradient-to-r bg-clip-text pb-3 text-4xl leading-tight font-bold text-transparent sm:pb-4 sm:text-5xl md:text-7xl">
               Café
               <motion.div
                 className="from-coffee-primary to-coffee-accent absolute right-0 -bottom-2 left-0 h-1 bg-gradient-to-r"
@@ -140,7 +143,7 @@ export default function Home() {
 
           <motion.p
             variants={itemVariants}
-            className="mx-auto mt-16 mb-8 max-w-3xl text-xl leading-relaxed text-gray-700 md:text-2xl"
+            className="mx-auto mt-8 mb-6 max-w-3xl px-2 text-lg leading-relaxed text-gray-700 sm:mt-16 sm:mb-8 sm:text-xl md:text-2xl"
           >
             Votre espace de coworking au cœur de Strasbourg. Travaillez dans
             notre café avec place, salle verrière et étage disponibles à la
@@ -149,21 +152,21 @@ export default function Home() {
 
           <motion.div
             variants={itemVariants}
-            className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            className="mb-8 flex flex-col items-center justify-center gap-3 px-4 sm:mb-12 sm:flex-row sm:gap-4"
           >
             <Link href="/reservation">
               <motion.button
-                className="from-coffee-primary to-coffee-accent group flex min-h-[56px] items-center gap-2 rounded-full bg-gradient-to-r px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
+                className="from-coffee-primary to-coffee-accent group flex min-h-[48px] w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gradient-to-r px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl sm:min-h-[56px] sm:w-auto sm:px-8 sm:py-4 sm:text-base"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
                 Explorer les espaces
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
               </motion.button>
             </Link>
 
             <motion.button
-              className="border-coffee-accent text-coffee-accent hover:bg-coffee-accent rounded-full border-2 px-8 py-4 font-semibold transition-all duration-300 hover:text-white"
+              className="border-coffee-accent text-coffee-accent hover:bg-coffee-accent w-full max-w-xs rounded-full border-2 px-6 py-3 text-sm font-semibold transition-all duration-300 hover:text-white sm:w-auto sm:px-8 sm:py-4 sm:text-base"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -250,7 +253,7 @@ export default function Home() {
       {/* Spaces Gallery Section */}
       <section
         id="espaces"
-        className="from-coffee-light/30 to-coffee-light relative bg-gradient-to-b px-4 py-24"
+        className="bg-coffee-light/20 md:from-coffee-light/30 md:to-coffee-light relative px-4 py-24 md:bg-gradient-to-b"
       >
         <motion.div
           className="mx-auto max-w-7xl"
@@ -307,7 +310,7 @@ export default function Home() {
       {/* Pricing Section */}
       <section
         id="tarifs"
-        className="from-coffee-light to-coffee-light/30 relative bg-gradient-to-b px-4 py-24"
+        className="bg-coffee-light/30 md:from-coffee-light md:to-coffee-light/30 relative px-4 py-24 md:bg-gradient-to-b"
       >
         <motion.div
           className="mx-auto max-w-6xl"
@@ -489,7 +492,7 @@ export default function Home() {
 
           {/* Additional Services */}
           <motion.div
-            className="from-coffee-muted/30 to-coffee-secondary/30 rounded-2xl bg-gradient-to-r p-8"
+            className="bg-coffee-light/40 md:from-coffee-muted/30 md:to-coffee-secondary/30 rounded-2xl p-4 sm:p-8 md:bg-gradient-to-r"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -552,7 +555,7 @@ export default function Home() {
       {/* Member Program Section */}
       <section
         id="membres"
-        className="to-coffee-light relative bg-gradient-to-b from-orange-50/20 px-4 py-24"
+        className="bg-coffee-light/10 md:to-coffee-light relative px-4 py-24 md:bg-gradient-to-b md:from-orange-50/20"
       >
         <motion.div
           className="mx-auto max-w-6xl"
@@ -717,7 +720,7 @@ export default function Home() {
 
           {/* Member Benefits Grid */}
           <motion.div
-            className="from-coffee-muted/30 to-coffee-secondary/30 rounded-2xl bg-gradient-to-r p-8"
+            className="bg-coffee-light/40 md:from-coffee-muted/30 md:to-coffee-secondary/30 rounded-2xl p-4 sm:p-8 md:bg-gradient-to-r"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -773,7 +776,7 @@ export default function Home() {
       {/* Drinks Menu Section */}
       <section
         id="boissons"
-        className="from-coffee-light to-coffee-light/30 relative bg-gradient-to-b px-4 py-24"
+        className="bg-coffee-light/20 md:from-coffee-light md:to-coffee-light/30 relative px-4 py-24 md:bg-gradient-to-b"
       >
         <motion.div
           className="mx-auto max-w-7xl"
@@ -1058,7 +1061,7 @@ export default function Home() {
       {/* Contact Section */}
       <section
         id="contact"
-        className="from-coffee-accent relative overflow-hidden bg-gradient-to-br to-black px-4 py-24 text-white"
+        className="from-coffee-accent relative overflow-hidden bg-gradient-to-br to-black px-2 py-16 text-white sm:px-4 sm:py-24"
       >
         {/* Background Elements */}
         <div className="absolute inset-0 opacity-20">
@@ -1076,9 +1079,9 @@ export default function Home() {
           transition={{ duration: 1 }}
           viewport={{ once: true }}
         >
-          <div className="mb-20 text-center">
+          <div className="mb-12 text-center sm:mb-20">
             <motion.h2
-              className="mb-6 text-5xl font-bold md:text-6xl"
+              className="mb-4 px-2 text-3xl leading-tight font-bold sm:mb-6 sm:text-5xl md:text-6xl"
               initial={{ y: 30, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8 }}
@@ -1089,7 +1092,7 @@ export default function Home() {
               </span>
             </motion.h2>
             <motion.p
-              className="mx-auto max-w-3xl text-xl text-gray-300"
+              className="mx-auto max-w-3xl px-4 text-lg text-gray-300 sm:text-xl"
               initial={{ y: 20, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -1101,22 +1104,22 @@ export default function Home() {
             </motion.p>
           </div>
 
-          <div className="grid items-start gap-12 lg:grid-cols-2">
+          <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
             {/* Contact Form */}
             <motion.div
-              className="rounded-2xl border border-white/20 bg-white/10 p-8 backdrop-blur-md"
+              className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-md sm:p-8"
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <h3 className="mb-6 flex items-center gap-3 text-2xl font-bold">
-                <MessageCircle className="text-coffee-secondary h-8 w-8" />
+              <h3 className="mb-4 flex items-center gap-2 text-xl font-bold sm:mb-6 sm:gap-3 sm:text-2xl">
+                <MessageCircle className="text-coffee-secondary h-6 w-6 sm:h-8 sm:w-8" />
                 Envoyez-nous un message
               </h3>
 
-              <form className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
+              <form className="space-y-4 sm:space-y-6">
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-300">
                       Prénom

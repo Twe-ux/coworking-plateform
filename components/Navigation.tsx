@@ -45,10 +45,21 @@ export default function Navigation() {
     >
       <div className="mx-auto max-w-(--breakpoint-xl) px-4 py-2">
         <div className="flex h-24 items-center justify-between">
-          {/* Logo */}
+          {/* Mobile Menu Button - Left side on mobile */}
+          <button
+            className="text-coffee-accent focus:ring-coffee-accent rounded-md p-2 focus:ring-2 focus:outline-none md:hidden"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+
+          {/* Logo - Hidden on mobile, visible on desktop */}
           <Link
             href="/"
-            className="focus:ring-0 focus:ring-offset-0 focus:outline-none"
+            className="hidden focus:ring-0 focus:ring-offset-0 focus:outline-none md:block"
           >
             <ClientOnly>
               <Logo size="xl" animated={true} variant="auto" showText={false} />
@@ -56,8 +67,8 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="flex w-full justify-between">
-            <div className="ml-16 hidden items-center gap-8 md:flex">
+          <div className="hidden w-full justify-between md:flex">
+            <div className="ml-16 flex items-center gap-8">
               {navItems.map((item, index) =>
                 item.href.startsWith('#') ? (
                   <motion.a
@@ -90,22 +101,14 @@ export default function Navigation() {
               {/* <ClientOnly>
                 <ThemeToggle />
               </ClientOnly> */}
-              <div className="hidden md:block">
-                <AuthButtons variant="navigation" size="sm" />
-              </div>
+              <AuthButtons variant="navigation" size="sm" />
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="text-coffee-accent focus:ring-coffee-accent rounded-md p-2 focus:ring-2 focus:outline-none md:hidden"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            aria-expanded={isOpen}
-            aria-controls="mobile-menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Mobile Auth Buttons - Right side on mobile */}
+          <div className="flex items-center md:hidden">
+            <AuthButtons variant="navigation" size="sm" />
+          </div>
         </div>
       </div>
 

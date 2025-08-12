@@ -1,17 +1,15 @@
 'use client'
 
 import {
-  CreditCard,
-  MoreHorizontal,
-  LogOut,
-  Bell,
-  User,
-  Settings,
-  Coffee,
   ArrowLeft,
+  Bell,
+  LogOut,
+  MoreHorizontal,
+  Settings,
+  User,
 } from 'lucide-react'
-import Link from 'next/link'
 import { signOut } from 'next-auth/react'
+import Link from 'next/link'
 
 import {
   Avatar,
@@ -63,7 +61,11 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-coffee-primary/10 hover:bg-coffee-primary/10"
+              className="data-[state=open]:bg-coffee-primary/10 hover:bg-coffee-primary/10 touch-feedback relative cursor-pointer"
+              asChild={false}
+              aria-label="Menu utilisateur"
+              role="button"
+              tabIndex={0}
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
@@ -84,10 +86,21 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="fixed z-[99999] w-[--radix-dropdown-menu-trigger-width] min-w-64 rounded-lg"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
+            avoidCollisions={true}
+            collisionPadding={8}
+            forceMount={false}
+            style={{
+              backgroundColor: 'white',
+              border: '1px solid #1f4735',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+
+              top: 730,
+              left: 16,
+            }}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
@@ -111,19 +124,19 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild className="hover:bg-coffee-primary/10">
-                <Link href="/dashboard/admin/profile">
+                <Link href="/dashboard/profile">
                   <User className="mr-2 h-4 w-4" />
                   Mon Profil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="hover:bg-coffee-primary/10">
-                <Link href="/dashboard/admin/settings">
+                <Link href="/dashboard/settings">
                   <Settings className="mr-2 h-4 w-4" />
                   Paramètres
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="hover:bg-coffee-primary/10">
-                <Link href="/dashboard/admin/notifications">
+                <Link href="/dashboard/notifications">
                   <Bell className="mr-2 h-4 w-4" />
                   Notifications
                 </Link>

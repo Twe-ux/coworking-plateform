@@ -3,6 +3,28 @@
 @custom-variant dark (&:is(.dark *));
 @config "../tailwind.config.js";
 
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .mobile-no-gradient {
+    background: theme('colors.coffee.light') !important;
+    background-image: none !important;
+  }
+
+  .mobile-simple-bg {
+    background: theme('colors.coffee.light/20') !important;
+    background-image: none !important;
+  }
+
+  .mobile-text-adjust {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .mobile-padding {
+    padding: 1rem !important;
+  }
+}
+
 @theme {
   /* Custom colors - converting from v3 extend.colors */
   --color-border: hsl(var(--border));
@@ -194,7 +216,7 @@
   }
 }
 
-/* Utility classes for text clamping */
+/* Utility classes for text clamping and mobile optimizations */
 @layer utilities {
   .line-clamp-1 {
     overflow: hidden;
@@ -215,6 +237,76 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+  }
+
+  /* Mobile-first touch optimizations */
+  .touch-optimized {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .touch-feedback {
+    transition:
+      transform 0.1s ease-out,
+      background-color 0.1s ease-out;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.98);
+  }
+
+  /* iOS safe area support */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-y {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Smooth scrolling with momentum */
+  .momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  /* Better mobile focus indicators */
+  .focus-ring-mobile {
+    @apply focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .sidebar-border {
+      border-color: ButtonText;
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-transition {
+      transition: none;
+    }
   }
 }
 
