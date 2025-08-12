@@ -1,11 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
-import { 
+import {
   AreaChart,
   Area,
   XAxis,
@@ -19,18 +25,18 @@ import {
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
 } from 'recharts'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Euro, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Euro,
   Calendar,
   Users,
   Building,
   RefreshCw,
   Download,
-  Filter
+  Filter,
 } from 'lucide-react'
 import { format, subMonths, subDays, startOfMonth, endOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -71,9 +77,9 @@ const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1']
 
 const statusColors = {
   confirmed: '#10b981',
-  pending: '#f59e0b', 
+  pending: '#f59e0b',
   completed: '#3b82f6',
-  cancelled: '#ef4444'
+  cancelled: '#ef4444',
 }
 
 export function RevenueAnalytics() {
@@ -81,15 +87,17 @@ export function RevenueAnalytics() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
-  const [selectedMetric, setSelectedMetric] = useState<'revenue' | 'bookings' | 'average'>('revenue')
+  const [selectedMetric, setSelectedMetric] = useState<
+    'revenue' | 'bookings' | 'average'
+  >('revenue')
 
-  const loadAnalytics = useCallback(async () => {
+  const loadAnalytics = async () => {
     try {
       setLoading(true)
-      
+
       const endDate = new Date()
       let startDate = new Date()
-      
+
       switch (period) {
         case '7d':
           startDate = subDays(endDate, 7)
@@ -108,9 +116,9 @@ export function RevenueAnalytics() {
       const response = await fetch(
         `/api/dashboard/admin/analytics/revenue?start=${startDate.toISOString()}&end=${endDate.toISOString()}&period=${period}`
       )
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
         setAnalytics(data.data)
       } else {
@@ -119,23 +127,24 @@ export function RevenueAnalytics() {
     } catch (error) {
       console.error('Erreur chargement analytics:', error)
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les analytics",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Impossible de charger les analytics',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
-  }, [period, toast])
+  }
 
   useEffect(() => {
     loadAnalytics()
-  }, [loadAnalytics])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'EUR',
     }).format(value)
   }
 
@@ -148,7 +157,7 @@ export function RevenueAnalytics() {
       const response = await fetch('/api/dashboard/admin/analytics/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ period, type: 'revenue' })
+        body: JSON.stringify({ period, type: 'revenue' }),
       })
 
       if (response.ok) {
@@ -161,17 +170,17 @@ export function RevenueAnalytics() {
         window.URL.revokeObjectURL(url)
 
         toast({
-          title: "Export réussi",
-          description: "Le rapport a été téléchargé"
+          title: 'Export réussi',
+          description: 'Le rapport a été téléchargé',
         })
       } else {
         throw new Error('Erreur export')
       }
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible d&apos;exporter le rapport",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Impossible d&apos;exporter le rapport',
+        variant: 'destructive',
       })
     }
   }
@@ -182,24 +191,26 @@ export function RevenueAnalytics() {
       const collectionsResponse = await fetch('/api/debug/collections')
       const collectionsData = await collectionsResponse.json()
       console.log('🐛 DEBUG COLLECTIONS:', collectionsData)
-      
+
       // Debug des bookings
       const response = await fetch('/api/debug/bookings')
       const data = await response.json()
       console.log('🐛 DEBUG BOOKINGS:', data)
-      
+
       if (collectionsData.success && data.success) {
         const collections = collectionsData.debug.collections.join(', ')
         const bookingsInfo = collectionsData.debug.bookings_info || {}
         const bookingsDebug = data.debug
-        
-        alert(`🐛 DEBUG MONGODB:\n\n` +
-              `Collections: ${collections}\n\n` + 
-              `Total bookings dans DB: ${bookingsDebug.totalBookingsEver}\n` +
-              `Bookings dans période (30j): ${bookingsDebug.totalBookingsInPeriod}\n` +
-              `Période: ${bookingsDebug.period}\n\n` +
-              `Dates des réservations:\n${bookingsDebug.allBookingsDates.map((b: any) => `- ${new Date(b.date).toLocaleDateString()}: ${b.status} (${b.totalPrice}€)`).join('\n')}\n\n` +
-              `Voir console pour détails`)
+
+        alert(
+          `🐛 DEBUG MONGODB:\n\n` +
+            `Collections: ${collections}\n\n` +
+            `Total bookings dans DB: ${bookingsDebug.totalBookingsEver}\n` +
+            `Bookings dans période (30j): ${bookingsDebug.totalBookingsInPeriod}\n` +
+            `Période: ${bookingsDebug.period}\n\n` +
+            `Dates des réservations:\n${bookingsDebug.allBookingsDates.map((b: any) => `- ${new Date(b.date).toLocaleDateString()}: ${b.status} (${b.totalPrice}€)`).join('\n')}\n\n` +
+            `Voir console pour détails`
+        )
       }
     } catch (error) {
       console.error('Erreur debug:', error)
@@ -209,14 +220,14 @@ export function RevenueAnalytics() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   if (!analytics) {
     return (
-      <div className="text-center p-8">
+      <div className="p-8 text-center">
         <p className="text-gray-500">Aucune donnée disponible</p>
       </div>
     )
@@ -225,14 +236,16 @@ export function RevenueAnalytics() {
   return (
     <div className="space-y-6">
       {/* En-tête avec contrôles */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics Revenus</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Analytics Revenus
+          </h2>
           <p className="text-gray-600">
             Performance financière et tendances des réservations
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
             {(['7d', '30d', '90d', '1y'] as const).map((p) => (
@@ -243,11 +256,17 @@ export function RevenueAnalytics() {
                 onClick={() => setPeriod(p)}
                 className="text-xs"
               >
-                {p === '7d' ? '7j' : p === '30d' ? '30j' : p === '90d' ? '90j' : '1an'}
+                {p === '7d'
+                  ? '7j'
+                  : p === '30d'
+                    ? '30j'
+                    : p === '90d'
+                      ? '90j'
+                      : '1an'}
               </Button>
             ))}
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -257,17 +276,17 @@ export function RevenueAnalytics() {
             <Download className="h-4 w-4" />
             <span>Export</span>
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
             onClick={debugData}
-            className="flex items-center space-x-1 bg-red-50 border-red-200"
+            className="flex items-center space-x-1 border-red-200 bg-red-50"
           >
             <span>🐛</span>
             <span>Debug</span>
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -282,7 +301,7 @@ export function RevenueAnalytics() {
       </div>
 
       {/* KPIs principaux */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -291,15 +310,19 @@ export function RevenueAnalytics() {
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(analytics.totalRevenue)}
                 </p>
-                <div className="flex items-center space-x-1 mt-1">
+                <div className="mt-1 flex items-center space-x-1">
                   {analytics.monthlyGrowth >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-500" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-500" />
                   )}
-                  <span className={`text-xs ${
-                    analytics.monthlyGrowth >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span
+                    className={`text-xs ${
+                      analytics.monthlyGrowth >= 0
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
+                  >
                     {formatPercentage(analytics.monthlyGrowth)}
                   </span>
                 </div>
@@ -317,7 +340,7 @@ export function RevenueAnalytics() {
                 <p className="text-2xl font-bold text-blue-600">
                   {analytics.totalBookings}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   {period === '30d' ? 'Ce mois' : 'Période sélectionnée'}
                 </p>
               </div>
@@ -334,9 +357,7 @@ export function RevenueAnalytics() {
                 <p className="text-2xl font-bold text-purple-600">
                   {formatCurrency(analytics.averageBookingValue)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Par réservation
-                </p>
+                <p className="mt-1 text-xs text-gray-500">Par réservation</p>
               </div>
               <Users className="h-8 w-8 text-gray-400" />
             </div>
@@ -349,13 +370,17 @@ export function RevenueAnalytics() {
               <div>
                 <p className="text-sm text-gray-600">Taux occupation</p>
                 <p className="text-2xl font-bold text-amber-600">
-                  {analytics.topSpaces.length > 0 
-                    ? Math.round(analytics.topSpaces.reduce((acc, s) => acc + s.occupancyRate, 0) / analytics.topSpaces.length)
-                    : 0}%
+                  {analytics.topSpaces.length > 0
+                    ? Math.round(
+                        analytics.topSpaces.reduce(
+                          (acc, s) => acc + s.occupancyRate,
+                          0
+                        ) / analytics.topSpaces.length
+                      )
+                    : 0}
+                  %
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Moyenne espaces
-                </p>
+                <p className="mt-1 text-xs text-gray-500">Moyenne espaces</p>
               </div>
               <Building className="h-8 w-8 text-gray-400" />
             </div>
@@ -366,14 +391,14 @@ export function RevenueAnalytics() {
       {/* Graphique principal */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div>
               <CardTitle>Évolution des revenus</CardTitle>
               <CardDescription>
                 Tendance sur la période sélectionnée
               </CardDescription>
             </div>
-            
+
             <div className="flex space-x-1">
               {(['revenue', 'bookings', 'average'] as const).map((metric) => (
                 <Button
@@ -383,39 +408,49 @@ export function RevenueAnalytics() {
                   onClick={() => setSelectedMetric(metric)}
                   className="text-xs"
                 >
-                  {metric === 'revenue' ? 'Revenus' : 
-                   metric === 'bookings' ? 'Réservations' : 'Panier moyen'}
+                  {metric === 'revenue'
+                    ? 'Revenus'
+                    : metric === 'bookings'
+                      ? 'Réservations'
+                      : 'Panier moyen'}
                 </Button>
               ))}
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={analytics.dailyRevenue}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis
                   dataKey="date"
                   tickFormatter={(date) => format(new Date(date), 'dd/MM')}
                 />
-                <YAxis 
-                  tickFormatter={(value) => 
+                <YAxis
+                  tickFormatter={(value) =>
                     selectedMetric === 'revenue' || selectedMetric === 'average'
                       ? `${value}€`
                       : value.toString()
                   }
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => [
-                    selectedMetric === 'revenue' ? formatCurrency(value) :
-                    selectedMetric === 'bookings' ? value :
-                    formatCurrency(value),
-                    selectedMetric === 'revenue' ? 'Revenus' :
-                    selectedMetric === 'bookings' ? 'Réservations' : 'Panier moyen'
+                    selectedMetric === 'revenue'
+                      ? formatCurrency(value)
+                      : selectedMetric === 'bookings'
+                        ? value
+                        : formatCurrency(value),
+                    selectedMetric === 'revenue'
+                      ? 'Revenus'
+                      : selectedMetric === 'bookings'
+                        ? 'Réservations'
+                        : 'Panier moyen',
                   ]}
-                  labelFormatter={(date) => format(new Date(date), 'dd MMMM yyyy', { locale: fr })}
+                  labelFormatter={(date) =>
+                    format(new Date(date), 'dd MMMM yyyy', { locale: fr })
+                  }
                 />
                 <Area
                   type="monotone"
@@ -431,29 +466,30 @@ export function RevenueAnalytics() {
       </Card>
 
       {/* Graphiques secondaires */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Top espaces */}
         <Card>
           <CardHeader>
             <CardTitle>Top espaces par revenus</CardTitle>
-            <CardDescription>
-              Espaces les plus rentables
-            </CardDescription>
+            <CardDescription>Espaces les plus rentables</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.topSpaces}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
+                  <XAxis
                     dataKey="spaceName"
                     angle={-45}
                     textAnchor="end"
                     height={60}
                   />
                   <YAxis tickFormatter={(value) => `${value}€`} />
-                  <Tooltip 
-                    formatter={(value: number) => [formatCurrency(value), 'Revenus']}
+                  <Tooltip
+                    formatter={(value: number) => [
+                      formatCurrency(value),
+                      'Revenus',
+                    ]}
                   />
                   <Bar dataKey="revenue" fill="#10b981" />
                 </BarChart>
@@ -481,7 +517,7 @@ export function RevenueAnalytics() {
                     innerRadius={40}
                     outerRadius={80}
                     dataKey="revenue"
-                    label={({ status, percent }) => 
+                    label={({ status, percent }) =>
                       `${status} (${(percent * 100).toFixed(0)}%)`
                     }
                   >
@@ -489,19 +525,22 @@ export function RevenueAnalytics() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => [formatCurrency(value), 'Revenus']}
+                  <Tooltip
+                    formatter={(value: number) => [
+                      formatCurrency(value),
+                      'Revenus',
+                    ]}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            
+
             <div className="mt-4 space-y-2">
               {analytics.revenueByStatus.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded"
+                    <div
+                      className="h-3 w-3 rounded"
                       style={{ backgroundColor: item.color }}
                     />
                     <span className="text-sm capitalize">{item.status}</span>

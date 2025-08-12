@@ -1,9 +1,8 @@
 'use client'
 
-import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
-import { cva, VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
+import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 import { Button } from './button'
@@ -101,7 +100,10 @@ function SidebarProvider({
             ...style,
           } as React.CSSProperties
         }
-        className={cn('flex min-h-svh w-full', className)}
+        className={cn(
+          'group/sidebar-wrapper has-[[data-collapsible=icon]]:group-has-[[data-state=collapsed]]/sidebar-wrapper flex min-h-svh w-full',
+          className
+        )}
         {...props}
       >
         {children}
@@ -122,7 +124,35 @@ function Sidebar({
   variant?: 'sidebar' | 'floating' | 'inset'
   collapsible?: 'offcanvas' | 'icon' | 'none'
 }) {
-  const { isMobile, state, openMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpen } = useSidebar()
+  const closeTimerRef = React.useRef<NodeJS.Timeout>()
+
+  const handleMouseEnter = React.useCallback(() => {
+    if (collapsible === 'icon' && state === 'collapsed') {
+      // Cancel any pending close
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current)
+      }
+      setOpen(true)
+    }
+  }, [collapsible, state, setOpen])
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (collapsible === 'icon') {
+      // Add small delay before closing
+      closeTimerRef.current = setTimeout(() => {
+        setOpen(false)
+      }, 300) // 300ms delay
+    }
+  }, [collapsible, setOpen])
+
+  React.useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current)
+      }
+    }
+  }, [])
 
   if (isMobile) {
     return openMobile ? (
@@ -138,13 +168,31 @@ function Sidebar({
   return (
     <div
       className={cn(
-        'bg-sidebar text-sidebar-foreground hidden h-full shrink-0 border-r transition-all duration-300 md:flex md:flex-col',
-        state === 'collapsed' && collapsible === 'icon' ? 'w-16' : 'w-64',
+        'bg-sidebar text-sidebar-foreground group/sidebar hidden h-full shrink-0 transition-all duration-300 ease-in-out md:flex md:flex-col',
+        // Width based on state and collapsible setting
+        state === 'collapsed' && collapsible === 'icon'
+          ? 'h-screen w-[var(--sidebar-width-icon)]'
+          : 'h-screen w-[var(--sidebar-width)]',
+        // Variant-specific styles
+        variant === 'sidebar' &&
+          cn(
+            'fixed top-4 left-4 z-40 h-[calc(100vh-2rem)] rounded-lg border shadow-lg',
+            'bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur'
+          ),
+        variant === 'floating' &&
+          cn(
+            'fixed top-4 left-4 z-40 h-[calc(100vh-2rem)] rounded-lg border shadow-lg',
+            'bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur'
+          ),
         variant === 'inset' && 'border-0 shadow-md',
+        variant === 'sidebar' && 'border-r',
         className
       )}
       data-state={state}
       data-variant={variant}
+      data-collapsible={collapsible}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       {...props}
     >
       {children}
@@ -195,7 +243,12 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
   return (
     <main
-      className={cn('flex min-h-0 flex-1 flex-col', className)}
+      className={cn(
+        'flex min-h-0 flex-1 flex-col',
+        'group-has-[[data-variant=floating]]/sidebar-wrapper:ml-0',
+        'group-has-[[data-variant=inset]]/sidebar-wrapper:ml-0',
+        className
+      )}
       {...props}
     />
   )
@@ -206,7 +259,7 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn('flex-col gap-2 p-2', className)}
+      className={cn('flex flex-col gap-2 p-4', className)}
       {...props}
     />
   )
@@ -224,7 +277,7 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
 function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('flex min-h-0 flex-1 flex-col gap-2 p-2', className)}
+      className={cn('flex min-h-0 flex-1 flex-col gap-2 p-4', className)}
       {...props}
     />
   )
@@ -249,7 +302,8 @@ function SidebarGroupLabel({
   return (
     <Comp
       className={cn(
-        'text-muted-foreground px-2 py-1 text-xs font-medium',
+        'text-muted-foreground px-2 py-1 text-xs font-medium transition-opacity duration-200',
+        'group-has-[[data-collapsible=icon]]/sidebar-wrapper:group-data-[state=collapsed]/sidebar:hidden',
         className
       )}
       {...props}
@@ -281,20 +335,28 @@ function SidebarMenuButton({
   asChild = false,
   isActive = false,
   tooltip,
+  size = 'default',
   className,
   ...props
 }: React.ComponentProps<'button'> & {
   asChild?: boolean
   isActive?: boolean
   tooltip?: string
+  size?: 'default' | 'sm' | 'lg'
 }) {
   const Comp = asChild ? Slot : 'button'
 
   return (
     <Comp
       className={cn(
-        'hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors',
+        'hover:bg-accent hover:text-accent-foreground relative flex w-full items-center gap-2 rounded-md text-left transition-colors',
+        size === 'default' && 'h-8 px-2 text-sm',
+        size === 'sm' && 'h-7 px-1 text-xs',
+        size === 'lg' && 'h-12 px-2 text-sm',
         isActive && 'bg-accent text-accent-foreground font-medium',
+        // Handle collapsed state text visibility
+        'group-has-[[data-collapsible=icon]]/sidebar-wrapper:group-data-[state=collapsed]/sidebar:[&>span:last-child]:hidden',
+        'group-has-[[data-collapsible=icon]]/sidebar-wrapper:group-data-[state=collapsed]/sidebar:justify-center',
         className
       )}
       title={tooltip}

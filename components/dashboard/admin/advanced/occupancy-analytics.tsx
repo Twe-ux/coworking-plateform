@@ -1,11 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
-import { 
+import {
   BarChart,
   Bar,
   XAxis,
@@ -20,17 +26,17 @@ import {
   Line,
   RadialBarChart,
   RadialBar,
-  Legend
+  Legend,
 } from 'recharts'
-import { 
-  Building, 
-  Users, 
+import {
+  Building,
+  Users,
   Clock,
   Calendar,
   RefreshCw,
   TrendingUp,
   MapPin,
-  Activity
+  Activity,
 } from 'lucide-react'
 import { format, subDays, startOfWeek, endOfWeek } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -84,7 +90,15 @@ interface OccupancyAnalytics {
   }>
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
+const COLORS = [
+  '#3b82f6',
+  '#10b981',
+  '#f59e0b',
+  '#ef4444',
+  '#8b5cf6',
+  '#06b6d4',
+  '#84cc16',
+]
 
 export function OccupancyAnalytics() {
   const { toast } = useToast()
@@ -93,13 +107,13 @@ export function OccupancyAnalytics() {
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d')
   const [selectedSpace, setSelectedSpace] = useState<string>('all')
 
-  const loadAnalytics = useCallback(async () => {
+  const loadAnalytics = async () => {
     try {
       setLoading(true)
-      
+
       const endDate = new Date()
       let startDate = new Date()
-      
+
       switch (period) {
         case '7d':
           startDate = subDays(endDate, 7)
@@ -115,9 +129,9 @@ export function OccupancyAnalytics() {
       const response = await fetch(
         `/api/dashboard/admin/analytics/occupancy?start=${startDate.toISOString()}&end=${endDate.toISOString()}&period=${period}&space=${selectedSpace}`
       )
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
         setAnalytics(data.data)
       } else {
@@ -126,18 +140,19 @@ export function OccupancyAnalytics() {
     } catch (error) {
       console.error('Erreur chargement analytics occupation:', error)
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les analytics d&apos;occupation",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Impossible de charger les analytics d&apos;occupation',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
-  }, [period, selectedSpace, toast])
+  }
 
   useEffect(() => {
     loadAnalytics()
-  }, [loadAnalytics])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, selectedSpace])
 
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`
   const formatHours = (value: number) => `${value.toFixed(1)}h`
@@ -145,14 +160,14 @@ export function OccupancyAnalytics() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   if (!analytics) {
     return (
-      <div className="text-center p-8">
+      <div className="p-8 text-center">
         <p className="text-gray-500">Aucune donnée disponible</p>
       </div>
     )
@@ -161,28 +176,30 @@ export function OccupancyAnalytics() {
   return (
     <div className="space-y-6">
       {/* En-tête avec contrôles */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics d&apos;occupation</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Analytics d&apos;occupation
+          </h2>
           <p className="text-gray-600">
             Utilisation et performance des espaces de travail
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <select
             value={selectedSpace}
             onChange={(e) => setSelectedSpace(e.target.value)}
-            className="p-2 border rounded-md text-sm"
+            className="rounded-md border p-2 text-sm"
           >
             <option value="all">Tous les espaces</option>
-            {analytics.spaces.map(space => (
+            {analytics.spaces.map((space) => (
               <option key={space.spaceId} value={space.spaceId}>
                 {space.spaceName}
               </option>
             ))}
           </select>
-          
+
           <div className="flex space-x-1">
             {(['7d', '30d', '90d'] as const).map((p) => (
               <Button
@@ -196,7 +213,7 @@ export function OccupancyAnalytics() {
               </Button>
             ))}
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -211,16 +228,18 @@ export function OccupancyAnalytics() {
       </div>
 
       {/* KPIs d'occupation */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Taux d&apos;occupation moyen</p>
+                <p className="text-sm text-gray-600">
+                  Taux d&apos;occupation moyen
+                </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {formatPercentage(analytics.averageOccupancyRate)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   Tous espaces confondus
                 </p>
               </div>
@@ -237,7 +256,7 @@ export function OccupancyAnalytics() {
                 <p className="text-2xl font-bold text-green-600">
                   {Math.round(analytics.totalBookedHours)}h
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   Sur {Math.round(analytics.totalCapacityHours)}h disponibles
                 </p>
               </div>
@@ -250,13 +269,13 @@ export function OccupancyAnalytics() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Espace le plus populaire</p>
-                <p className="text-2xl font-bold text-purple-600 truncate">
+                <p className="text-sm text-gray-600">
+                  Espace le plus populaire
+                </p>
+                <p className="truncate text-2xl font-bold text-purple-600">
                   {analytics.mostPopularSpace || 'N/A'}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Le plus réservé
-                </p>
+                <p className="mt-1 text-xs text-gray-500">Le plus réservé</p>
               </div>
               <MapPin className="h-8 w-8 text-gray-400" />
             </div>
@@ -271,7 +290,7 @@ export function OccupancyAnalytics() {
                 <p className="text-2xl font-bold text-amber-600">
                   {analytics.peakTime || 'N/A'}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   Heure la plus demandée
                 </p>
               </div>
@@ -294,38 +313,40 @@ export function OccupancyAnalytics() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analytics.spaces}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis
                   dataKey="spaceName"
                   angle={-45}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis 
+                <YAxis
                   yAxisId="left"
                   orientation="left"
                   tickFormatter={formatPercentage}
                 />
-                <YAxis 
+                <YAxis
                   yAxisId="right"
                   orientation="right"
                   tickFormatter={(value) => value.toString()}
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number, name: string) => [
                     name === 'occupancyRate' ? formatPercentage(value) : value,
-                    name === 'occupancyRate' ? 'Taux d&apos;occupation' : 'Réservations'
+                    name === 'occupancyRate'
+                      ? 'Taux d&apos;occupation'
+                      : 'Réservations',
                   ]}
                 />
-                <Bar 
+                <Bar
                   yAxisId="left"
-                  dataKey="occupancyRate" 
-                  fill="#3b82f6" 
+                  dataKey="occupancyRate"
+                  fill="#3b82f6"
                   name="occupancyRate"
                 />
-                <Bar 
+                <Bar
                   yAxisId="right"
-                  dataKey="totalBookings" 
-                  fill="#10b981" 
+                  dataKey="totalBookings"
+                  fill="#10b981"
                   name="totalBookings"
                 />
               </BarChart>
@@ -335,7 +356,7 @@ export function OccupancyAnalytics() {
       </Card>
 
       {/* Utilisation par heure et utilisation de la capacité */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Usage par créneau horaire */}
         <Card>
           <CardHeader>
@@ -351,13 +372,13 @@ export function OccupancyAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="hour" />
                   <YAxis tickFormatter={(value) => value.toString()} />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: number) => [value, 'Réservations']}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="totalBookings" 
-                    stroke="#3b82f6" 
+                  <Line
+                    type="monotone"
+                    dataKey="totalBookings"
+                    stroke="#3b82f6"
                     strokeWidth={3}
                     dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                   />
@@ -378,36 +399,43 @@ export function OccupancyAnalytics() {
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart 
+                <RadialBarChart
                   data={analytics.capacityUtilization}
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius="20%" 
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="20%"
                   outerRadius="90%"
                 >
                   <RadialBar
                     minAngle={15}
-                    label={{ position: 'insideStart', fill: '#fff', fontSize: 12 }}
+                    label={{
+                      position: 'insideStart',
+                      fill: '#fff',
+                      fontSize: 12,
+                    }}
                     background
                     clockWise
                     dataKey="utilizationRate"
                   />
-                  <Tooltip 
-                    formatter={(value: number) => [formatPercentage(value), 'Utilisation']}
+                  <Tooltip
+                    formatter={(value: number) => [
+                      formatPercentage(value),
+                      'Utilisation',
+                    ]}
                   />
                 </RadialBarChart>
               </ResponsiveContainer>
             </div>
-            
+
             <div className="mt-4 grid grid-cols-1 gap-2">
               {analytics.capacityUtilization.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded"
+                    <div
+                      className="h-3 w-3 rounded"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-sm truncate">{item.spaceName}</span>
+                    <span className="truncate text-sm">{item.spaceName}</span>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium">
@@ -439,10 +467,12 @@ export function OccupancyAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="week" />
                 <YAxis tickFormatter={formatPercentage} />
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number, name: string) => [
                     name === 'occupancyRate' ? formatPercentage(value) : value,
-                    name === 'occupancyRate' ? 'Taux d&apos;occupation' : 'Réservations'
+                    name === 'occupancyRate'
+                      ? 'Taux d&apos;occupation'
+                      : 'Réservations',
                   ]}
                 />
                 <Bar dataKey="occupancyRate" fill="#10b981" />
@@ -461,29 +491,37 @@ export function OccupancyAnalytics() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {analytics.spaces.map((space) => (
-              <Card key={space.spaceId} className="border-l-4" style={{ borderLeftColor: space.color }}>
+              <Card
+                key={space.spaceId}
+                className="border-l-4"
+                style={{ borderLeftColor: space.color }}
+              >
                 <CardContent className="p-4">
                   <div className="space-y-3">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-medium text-sm truncate pr-2">{space.spaceName}</h4>
-                      <Badge 
+                    <div className="flex items-start justify-between">
+                      <h4 className="truncate pr-2 text-sm font-medium">
+                        {space.spaceName}
+                      </h4>
+                      <Badge
                         className="text-xs"
-                        style={{ 
+                        style={{
                           backgroundColor: `${space.color}20`,
                           color: space.color,
-                          borderColor: space.color
+                          borderColor: space.color,
                         }}
                       >
                         {formatPercentage(space.occupancyRate)}
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
                         <span className="text-gray-500">Capacité:</span>
-                        <div className="font-medium">{space.capacity} pers.</div>
+                        <div className="font-medium">
+                          {space.capacity} pers.
+                        </div>
                       </div>
                       <div>
                         <span className="text-gray-500">Réservations:</span>
@@ -491,17 +529,23 @@ export function OccupancyAnalytics() {
                       </div>
                       <div>
                         <span className="text-gray-500">Heures totales:</span>
-                        <div className="font-medium">{formatHours(space.totalHours)}</div>
+                        <div className="font-medium">
+                          {formatHours(space.totalHours)}
+                        </div>
                       </div>
                       <div>
                         <span className="text-gray-500">Durée moyenne:</span>
-                        <div className="font-medium">{formatHours(space.avgDuration)}</div>
+                        <div className="font-medium">
+                          {formatHours(space.avgDuration)}
+                        </div>
                       </div>
                     </div>
-                    
+
                     {space.peakHours.length > 0 && (
                       <div>
-                        <span className="text-xs text-gray-500">Créneaux populaires:</span>
+                        <span className="text-xs text-gray-500">
+                          Créneaux populaires:
+                        </span>
                         <div className="text-xs font-medium text-blue-600">
                           {space.peakHours.slice(0, 3).join(', ')}
                         </div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { SectionCards } from '@/components/dashboard/admin/advanced/section-cards'
-import { SiteHeader } from '@/components/dashboard/admin/advanced/site-header'
 import { useEffect, useState } from 'react'
 import { DataTable } from './data-table'
 
@@ -104,15 +103,8 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="">
-      <SiteHeader />
-      <div className="space-y-6 p-4">
-        {/* <h1 className="text-3xl font-bold text-gray-900">
-          Dashboard Administrateur
-        </h1>
-        <p className="text-gray-600">
-        Aperçu complet de votre plateforme de coworking
-        </p> */}
+    <div className="py-6">
+      <div className="space-y-6">
         <SectionCards data={dashboardData} />
         {/* <ChartAreaInteractive data={dashboardData} /> */}
         <DataTable data={dashboardData.recentBookings} columns={[]} />
