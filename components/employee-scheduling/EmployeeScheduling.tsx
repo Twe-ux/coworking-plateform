@@ -245,6 +245,21 @@ export default function EmployeeScheduling({
     }, 0)
   }
 
+  // Convertir les heures décimales en format HH:MM
+  const formatHoursToHHMM = (decimalHours: number) => {
+    if (decimalHours <= 0) return ''
+
+    const hours = Math.floor(decimalHours)
+    const minutes = Math.round((decimalHours - hours) * 60)
+
+    // Gérer le cas où les minutes arrondies atteignent 60
+    if (minutes === 60) {
+      return `${String(hours + 1).padStart(2, '0')}:00`
+    }
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+  }
+
   const formatMonth = (date: Date) => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   }
@@ -340,9 +355,7 @@ export default function EmployeeScheduling({
                                   {employee.firstName}
                                 </span>
                                 <span className="ml-1 text-xs opacity-90">
-                                  {weeklyHours > 0
-                                    ? `${weeklyHours.toFixed(1)}h`
-                                    : ''}
+                                  {formatHoursToHHMM(weeklyHours)}
                                 </span>
                               </div>
                             )
@@ -578,9 +591,7 @@ export default function EmployeeScheduling({
                                   {employee.firstName}
                                 </span>
                                 <span className="ml-1 text-xs opacity-90">
-                                  {weeklyHours > 0
-                                    ? `${weeklyHours.toFixed(1)}h`
-                                    : ''}
+                                  {formatHoursToHHMM(weeklyHours)}
                                 </span>
                               </div>
                             )
