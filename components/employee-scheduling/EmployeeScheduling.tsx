@@ -218,6 +218,33 @@ export default function EmployeeScheduling({
     return days
   }
 
+  // Calculer les heures totales d'un employé pour une semaine donnée
+  const calculateWeeklyHours = (
+    employeeId: string,
+    weekStart: Date,
+    weekEnd: Date
+  ) => {
+    const employeeShifts = schedules.filter(
+      (shift) =>
+        shift.employeeId === employeeId &&
+        shift.date >= weekStart &&
+        shift.date <= weekEnd
+    )
+
+    return employeeShifts.reduce((totalHours, shift) => {
+      const start = new Date(`2000-01-01 ${shift.startTime}`)
+      let end = new Date(`2000-01-01 ${shift.endTime}`)
+
+      // Gérer les shifts de nuit qui se terminent le jour suivant
+      if (shift.type === 'night' && end <= start) {
+        end.setDate(end.getDate() + 1)
+      }
+
+      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+      return totalHours + Math.max(0, hours)
+    }, 0)
+  }
+
   const formatMonth = (date: Date) => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   }
@@ -297,16 +324,29 @@ export default function EmployeeScheduling({
                       <div className="flex min-h-[120px] flex-col rounded-b-lg border-r border-b border-l border-gray-400 bg-gray-50 p-2">
                         <div className="h-6"></div>
                         <div className="flex-1 space-y-1 overflow-hidden">
-                          {employees.map((employee, employeeIndex) => (
-                            <div
-                              key={employee.id}
-                              className={`rounded text-xs font-medium text-white ${employee.color} flex h-5 items-center justify-center`}
-                            >
-                              <span className="truncate">
-                                {employee.firstName}
-                              </span>
-                            </div>
-                          ))}
+                          {employees.map((employee, employeeIndex) => {
+                            const weeklyHours = calculateWeeklyHours(
+                              employee.id,
+                              week.weekStart,
+                              week.weekEnd
+                            )
+
+                            return (
+                              <div
+                                key={employee.id}
+                                className={`rounded text-xs font-medium text-white ${employee.color} flex h-5 items-center justify-between px-1`}
+                              >
+                                <span className="flex-1 truncate">
+                                  {employee.firstName}
+                                </span>
+                                <span className="ml-1 text-xs opacity-90">
+                                  {weeklyHours > 0
+                                    ? `${weeklyHours.toFixed(1)}h`
+                                    : ''}
+                                </span>
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
@@ -511,6 +551,10 @@ export default function EmployeeScheduling({
                       weekStart + 7
                     )
 
+                    // Calculer les dates de début et fin de la semaine pour le calcul des heures
+                    const weekStartDate = weekDays[0]
+                    const weekEndDate = weekDays[6]
+
                     return (
                       <div
                         key={weekIndex}
@@ -518,16 +562,29 @@ export default function EmployeeScheduling({
                       >
                         <div className="h-6"></div>
                         <div className="flex-1 space-y-1 overflow-hidden">
-                          {employees.map((employee, employeeIndex) => (
-                            <div
-                              key={employee.id}
-                              className={`rounded text-xs font-medium text-white ${employee.color} flex h-5 items-center justify-center`}
-                            >
-                              <span className="truncate">
-                                {employee.firstName}
-                              </span>
-                            </div>
-                          ))}
+                          {employees.map((employee, employeeIndex) => {
+                            const weeklyHours = calculateWeeklyHours(
+                              employee.id,
+                              weekStartDate,
+                              weekEndDate
+                            )
+
+                            return (
+                              <div
+                                key={employee.id}
+                                className={`rounded text-xs font-medium text-white ${employee.color} flex h-5 items-center justify-between px-1`}
+                              >
+                                <span className="flex-1 truncate">
+                                  {employee.firstName}
+                                </span>
+                                <span className="ml-1 text-xs opacity-90">
+                                  {weeklyHours > 0
+                                    ? `${weeklyHours.toFixed(1)}h`
+                                    : ''}
+                                </span>
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     )
