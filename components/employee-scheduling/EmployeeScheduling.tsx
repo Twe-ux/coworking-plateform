@@ -7,6 +7,7 @@ import { type Employee } from '@/hooks/useEmployees'
 import { type Shift } from '@/hooks/useShifts'
 import { Calendar, ChevronLeft, ChevronRight, Plus, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import EmployeeMonthlyCard from './EmployeeMonthlyCard'
 
 // Types
 
@@ -773,6 +774,14 @@ export default function EmployeeScheduling({
           </CardContent>
         )}
       </Card>
+
+      {/* Employee Monthly Statistics Cards - Only for admin/manager */}
+      <EmployeeMonthlyCard
+        employees={employees}
+        shifts={schedules}
+        currentDate={currentDate}
+        className="mt-6"
+      />
 
       {/* Legend */}
       {/* <LegendSchedule SHIFT_TYPES={SHIFT_TYPES} /> */}
