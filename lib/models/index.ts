@@ -4,6 +4,8 @@
 export { User, type IUser } from './user'
 export { Booking, type IBooking } from './booking'
 export { Space, type ISpace, defaultSpaces, insertDefaultSpaces } from './space'
+export { default as Employee, type IEmployee } from './employee'
+export { default as TimeEntry, type ITimeEntry } from './timeEntry'
 
 // Réexport des utilitaires MongoDB
 export {

@@ -6,6 +6,7 @@ export interface IEmployee extends Document {
   lastName: string
   email?: string
   phone?: string
+  pin: string
   role:
     | 'Manager'
     | 'Reception'
@@ -18,6 +19,8 @@ export interface IEmployee extends Document {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+  verifyPin(pin: string): boolean
+  updatePin(newPin: string): Promise<void>
 }
 
 const employeeSchema = new Schema<IEmployee>(
@@ -54,6 +57,17 @@ const employeeSchema = new Schema<IEmployee>(
         'Format de téléphone français invalide',
       ],
       sparse: true,
+    },
+    pin: {
+      type: String,
+      required: [true, 'Le PIN est obligatoire'],
+      default: '1111',
+      validate: {
+        validator: function (pin: string) {
+          return /^\d{4}$/.test(pin)
+        },
+        message: 'Le PIN doit être composé de 4 chiffres',
+      },
     },
     role: {
       type: String,
@@ -158,6 +172,19 @@ employeeSchema.statics.findActive = function () {
 
 employeeSchema.statics.findByRole = function (role: string) {
   return this.find({ role, isActive: true }).sort({ firstName: 1, lastName: 1 })
+}
+
+// Méthodes d'instance pour PIN
+employeeSchema.methods.verifyPin = function (pin: string): boolean {
+  return this.pin === pin
+}
+
+employeeSchema.methods.updatePin = async function (newPin: string): Promise<void> {
+  if (!/^\d{4}$/.test(newPin)) {
+    throw new Error('Le PIN doit être composé de 4 chiffres')
+  }
+  this.pin = newPin
+  await this.save()
 }
 
 // Éviter la re-compilation du modèle

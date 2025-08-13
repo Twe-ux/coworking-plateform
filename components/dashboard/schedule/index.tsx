@@ -1,28 +1,27 @@
 'use client'
 
-import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useState } from 'react'
 
-import { useEmployees, type Employee } from '@/hooks/useEmployees'
-import { useShifts, type Shift } from '@/hooks/useShifts'
 import EmployeeScheduling from '@/components/employee-scheduling/EmployeeScheduling'
 import ShiftAssignment from '@/components/employee-scheduling/ShiftAssignment'
-import HeaderSchedule from './HeaderSchedule'
-import MainContentTabsSchedule from './MainContentTabsSchedule'
-import QuickActionsSchedule from './QuickActionsShedule'
-import StatisticsCardsSchedule from './StatisticsCardsSchedule'
+import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar } from '@/components/ui/avatar'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, Edit2, Trash2, Plus, Calendar } from 'lucide-react'
+import { useEmployees, type Employee } from '@/hooks/useEmployees'
+import { useShifts, type Shift } from '@/hooks/useShifts'
+import { Calendar, Clock, Edit2, Plus, Trash2 } from 'lucide-react'
+import HeaderSchedule from './HeaderSchedule'
+import MainContentTabsSchedule from './MainContentTabsSchedule'
+import StatisticsCardsSchedule from './StatisticsCardsSchedule'
 
 // Note: Employees are now loaded dynamically from the API
 

@@ -5,9 +5,18 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type Employee } from '@/hooks/useEmployees'
 import { type Shift } from '@/hooks/useShifts'
-import { Calendar, ChevronLeft, ChevronRight, Plus, Users } from 'lucide-react'
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Users,
+  Clock,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import EmployeeMonthlyCard from './EmployeeMonthlyCard'
+import TimeTrackingCard from './TimeTrackingCard'
+import TimeEntriesList from './TimeEntriesList'
 
 // Types
 
@@ -64,7 +73,9 @@ export default function EmployeeScheduling({
 
   // Utiliser directement les shifts passés en props
   const schedules = propShifts
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+  const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'pointage'>(
+    'calendar'
+  )
 
   // Calendar calculations
   const firstDayOfMonth = useMemo(
@@ -481,7 +492,7 @@ export default function EmployeeScheduling({
           </p>
         </div> */}
 
-        {/* <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Button
             variant={viewMode === 'calendar' ? 'default' : 'outline'}
             size="sm"
@@ -500,7 +511,16 @@ export default function EmployeeScheduling({
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">List</span>
           </Button>
-        </div> */}
+          <Button
+            variant={viewMode === 'pointage' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('pointage')}
+            className="flex items-center gap-2"
+          >
+            <Clock className="h-4 w-4" />
+            <span className="hidden sm:inline">Pointage</span>
+          </Button>
+        </div>
       </div>
 
       {/* Navigation Controls */}
@@ -770,6 +790,37 @@ export default function EmployeeScheduling({
                   </Card>
                 )
               })}
+            </div>
+          </CardContent>
+        )}
+
+        {viewMode === 'pointage' && (
+          <CardContent className="pt-0">
+            {/* Time Tracking View */}
+            <div className="space-y-6">
+              {/* Time Tracking Cards */}
+              <div>
+                <h3 className="mb-4 text-lg font-medium">
+                  Pointage des Employés
+                </h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {employees.map((employee) => (
+                    <TimeTrackingCard
+                      key={employee.id}
+                      employee={employee}
+                      onStatusChange={() => {
+                        // Refresh data when status changes
+                        // This could trigger a re-fetch of time entries
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Time Entries List */}
+              <div>
+                <TimeEntriesList employees={employees} />
+              </div>
             </div>
           </CardContent>
         )}
