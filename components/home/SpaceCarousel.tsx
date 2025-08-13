@@ -147,13 +147,14 @@ export default function SpaceCarousel() {
                 {/* Image Background */}
                 <div className={`relative h-64 bg-gradient-to-br ${space.color || 'from-coffee-primary to-coffee-accent'}`}>
                   {/* Image réelle si disponible, sinon gradient */}
-                  {space.image.includes('http') && (
+                  {space.image && space.image !== '/images/spaces/default.jpg' && (
                     <img 
                       src={space.image} 
                       alt={space.name}
                       className="absolute inset-0 w-full h-full object-cover"
                       onError={(e) => {
                         // En cas d'erreur de chargement, garder le gradient
+                        console.log('Erreur de chargement image:', space.image)
                         e.currentTarget.style.display = 'none'
                       }}
                     />

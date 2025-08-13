@@ -39,6 +39,7 @@ export function NavUser({
     name: string
     email: string
     avatar?: string
+    image?: string
   }
 }) {
   const { isMobile, state } = useSidebar()
@@ -69,7 +70,7 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={user.avatar || '/avatars/admin.png'}
+                  src={user.avatar || user.image || '/avatars/admin.png'}
                   alt={user.name}
                 />
                 <AvatarFallback className="bg-coffee-primary rounded-lg text-white">
@@ -106,7 +107,7 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={user.avatar || '/avatars/admin.png'}
+                    src={user.avatar || user.image || '/avatars/admin.png'}
                     alt={user.name}
                   />
                   <AvatarFallback className="bg-coffee-primary rounded-lg text-white">
@@ -124,7 +125,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild className="hover:bg-coffee-primary/10">
-                <Link href="/dashboard/profile">
+                <Link href="/dashboard/admin/profile">
                   <User className="mr-2 h-4 w-4" />
                   Mon Profil
                 </Link>

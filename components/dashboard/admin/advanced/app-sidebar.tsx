@@ -20,6 +20,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
       name: string
       email: string
       avatar?: string
+      image?: string
     }
     teams: {
       name: string
@@ -50,7 +51,12 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   return (
-    <Sidebar variant={variant} collapsible="icon" {...props}>
+    <Sidebar
+      className="border-coffee-primary"
+      variant={variant}
+      collapsible="icon"
+      {...props}
+    >
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>

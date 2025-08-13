@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   Card,
   CardContent,
@@ -218,28 +218,31 @@ export function BookingCalendar() {
     )
   }
 
-  const getUniqueSpaces = () => {
+  const uniqueSpaces = useMemo(() => {
     const spaces = [...new Set(bookings.map((b) => b.spaceId.name))]
     return spaces.sort()
-  }
+  }, [bookings])
 
-  const getTotalRevenue = () => {
+  const totalRevenue = useMemo(() => {
     return filteredBookings
       .filter((b) => b.status !== 'cancelled')
       .reduce((sum, b) => sum + b.totalPrice, 0)
-  }
+  }, [filteredBookings])
 
-  const calendarDays = generateCalendarDays()
+  const calendarDays = useMemo(
+    () => generateCalendarDays(),
+    [generateCalendarDays]
+  )
   const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec statistiques */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+    <div className="space-y-4 md:space-y-6">
+      {/* En-tête avec statistiques - Responsive mobile-first */}
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-lg font-bold text-blue-600 md:text-2xl">
                 {filteredBookings.length}
               </div>
               <div className="text-xs text-gray-600">Réservations</div>
@@ -248,9 +251,9 @@ export function BookingCalendar() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-lg font-bold text-green-600 md:text-2xl">
                 {
                   filteredBookings.filter((b) => b.status === 'confirmed')
                     .length
@@ -262,9 +265,9 @@ export function BookingCalendar() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-lg font-bold text-yellow-600 md:text-2xl">
                 {filteredBookings.filter((b) => b.status === 'pending').length}
               </div>
               <div className="text-xs text-gray-600">En attente</div>
@@ -273,10 +276,10 @@ export function BookingCalendar() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {getTotalRevenue().toFixed(0)}€
+              <div className="text-lg font-bold text-purple-600 md:text-2xl">
+                {totalRevenue.toFixed(0)}€
               </div>
               <div className="text-xs text-gray-600">Revenus</div>
             </div>
@@ -314,8 +317,10 @@ export function BookingCalendar() {
         </CardHeader>
 
         <CardContent>
-          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div>
+          {/* Filtres responsive - Mobile-first */}
+          <div className="mb-4 space-y-3 md:mb-6 md:grid md:grid-cols-4 md:gap-4 md:space-y-0">
+            {/* Recherche - Pleine largeur sur mobile */}
+            <div className="md:col-span-2">
               <Label htmlFor="search" className="text-xs">
                 Recherche
               </Label>
@@ -326,43 +331,49 @@ export function BookingCalendar() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Nom, email, espace..."
-                  className="pl-8 text-sm"
+                  className="touch-manipulation pl-8 text-sm"
                 />
               </div>
             </div>
 
-            <div>
-              <Label className="text-xs">Statut</Label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-md border p-2 text-sm"
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="pending">En attente</option>
-                <option value="confirmed">Confirmées</option>
-                <option value="cancelled">Annulées</option>
-                <option value="completed">Terminées</option>
-              </select>
+            {/* Filtres en ligne sur mobile */}
+            <div className="grid grid-cols-2 gap-2 md:col-span-2 md:grid-cols-2 md:gap-4">
+              <div>
+                <Label className="text-xs">Statut</Label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="min-h-10 w-full touch-manipulation rounded-md border p-2 text-sm"
+                >
+                  <option value="all">Tous</option>
+                  <option value="pending">En attente</option>
+                  <option value="confirmed">Confirmées</option>
+                  <option value="cancelled">Annulées</option>
+                  <option value="completed">Terminées</option>
+                </select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Espace</Label>
+                <select
+                  value={spaceFilter}
+                  onChange={(e) => setSpaceFilter(e.target.value)}
+                  className="min-h-10 w-full touch-manipulation rounded-md border p-2 text-sm"
+                >
+                  <option value="all">Tous</option>
+                  {uniqueSpaces.map((space) => (
+                    <option key={space} value={space}>
+                      {space.length > 15
+                        ? space.substring(0, 15) + '...'
+                        : space}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div>
-              <Label className="text-xs">Espace</Label>
-              <select
-                value={spaceFilter}
-                onChange={(e) => setSpaceFilter(e.target.value)}
-                className="w-full rounded-md border p-2 text-sm"
-              >
-                <option value="all">Tous les espaces</option>
-                {getUniqueSpaces().map((space) => (
-                  <option key={space} value={space}>
-                    {space}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
+            {/* Vue - Masquée sur mobile car non fonctionnelle */}
+            <div className="hidden md:block">
               <Label className="text-xs">Vue</Label>
               <div className="flex space-x-1">
                 <Button
@@ -386,34 +397,34 @@ export function BookingCalendar() {
             </div>
           </div>
 
-          {/* Navigation du calendrier */}
+          {/* Navigation du calendrier - Optimisée mobile */}
           <div className="mb-4 flex items-center justify-between">
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigateMonth('prev')}
-              className="flex items-center space-x-1"
+              className="flex min-h-10 touch-manipulation items-center space-x-1"
             >
               <ChevronLeft className="h-4 w-4" />
-              <span>Précédent</span>
+              <span className="hidden sm:block">Précédent</span>
             </Button>
 
-            <h2 className="text-lg font-semibold">
-              {format(currentDate, 'MMMM yyyy', { locale: fr })}
+            <h2 className="truncate px-2 text-base font-semibold md:text-lg">
+              {format(currentDate, 'MMM yyyy', { locale: fr })}
             </h2>
 
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigateMonth('next')}
-              className="flex items-center space-x-1"
+              className="flex min-h-10 touch-manipulation items-center space-x-1"
             >
-              <span>Suivant</span>
+              <span className="hidden sm:block">Suivant</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Grille du calendrier */}
+          {/* Grille du calendrier - Responsive mobile */}
           {loading ? (
             <div className="flex h-64 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
@@ -425,9 +436,10 @@ export function BookingCalendar() {
                 {weekDays.map((day) => (
                   <div
                     key={day}
-                    className="border-r p-2 text-center text-xs font-medium text-gray-600 last:border-r-0"
+                    className="border-r p-1 text-center text-xs font-medium text-gray-600 last:border-r-0 md:p-2"
                   >
-                    {day}
+                    <span className="hidden sm:block">{day}</span>
+                    <span className="block sm:hidden">{day.charAt(0)}</span>
                   </div>
                 ))}
               </div>
@@ -437,7 +449,7 @@ export function BookingCalendar() {
                 {calendarDays.map((day, index) => (
                   <div
                     key={index}
-                    className={`last-in-row:border-r-0 min-h-24 border-r border-b p-1 ${
+                    className={`last-in-row:border-r-0 min-h-16 border-r border-b p-1 md:min-h-24 ${
                       day.isCurrentMonth ? 'bg-white' : 'bg-gray-50'
                     }`}
                   >
@@ -454,26 +466,32 @@ export function BookingCalendar() {
                     </div>
 
                     <div className="space-y-1">
-                      {day.bookings.slice(0, 3).map((booking) => (
+                      {/* Mobile: Afficher moins de réservations */}
+                      {day.bookings.slice(0, 2).map((booking) => (
                         <div
                           key={booking._id}
                           onClick={() => setSelectedBooking(booking)}
-                          className={`cursor-pointer rounded p-1 text-xs transition-opacity hover:opacity-80 ${
+                          className={`cursor-pointer touch-manipulation rounded p-1 text-xs transition-all active:scale-95 ${
                             statusColors[booking.status]
                           }`}
                         >
                           <div className="truncate font-medium">
-                            {booking.startTime} - {booking.spaceId.name}
+                            <span className="hidden md:inline">
+                              {booking.startTime} -{' '}
+                            </span>
+                            {booking.spaceId.name.length > 8
+                              ? booking.spaceId.name.substring(0, 8) + '...'
+                              : booking.spaceId.name}
                           </div>
-                          <div className="truncate opacity-75">
+                          <div className="hidden truncate opacity-75 md:block">
                             {booking.userId.firstName} {booking.userId.lastName}
                           </div>
                         </div>
                       ))}
 
-                      {day.bookings.length > 3 && (
+                      {day.bookings.length > 2 && (
                         <div className="text-xs font-medium text-blue-600">
-                          +{day.bookings.length - 3} autres
+                          +{day.bookings.length - 2}
                         </div>
                       )}
                     </div>
@@ -485,14 +503,16 @@ export function BookingCalendar() {
         </CardContent>
       </Card>
 
-      {/* Détails de la réservation sélectionnée */}
+      {/* Détails de la réservation sélectionnée - Mobile optimisé */}
       {selectedBooking && (
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle>Détails de la réservation</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-base md:text-lg">
+                  Détails de la réservation
+                </CardTitle>
+                <CardDescription className="text-sm">
                   Informations complètes sur la réservation sélectionnée
                 </CardDescription>
               </div>
@@ -500,14 +520,16 @@ export function BookingCalendar() {
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedBooking(null)}
+                className="min-h-10 touch-manipulation"
               >
-                Fermer
+                <span className="hidden sm:block">Fermer</span>
+                <span className="block sm:hidden">×</span>
               </Button>
             </div>
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-600">Client</h4>
@@ -516,7 +538,7 @@ export function BookingCalendar() {
                       {selectedBooking.userId.firstName}{' '}
                       {selectedBooking.userId.lastName}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="truncate text-sm text-gray-600">
                       {selectedBooking.userId.email}
                     </div>
                   </div>
@@ -525,8 +547,10 @@ export function BookingCalendar() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-600">Espace</h4>
                   <div className="mt-1 flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span>{selectedBooking.spaceId.name}</span>
+                    <MapPin className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                    <span className="truncate">
+                      {selectedBooking.spaceId.name}
+                    </span>
                   </div>
                 </div>
 
@@ -547,18 +571,16 @@ export function BookingCalendar() {
                   </h4>
                   <div className="mt-1 space-y-1">
                     <div className="flex items-center space-x-2">
-                      <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {format(
-                          parseISO(selectedBooking.date),
-                          'dd MMMM yyyy',
-                          { locale: fr }
-                        )}
+                      <CalendarIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                      <span className="text-sm">
+                        {format(parseISO(selectedBooking.date), 'dd MMM yyyy', {
+                          locale: fr,
+                        })}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span>
+                      <Clock className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                      <span className="text-sm">
                         {selectedBooking.startTime} - {selectedBooking.endTime}
                       </span>
                     </div>
@@ -569,15 +591,17 @@ export function BookingCalendar() {
                   <h4 className="text-sm font-medium text-gray-600">Détails</h4>
                   <div className="mt-1 space-y-1">
                     <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span>
+                      <Users className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                      <span className="text-sm">
                         {selectedBooking.guests} personne
                         {selectedBooking.guests > 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Euro className="h-4 w-4 text-gray-400" />
-                      <span>{selectedBooking.totalPrice.toFixed(2)}€</span>
+                      <Euro className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                      <span className="text-sm font-medium">
+                        {selectedBooking.totalPrice.toFixed(2)}€
+                      </span>
                     </div>
                   </div>
                 </div>

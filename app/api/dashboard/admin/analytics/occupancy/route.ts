@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     // Récupérer tous les espaces
     const allSpaces = await Space.find({}).lean()
-    const spaceMap = new Map(allSpaces.map(space => [space._id.toString(), space]))
+    const spaceMap = new Map(allSpaces.map((space: any) => [space._id.toString(), space]))
 
     // Filtre d'espace
     const spaceFilterQuery = spaceFilter !== 'all' ? { spaceId: spaceFilter } : {}

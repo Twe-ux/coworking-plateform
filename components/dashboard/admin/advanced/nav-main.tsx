@@ -88,7 +88,7 @@ export function NavMain({
                             )}
                           >
                             {item.icon && (
-                              <item.icon className="shrink-0 font-extralight" />
+                              <item.icon className="shrink-0 stroke-1" />
                             )}
                             <span className="truncate font-light">
                               {item.title}

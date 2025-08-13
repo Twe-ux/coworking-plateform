@@ -70,6 +70,10 @@ export default function SpaceFormModal({ isOpen, onClose, onSave, editingSpace }
   const [isLoading, setIsLoading] = useState(false)
   const [newFeature, setNewFeature] = useState('')
   const [newAmenity, setNewAmenity] = useState('')
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
 
   useEffect(() => {
     if (editingSpace) {
@@ -172,6 +176,71 @@ export default function SpaceFormModal({ isOpen, onClose, onSave, editingSpace }
         }
       }
     })
+  }
+
+  // Gestion des images
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      setSelectedImages(files)
+      
+      // Créer les URLs de prévisualisation
+      const urls = files.map(file => URL.createObjectURL(file))
+      setPreviewUrls(urls)
+    }
+  }
+
+  const handleImageUpload = async () => {
+    if (selectedImages.length === 0) return
+
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      selectedImages.forEach(file => {
+        formData.append('images', file)
+      })
+
+      const response = await fetch('/api/upload/images', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+      
+      if (result.success && result.images.length > 0) {
+        const imageUrls = result.images.map((img: any) => img.url)
+        setUploadedImages(prev => [...prev, ...imageUrls])
+        
+        // Mettre à jour le premier image comme image principale
+        if (imageUrls[0]) {
+          setFormData(prev => ({
+            ...prev,
+            image: imageUrls[0]
+          }))
+        }
+        
+        // Nettoyer les prévisualisations
+        setSelectedImages([])
+        setPreviewUrls([])
+      } else {
+        alert(result.error || 'Erreur lors de l\'upload')
+      }
+    } catch (error) {
+      console.error('Erreur upload:', error)
+      alert('Erreur lors de l\'upload des images')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const removeUploadedImage = (imageUrl: string) => {
+    setUploadedImages(prev => prev.filter(url => url !== imageUrl))
+    if (formData.image === imageUrl) {
+      setFormData(prev => ({
+        ...prev,
+        image: uploadedImages.find(url => url !== imageUrl) || '/images/spaces/default.jpg'
+      }))
+    }
   }
 
   if (!isOpen) return null
@@ -390,18 +459,147 @@ export default function SpaceFormModal({ isOpen, onClose, onSave, editingSpace }
             </div>
           </div>
 
-          {/* Image */}
+          {/* Images - Upload Cloudinary */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Image
-            </label>
-            <input
-              type="text"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coffee-primary focus:border-transparent"
-              placeholder="/images/spaces/mon-espace.jpg"
-            />
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Images de l'espace</h3>
+            
+            {/* Zone d'upload */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-coffee-primary transition-colors">
+              <input
+                type="file"
+                id="image-upload"
+                multiple
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <Upload className="h-8 w-8 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">
+                  Cliquez pour sélectionner des images
+                </span>
+                <span className="text-xs text-gray-500">
+                  PNG, JPG jusqu'à 10MB (max 5 images)
+                </span>
+              </label>
+            </div>
+
+            {/* Prévisualisations avant upload */}
+            {previewUrls.length > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    Images sélectionnées ({selectedImages.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="px-3 py-1 bg-coffee-primary text-white text-sm rounded-lg hover:bg-coffee-primary/90 transition-colors disabled:opacity-50"
+                  >
+                    {uploadingImage ? 'Upload en cours...' : 'Uploader'}
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {previewUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newFiles = selectedImages.filter((_, i) => i !== index)
+                          const newUrls = previewUrls.filter((_, i) => i !== index)
+                          setSelectedImages(newFiles)
+                          setPreviewUrls(newUrls)
+                        }}
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Images uploadées */}
+            {uploadedImages.length > 0 && (
+              <div className="mt-4">
+                <span className="text-sm font-medium text-gray-700 block mb-2">
+                  Images uploadées ({uploadedImages.length})
+                </span>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {uploadedImages.map((url, index) => (
+                    <div key={url} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Uploaded ${index + 1}`}
+                        className={`w-full h-24 object-cover rounded-lg border-2 ${
+                          formData.image === url ? 'border-coffee-primary' : 'border-transparent'
+                        }`}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image: url }))}
+                          className="p-1 bg-blue-500 text-white rounded text-xs"
+                          title="Définir comme image principale"
+                        >
+                          ⭐
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeUploadedImage(url)}
+                          className="p-1 bg-red-500 text-white rounded text-xs"
+                          title="Supprimer"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                      {formData.image === url && (
+                        <span className="absolute top-1 left-1 bg-coffee-primary text-white text-xs px-1 rounded">
+                          Principal
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Image actuelle (fallback URL directe) */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                URL Image principale (optionnel)
+              </label>
+              <input
+                type="text"
+                value={formData.image}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coffee-primary focus:border-transparent"
+                placeholder="Ou saisissez une URL d'image directement"
+              />
+              {formData.image && formData.image !== '/images/spaces/default.jpg' && (
+                <div className="mt-2">
+                  <img
+                    src={formData.image}
+                    alt="Aperçu de l'image"
+                    className="h-24 w-32 object-cover rounded-lg border"
+                    onError={(e) => {
+                      console.log('Erreur de chargement image:', formData.image)
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Features */}

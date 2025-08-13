@@ -15,7 +15,6 @@ import { Separator } from '@/components/dashboard/admin/advanced/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from '@/components/dashboard/admin/advanced/ui/sidebar'
 import { TeamProvider, useTeam } from '@/contexts/team-context'
 import { UserRole } from '@/types/auth'
@@ -23,12 +22,12 @@ import {
   BarChart3,
   Building,
   Calendar,
-  Home,
-  Users,
-  Settings,
   FileText,
-  UserCheck,
+  Home,
+  Settings,
   Shield,
+  UserCheck,
+  Users,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
@@ -62,6 +61,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             analytics: 'Analytics',
             settings: 'Paramètres',
             calendar: 'Calendrier',
+            schedule: 'Plannification',
           }
           breadcrumbs.push({
             label: pageLabels[segments[2]] || segments[2],
@@ -76,6 +76,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             team: 'Équipe',
             bookings: 'Réservations',
             reports: 'Rapports',
+            schedule: 'Plannification',
           }
           breadcrumbs.push({
             label: pageLabels[segments[2]] || segments[2],
@@ -89,6 +90,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
           const pageLabels: { [key: string]: string } = {
             tasks: 'Mes Tâches',
             bookings: 'Réservations',
+            schedule: 'Plannification',
           }
           breadcrumbs.push({
             label: pageLabels[segments[2]] || segments[2],
@@ -118,7 +120,11 @@ function DashboardContent({ children }: DashboardLayoutProps) {
       user: {
         name: session?.user?.name || 'Utilisateur',
         email: session?.user?.email || 'user@example.com',
-        avatar: session?.user?.image || '/avatars/admin.png',
+        avatar:
+          (session?.user as any)?.avatar ||
+          session?.user?.image ||
+          '/avatars/admin.png',
+        image: session?.user?.image || '/avatars/admin.png',
       },
       teams:
         userRole === 'admin' ? AVAILABLE_ROLES : [selectedTeam].filter(Boolean),
@@ -181,6 +187,12 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               isActive: pathname.startsWith('/dashboard/admin/analytics'),
             },
             {
+              title: 'Plannification',
+              url: '/dashboard/admin/schedule',
+              icon: Users,
+              isActive: pathname.startsWith('/dashboard/admin/schedule'),
+            },
+            {
               title: 'Paramètres',
               url: '/dashboard/admin/settings',
               icon: Settings,
@@ -204,6 +216,12 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               url: '/dashboard/manager/team',
               icon: Users,
               isActive: pathname.startsWith('/dashboard/manager/team'),
+            },
+            {
+              title: 'Plannification',
+              url: '/dashboard/manager/schedule',
+              icon: Users,
+              isActive: pathname.startsWith('/dashboard/manager/schedule'),
             },
             {
               title: 'Réservations',
@@ -241,6 +259,12 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               url: '/dashboard/staff/bookings',
               icon: Calendar,
               isActive: pathname.startsWith('/dashboard/staff/bookings'),
+            },
+            {
+              title: 'Plannification',
+              url: '/dashboard/staff/schedule',
+              icon: Users,
+              isActive: pathname.startsWith('/dashboard/staff/schedule'),
             },
           ],
         }

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 // import { Inter } from 'next/font/google'
 import ConditionalFooter from '@/components/ConditionalFooter'
 import ConditionalNavigation from '@/components/ConditionalNavigation'
@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     apple: '/favicon.svg',
   },
   manifest: '/site.webmanifest',
+}
+
+export const viewport: Viewport = {
   themeColor: '#D2691E',
 }
 

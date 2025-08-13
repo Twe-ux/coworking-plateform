@@ -11,6 +11,7 @@ export interface IUser extends Document {
   firstName?: string
   lastName?: string
   name?: string
+  bio?: string
   role: 'admin' | 'manager' | 'staff' | 'client'
   permissions: string[]
   isActive: boolean
@@ -86,6 +87,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       trim: true,
       maxlength: [100, 'Le nom complet ne peut dépasser 100 caractères'],
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'La bio ne peut dépasser 500 caractères'],
     },
     role: {
       type: String,

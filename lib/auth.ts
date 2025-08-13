@@ -273,12 +273,14 @@ export const authOptions: NextAuthOptions = {
 
           return {
             id: user._id.toString(),
+            name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
             email: user.email,
             firstName: user.firstName || user.name?.split(' ')[0] || '',
             lastName: user.lastName || user.name?.split(' ')[1] || '',
             role: user.role as UserRole,
             permissions: user.permissions || [],
             isActive: user.isActive ?? true,
+            image: user.image || undefined,
           }
         } catch (error) {
           console.error('NextAuth authorize - erreur:', error)
@@ -310,16 +312,26 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
+        token.name = user.name
+        token.email = user.email
         token.role = user.role
         token.firstName = user.firstName
         token.lastName = user.lastName
         token.permissions = user.permissions
         token.isActive = user.isActive
+        token.image = user.image
         token.csrfToken = generateCSRFToken()
         token.expiresAt = Date.now() + 24 * 60 * 60 * 1000 // 24 heures
+      }
+
+      // Handle session updates (when update() is called)
+      if (trigger === 'update' && session) {
+        if (session.name) token.name = session.name
+        if (session.image) token.image = session.image
+        if (session.avatar) token.avatar = session.avatar
       }
 
       // Vérifier l'expiration du token
@@ -332,11 +344,14 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user && token) {
         session.user.id = token.sub!
+        session.user.name = token.name as string
+        session.user.email = token.email as string
         session.user.firstName = token.firstName as string
         session.user.lastName = token.lastName as string
         session.user.role = token.role as UserRole
         session.user.permissions = token.permissions as string[]
         session.user.isActive = token.isActive as boolean
+        session.user.image = token.image as string
         session.csrfToken = token.csrfToken as string
       }
       return session

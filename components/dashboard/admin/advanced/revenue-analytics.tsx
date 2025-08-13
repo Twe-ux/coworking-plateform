@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Card,
   CardContent,
@@ -141,16 +141,20 @@ export function RevenueAnalytics() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period])
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(value)
-  }
+  const formatCurrency = useMemo(() => {
+    return (value: number) => {
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(value)
+    }
+  }, [])
 
-  const formatPercentage = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
-  }
+  const formatPercentage = useMemo(() => {
+    return (value: number) => {
+      return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
+    }
+  }, [])
 
   const exportReport = async () => {
     try {
@@ -234,27 +238,29 @@ export function RevenueAnalytics() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec contrôles */}
-      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+    <div className="space-y-4 md:space-y-6">
+      {/* En-tête avec contrôles - Mobile optimisé */}
+      <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
             Analytics Revenus
           </h2>
-          <p className="text-gray-600">
+          <p className="text-sm md:text-base text-gray-600">
             Performance financière et tendances des réservations
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <div className="flex space-x-1">
+        {/* Contrôles responsive */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {/* Sélecteur de période */}
+          <div className="grid grid-cols-4 gap-1 md:flex md:space-x-1">
             {(['7d', '30d', '90d', '1y'] as const).map((p) => (
               <Button
                 key={p}
                 size="sm"
                 variant={period === p ? 'default' : 'outline'}
                 onClick={() => setPeriod(p)}
-                className="text-xs"
+                className="text-xs touch-manipulation min-h-10"
               >
                 {p === '7d'
                   ? '7j'
@@ -267,57 +273,60 @@ export function RevenueAnalytics() {
             ))}
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportReport}
-            className="flex items-center space-x-1"
-          >
-            <Download className="h-4 w-4" />
-            <span>Export</span>
-          </Button>
+          {/* Actions */}
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportReport}
+              className="flex items-center space-x-1 touch-manipulation min-h-10"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:block">Export</span>
+            </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={debugData}
-            className="flex items-center space-x-1 border-red-200 bg-red-50"
-          >
-            <span>🐛</span>
-            <span>Debug</span>
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={debugData}
+              className="flex items-center space-x-1 border-red-200 bg-red-50 touch-manipulation min-h-10"
+            >
+              <span>🐛</span>
+              <span className="hidden sm:block">Debug</span>
+            </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadAnalytics}
-            disabled={loading}
-            className="flex items-center space-x-1"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Actualiser</span>
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadAnalytics}
+              disabled={loading}
+              className="flex items-center space-x-1 touch-manipulation min-h-10"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:block">Actualiser</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* KPIs principaux */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      {/* KPIs principaux - Responsive mobile-first */}
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Revenus totaux</p>
-                <p className="text-2xl font-bold text-green-600">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-gray-600 truncate">Revenus totaux</p>
+                <p className="text-lg md:text-2xl font-bold text-green-600 truncate">
                   {formatCurrency(analytics.totalRevenue)}
                 </p>
                 <div className="mt-1 flex items-center space-x-1">
                   {analytics.monthlyGrowth >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <TrendingUp className="h-3 w-3 text-green-500 flex-shrink-0" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <TrendingDown className="h-3 w-3 text-red-500 flex-shrink-0" />
                   )}
                   <span
-                    className={`text-xs ${
+                    className={`text-xs truncate ${
                       analytics.monthlyGrowth >= 0
                         ? 'text-green-600'
                         : 'text-red-600'
@@ -327,49 +336,49 @@ export function RevenueAnalytics() {
                   </span>
                 </div>
               </div>
-              <Euro className="h-8 w-8 text-gray-400" />
+              <Euro className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Réservations</p>
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-gray-600 truncate">Réservations</p>
+                <p className="text-lg md:text-2xl font-bold text-blue-600">
                   {analytics.totalBookings}
                 </p>
-                <p className="mt-1 text-xs text-gray-500">
-                  {period === '30d' ? 'Ce mois' : 'Période sélectionnée'}
+                <p className="mt-1 text-xs text-gray-500 truncate">
+                  {period === '30d' ? 'Ce mois' : 'Période'}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-gray-400" />
+              <Calendar className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Panier moyen</p>
-                <p className="text-2xl font-bold text-purple-600">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-gray-600 truncate">Panier moyen</p>
+                <p className="text-lg md:text-2xl font-bold text-purple-600 truncate">
                   {formatCurrency(analytics.averageBookingValue)}
                 </p>
-                <p className="mt-1 text-xs text-gray-500">Par réservation</p>
+                <p className="mt-1 text-xs text-gray-500 truncate">Par résa</p>
               </div>
-              <Users className="h-8 w-8 text-gray-400" />
+              <Users className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Taux occupation</p>
-                <p className="text-2xl font-bold text-amber-600">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-gray-600 truncate">Taux occupation</p>
+                <p className="text-lg md:text-2xl font-bold text-amber-600">
                   {analytics.topSpaces.length > 0
                     ? Math.round(
                         analytics.topSpaces.reduce(
@@ -380,39 +389,40 @@ export function RevenueAnalytics() {
                     : 0}
                   %
                 </p>
-                <p className="mt-1 text-xs text-gray-500">Moyenne espaces</p>
+                <p className="mt-1 text-xs text-gray-500 truncate">Moyenne</p>
               </div>
-              <Building className="h-8 w-8 text-gray-400" />
+              <Building className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Graphique principal */}
+      {/* Graphique principal - Responsive avec hauteur adaptive */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="space-y-3 md:space-y-0 md:flex md:items-center md:justify-between">
             <div>
-              <CardTitle>Évolution des revenus</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base md:text-lg">Évolution des revenus</CardTitle>
+              <CardDescription className="text-sm">
                 Tendance sur la période sélectionnée
               </CardDescription>
             </div>
 
-            <div className="flex space-x-1">
+            {/* Sélecteur de métrique responsive */}
+            <div className="grid grid-cols-3 gap-1 md:flex md:space-x-1">
               {(['revenue', 'bookings', 'average'] as const).map((metric) => (
                 <Button
                   key={metric}
                   size="sm"
                   variant={selectedMetric === metric ? 'default' : 'outline'}
                   onClick={() => setSelectedMetric(metric)}
-                  className="text-xs"
+                  className="text-xs touch-manipulation min-h-10"
                 >
                   {metric === 'revenue'
                     ? 'Revenus'
                     : metric === 'bookings'
-                      ? 'Réservations'
-                      : 'Panier moyen'}
+                      ? 'Résa'
+                      : 'Panier'}
                 </Button>
               ))}
             </div>
@@ -420,13 +430,16 @@ export function RevenueAnalytics() {
         </CardHeader>
 
         <CardContent>
-          <div className="h-80">
+          {/* Hauteur adaptive pour mobile */}
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={analytics.dailyRevenue}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis
                   dataKey="date"
                   tickFormatter={(date) => format(new Date(date), 'dd/MM')}
+                  fontSize={12}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   tickFormatter={(value) =>
@@ -434,6 +447,8 @@ export function RevenueAnalytics() {
                       ? `${value}€`
                       : value.toString()
                   }
+                  fontSize={12}
+                  width={60}
                 />
                 <Tooltip
                   formatter={(value: number) => [
@@ -449,8 +464,13 @@ export function RevenueAnalytics() {
                         : 'Panier moyen',
                   ]}
                   labelFormatter={(date) =>
-                    format(new Date(date), 'dd MMMM yyyy', { locale: fr })
+                    format(new Date(date), 'dd MMM yyyy', { locale: fr })
                   }
+                  contentStyle={{
+                    fontSize: '12px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -458,6 +478,7 @@ export function RevenueAnalytics() {
                   stroke="#3b82f6"
                   fill="#3b82f6"
                   fillOpacity={0.2}
+                  strokeWidth={2}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -465,33 +486,44 @@ export function RevenueAnalytics() {
         </CardContent>
       </Card>
 
-      {/* Graphiques secondaires */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Graphiques secondaires - Mobile stacked */}
+      <div className="space-y-4 md:space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
         {/* Top espaces */}
         <Card>
           <CardHeader>
-            <CardTitle>Top espaces par revenus</CardTitle>
-            <CardDescription>Espaces les plus rentables</CardDescription>
+            <CardTitle className="text-base md:text-lg">Top espaces par revenus</CardTitle>
+            <CardDescription className="text-sm">Espaces les plus rentables</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-48 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.topSpaces}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis
                     dataKey="spaceName"
                     angle={-45}
                     textAnchor="end"
                     height={60}
+                    fontSize={10}
+                    interval={0}
                   />
-                  <YAxis tickFormatter={(value) => `${value}€`} />
+                  <YAxis 
+                    tickFormatter={(value) => `${value}€`} 
+                    fontSize={10}
+                    width={50}
+                  />
                   <Tooltip
                     formatter={(value: number) => [
                       formatCurrency(value),
                       'Revenus',
                     ]}
+                    contentStyle={{
+                      fontSize: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}
                   />
-                  <Bar dataKey="revenue" fill="#10b981" />
+                  <Bar dataKey="revenue" fill="#10b981" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -501,25 +533,23 @@ export function RevenueAnalytics() {
         {/* Revenus par statut */}
         <Card>
           <CardHeader>
-            <CardTitle>Revenus par statut</CardTitle>
-            <CardDescription>
-              Répartition des revenus selon le statut des réservations
+            <CardTitle className="text-base md:text-lg">Revenus par statut</CardTitle>
+            <CardDescription className="text-sm">
+              Répartition des revenus selon le statut
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-48 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={analytics.revenueByStatus}
                     cx="50%"
                     cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
+                    innerRadius={30}
+                    outerRadius={60}
                     dataKey="revenue"
-                    label={({ status, percent }) =>
-                      `${status} (${(percent * 100).toFixed(0)}%)`
-                    }
+                    label={false} // Supprimer les labels sur le graphique pour mobile
                   >
                     {analytics.revenueByStatus.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -530,27 +560,33 @@ export function RevenueAnalytics() {
                       formatCurrency(value),
                       'Revenus',
                     ]}
+                    contentStyle={{
+                      fontSize: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="mt-4 space-y-2">
+            {/* Légende responsive */}
+            <div className="mt-4 grid grid-cols-1 gap-2 md:space-y-2">
               {analytics.revenueByStatus.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 min-w-0 flex-1">
                     <div
-                      className="h-3 w-3 rounded"
+                      className="h-3 w-3 rounded flex-shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-sm capitalize">{item.status}</span>
+                    <span className="text-sm capitalize truncate">{item.status}</span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <div className="text-sm font-medium">
                       {formatCurrency(item.revenue)}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {item.count} réservations
+                      {item.count} résa
                     </div>
                   </div>
                 </div>
