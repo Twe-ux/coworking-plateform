@@ -35,6 +35,7 @@ Authorization: Bearer <session-token> // Géré automatiquement par NextAuth
 ```
 
 **Exemple de requête:**
+
 ```javascript
 const response = await fetch('/api/bookings', {
   method: 'POST',
@@ -47,12 +48,13 @@ const response = await fetch('/api/bookings', {
     duration: 2,
     durationType: 'hour',
     guests: 4,
-    notes: 'Réunion équipe marketing'
-  })
+    notes: 'Réunion équipe marketing',
+  }),
 })
 ```
 
 **Réponse (201):**
+
 ```json
 {
   "message": "Réservation créée avec succès",
@@ -82,6 +84,7 @@ const response = await fetch('/api/bookings', {
 **Méthode:** GET
 
 **Paramètres de requête:**
+
 - `status` (optionnel): pending | confirmed | cancelled | completed
 - `date` (optionnel): Date ISO (YYYY-MM-DD)
 - `spaceId` (optionnel): ID de l'espace
@@ -89,11 +92,13 @@ const response = await fetch('/api/bookings', {
 - `offset` (optionnel): Décalage pour pagination (défaut: 0)
 
 **Exemple:**
+
 ```javascript
 const response = await fetch('/api/bookings?status=confirmed&limit=5&offset=0')
 ```
 
 **Réponse (200):**
+
 ```json
 {
   "bookings": [
@@ -133,11 +138,13 @@ const response = await fetch('/api/bookings?status=confirmed&limit=5&offset=0')
 **Méthode:** GET
 
 **Exemple:**
+
 ```javascript
 const response = await fetch('/api/bookings/65a1b2c3d4e5f6789012')
 ```
 
 **Réponse (200):**
+
 ```json
 {
   "booking": {
@@ -176,6 +183,7 @@ const response = await fetch('/api/bookings/65a1b2c3d4e5f6789012')
 **Méthode:** PUT
 
 **Payload (tous les champs optionnels):**
+
 ```typescript
 {
   date?: string,
@@ -190,15 +198,17 @@ const response = await fetch('/api/bookings/65a1b2c3d4e5f6789012')
 ```
 
 **Exemple d'annulation:**
+
 ```javascript
 const response = await fetch('/api/bookings/65a1b2c3d4e5f6789012', {
   method: 'PUT',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ status: 'cancelled' })
+  body: JSON.stringify({ status: 'cancelled' }),
 })
 ```
 
 **Réponse (200):**
+
 ```json
 {
   "message": "Réservation annulée avec succès",
@@ -216,26 +226,35 @@ const response = await fetch('/api/bookings/65a1b2c3d4e5f6789012', {
 **Méthode:** GET
 
 **Paramètres requis:**
+
 - `spaceId`: ID de l'espace
 - `date`: Date ISO (YYYY-MM-DD)
 
 **Paramètres optionnels:**
+
 - `startTime`: Heure de début (HH:mm) - pour vérification spécifique
 - `endTime`: Heure de fin (HH:mm) - pour vérification spécifique
 - `duration`: Durée minimale recherchée (en minutes)
 - `slotDuration`: Taille des créneaux (15, 30, 60, 120 min, défaut: 60)
 
 **Exemple - Vérification générale:**
+
 ```javascript
-const response = await fetch('/api/bookings/availability?spaceId=places&date=2024-01-15')
+const response = await fetch(
+  '/api/bookings/availability?spaceId=places&date=2024-01-15'
+)
 ```
 
 **Exemple - Vérification spécifique:**
+
 ```javascript
-const response = await fetch('/api/bookings/availability?spaceId=places&date=2024-01-15&startTime=14:00&endTime=16:00')
+const response = await fetch(
+  '/api/bookings/availability?spaceId=places&date=2024-01-15&startTime=14:00&endTime=16:00'
+)
 ```
 
 **Réponse (200) - Vérification générale:**
+
 ```json
 {
   "available": true,
@@ -290,6 +309,7 @@ const response = await fetch('/api/bookings/availability?spaceId=places&date=202
 **Méthode:** GET
 
 **Paramètres optionnels:**
+
 - `specialty`: 'Café coworking' | 'Salle privée' | 'Zone silencieuse'
 - `minCapacity`: Capacité minimale (nombre)
 - `available`: true | false
@@ -299,11 +319,15 @@ const response = await fetch('/api/bookings/availability?spaceId=places&date=202
 - `offset`: Décalage pour pagination
 
 **Exemple:**
+
 ```javascript
-const response = await fetch('/api/spaces?available=true&specialty=Café coworking&limit=10')
+const response = await fetch(
+  '/api/spaces?available=true&specialty=Café coworking&limit=10'
+)
 ```
 
 **Réponse (200):**
+
 ```json
 {
   "spaces": [
@@ -383,27 +407,26 @@ try {
     endTime: '16:00',
     duration: 2,
     durationType: 'hour',
-    guests: 4
+    guests: 4,
   })
 
   // Lister les réservations
   const bookings = await bookingsApi.list({
     status: 'confirmed',
-    limit: 10
+    limit: 10,
   })
 
   // Vérifier disponibilité
   const availability = await bookingsApi.checkAvailability({
     spaceId: 'places',
-    date: '2024-01-15'
+    date: '2024-01-15',
   })
 
   // Lister les espaces
   const spaces = await spacesApi.list({
     available: true,
-    specialty: 'Café coworking'
+    specialty: 'Café coworking',
   })
-
 } catch (error) {
   console.error('Erreur API:', error)
 }
@@ -412,6 +435,7 @@ try {
 ## Logs et Monitoring
 
 Tous les endpoints loggent les actions importantes avec les formats:
+
 - `[BOOKING_CREATED]` - Nouvelle réservation
 - `[BOOKING_CANCELLED]` - Annulation de réservation
 - `[BOOKING_UPDATED]` - Modification de réservation

@@ -31,50 +31,50 @@ const mobileNavItems: MobileNavItem[] = [
     href: '/dashboard',
     label: 'Accueil',
     icon: Home,
-    roles: ['client']
+    roles: ['client'],
   },
   {
     href: '/dashboard/staff',
     label: 'Staff',
     icon: Building,
-    roles: ['staff']
+    roles: ['staff'],
   },
   {
     href: '/dashboard/manager',
     label: 'Manager',
     icon: BarChart3,
-    roles: ['manager']
+    roles: ['manager'],
   },
   {
     href: '/dashboard/admin',
     label: 'Admin',
     icon: Shield,
-    roles: ['admin']
+    roles: ['admin'],
   },
   {
     href: '/reservation',
     label: 'Réserver',
     icon: Calendar,
-    roles: ['client', 'staff', 'manager', 'admin']
+    roles: ['client', 'staff', 'manager', 'admin'],
   },
   {
     href: '/spaces',
     label: 'Espaces',
     icon: MapPin,
-    roles: ['client', 'staff', 'manager', 'admin']
+    roles: ['client', 'staff', 'manager', 'admin'],
   },
   {
     href: '/dashboard/admin/users',
     label: 'Utilisateurs',
     icon: Users,
-    roles: ['admin']
+    roles: ['admin'],
   },
   {
     href: '/settings',
     label: 'Paramètres',
     icon: Settings,
-    roles: ['client', 'staff', 'manager', 'admin']
-  }
+    roles: ['client', 'staff', 'manager', 'admin'],
+  },
 ]
 
 export function MobileBottomNav() {
@@ -88,17 +88,17 @@ export function MobileBottomNav() {
 
   const userRole = session.user.role
   const filteredItems = mobileNavItems
-    .filter(item => item.roles.includes(userRole))
+    .filter((item) => item.roles.includes(userRole))
     .slice(0, 5) // Limit to 5 items for better mobile UX
 
   return (
     <nav
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-30 md:hidden',
+        'fixed right-0 bottom-0 left-0 z-30 md:hidden',
         'bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-lg',
-        'border-t border-border/50',
+        'border-border/50 border-t',
         // Safe area support for iOS
-        'pb-[env(safe-area-inset-bottom)] px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]'
+        'px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)]'
       )}
       role="navigation"
       aria-label="Navigation mobile principale"
@@ -106,37 +106,40 @@ export function MobileBottomNav() {
       <div className="flex items-center justify-around px-2 py-1">
         {filteredItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-          
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + '/')
+
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1',
+                'flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2',
                 'rounded-lg transition-all duration-200',
                 'touch-manipulation select-none',
                 // Enhanced touch targets
                 'min-h-[48px]',
                 // Active/inactive states
                 isActive
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100',
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100',
                 // Focus states for accessibility
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
+                'focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon 
+              <Icon
                 className={cn(
-                  'h-5 w-5 mb-1 transition-transform duration-200',
+                  'mb-1 h-5 w-5 transition-transform duration-200',
                   isActive && 'scale-110'
-                )} 
+                )}
               />
-              <span className={cn(
-                'text-xs font-medium truncate max-w-full',
-                isActive && 'text-blue-600'
-              )}>
+              <span
+                className={cn(
+                  'max-w-full truncate text-xs font-medium',
+                  isActive && 'text-blue-600'
+                )}
+              >
                 {item.label}
               </span>
             </Link>
@@ -156,50 +159,61 @@ export function MobileSwipeEdges() {
   const startXRef = React.useRef<number>(0)
   const isDraggingRef = React.useRef<boolean>(false)
 
-  const handleTouchStart = React.useCallback((e: TouchEvent) => {
-    if (!isMobile) return
-    
-    const touch = e.touches[0]
-    startXRef.current = touch.clientX
-    isDraggingRef.current = false
-  }, [isMobile])
+  const handleTouchStart = React.useCallback(
+    (e: TouchEvent) => {
+      if (!isMobile) return
 
-  const handleTouchMove = React.useCallback((e: TouchEvent) => {
-    if (!isMobile || !startXRef.current) return
-    
-    const touch = e.touches[0]
-    const deltaX = touch.clientX - startXRef.current
-    
-    // Mark as dragging if moved more than 10px
-    if (Math.abs(deltaX) > 10) {
-      isDraggingRef.current = true
-    }
-  }, [isMobile])
+      const touch = e.touches[0]
+      startXRef.current = touch.clientX
+      isDraggingRef.current = false
+    },
+    [isMobile]
+  )
 
-  const handleTouchEnd = React.useCallback((e: TouchEvent) => {
-    if (!isMobile || !startXRef.current) return
-    
-    const touch = e.changedTouches[0]
-    const deltaX = touch.clientX - startXRef.current
-    
-    // Handle swipe gestures
-    if (isDraggingRef.current) {
-      // Swipe right from left edge to open sidebar
-      if (!openMobile && deltaX > 100 && startXRef.current < 20) {
-        setOpenMobile(true)
+  const handleTouchMove = React.useCallback(
+    (e: TouchEvent) => {
+      if (!isMobile || !startXRef.current) return
+
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - startXRef.current
+
+      // Mark as dragging if moved more than 10px
+      if (Math.abs(deltaX) > 10) {
+        isDraggingRef.current = true
       }
-    }
-    
-    // Reset tracking
-    startXRef.current = 0
-    isDraggingRef.current = false
-  }, [isMobile, openMobile, setOpenMobile])
+    },
+    [isMobile]
+  )
+
+  const handleTouchEnd = React.useCallback(
+    (e: TouchEvent) => {
+      if (!isMobile || !startXRef.current) return
+
+      const touch = e.changedTouches[0]
+      const deltaX = touch.clientX - startXRef.current
+
+      // Handle swipe gestures
+      if (isDraggingRef.current) {
+        // Swipe right from left edge to open sidebar
+        if (!openMobile && deltaX > 100 && startXRef.current < 20) {
+          setOpenMobile(true)
+        }
+      }
+
+      // Reset tracking
+      startXRef.current = 0
+      isDraggingRef.current = false
+    },
+    [isMobile, openMobile, setOpenMobile]
+  )
 
   React.useEffect(() => {
     if (!isMobile) return
 
     // Add touch event listeners to document for edge detection
-    document.addEventListener('touchstart', handleTouchStart, { passive: false })
+    document.addEventListener('touchstart', handleTouchStart, {
+      passive: false,
+    })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd, { passive: false })
 
@@ -216,14 +230,14 @@ export function MobileSwipeEdges() {
     <>
       {/* Left edge swipe area */}
       <div
-        className="fixed left-0 top-0 z-10 h-full w-4 md:hidden"
+        className="fixed top-0 left-0 z-10 h-full w-4 md:hidden"
         style={{ touchAction: 'pan-y' }}
         aria-hidden="true"
       />
       {/* Right edge for closing (when sidebar is open) */}
       {openMobile && (
         <div
-          className="fixed right-0 top-0 z-10 h-full w-4 md:hidden"
+          className="fixed top-0 right-0 z-10 h-full w-4 md:hidden"
           style={{ touchAction: 'pan-y' }}
           aria-hidden="true"
         />

@@ -1,20 +1,26 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Smartphone, 
-  Tablet, 
-  Monitor, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Smartphone,
+  Tablet,
+  Monitor,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Eye,
   Touch,
   Accessibility,
-  Zap
+  Zap,
 } from 'lucide-react'
 
 interface TestResult {
@@ -63,7 +69,8 @@ export function MobileTestValidator() {
         name: 'Taille des cibles tactiles',
         status: viewport.width < 768 ? 'pass' : 'pass',
         description: 'Boutons et liens ≥ 44px',
-        details: 'Tous les éléments interactifs ont une taille minimale de 44px pour faciliter l\'interaction tactile'
+        details:
+          "Tous les éléments interactifs ont une taille minimale de 44px pour faciliter l'interaction tactile",
       })
 
       // Test 2: Responsive layout
@@ -71,8 +78,8 @@ export function MobileTestValidator() {
         id: 'responsive-layout',
         name: 'Layout responsive',
         status: 'pass',
-        description: 'Adaptation à la taille d\'écran',
-        details: 'L\'interface s\'adapte correctement à la largeur d\'écran'
+        description: "Adaptation à la taille d'écran",
+        details: "L'interface s'adapte correctement à la largeur d'écran",
       })
 
       // Test 3: Text readability
@@ -81,7 +88,10 @@ export function MobileTestValidator() {
         name: 'Lisibilité du texte',
         status: viewport.width < 375 ? 'warning' : 'pass',
         description: 'Taille de police ≥ 16px',
-        details: viewport.width < 375 ? 'Texte peut être petit sur très petits écrans' : 'Taille de texte appropriée'
+        details:
+          viewport.width < 375
+            ? 'Texte peut être petit sur très petits écrans'
+            : 'Taille de texte appropriée',
       })
 
       // Test 4: Scroll performance
@@ -90,7 +100,7 @@ export function MobileTestValidator() {
         name: 'Performance du scroll',
         status: 'pass',
         description: 'Défilement fluide',
-        details: 'Implémentation de scroll optimisée avec touch-pan-y'
+        details: 'Implémentation de scroll optimisée avec touch-pan-y',
       })
 
       // Test 5: Navigation accessibility
@@ -98,8 +108,8 @@ export function MobileTestValidator() {
         id: 'navigation-a11y',
         name: 'Navigation accessible',
         status: 'pass',
-        description: 'Support clavier et lecteur d\'écran',
-        details: 'Navigation accessible avec ARIA labels et support clavier'
+        description: "Support clavier et lecteur d'écran",
+        details: 'Navigation accessible avec ARIA labels et support clavier',
       })
 
       // Test 6: Content priority
@@ -108,7 +118,7 @@ export function MobileTestValidator() {
         name: 'Priorisation du contenu',
         status: viewport.width < 768 ? 'pass' : 'pass',
         description: 'Contenu important visible en premier',
-        details: 'Informations critiques affichées en priorité sur mobile'
+        details: 'Informations critiques affichées en priorité sur mobile',
       })
 
       // Test 7: Form usability
@@ -117,7 +127,7 @@ export function MobileTestValidator() {
         name: 'Ergonomie des formulaires',
         status: 'pass',
         description: 'Saisie optimisée mobile',
-        details: 'Champs de formulaire avec min-height et touch-manipulation'
+        details: 'Champs de formulaire avec min-height et touch-manipulation',
       })
 
       // Test 8: Loading states
@@ -126,16 +136,16 @@ export function MobileTestValidator() {
         name: 'États de chargement',
         status: 'pass',
         description: 'Feedback visuel approprié',
-        details: 'Indicateurs de chargement clairs et non bloquants'
+        details: 'Indicateurs de chargement clairs et non bloquants',
       })
 
       results.push({
         ...viewport,
-        tests
+        tests,
       })
 
       // Délai pour simuler les tests
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
 
     setTestResults(results)
@@ -157,8 +167,8 @@ export function MobileTestValidator() {
   }
 
   const getOverallStatus = (tests: TestResult[]) => {
-    if (tests.some(t => t.status === 'fail')) return 'fail'
-    if (tests.some(t => t.status === 'warning')) return 'warning'
+    if (tests.some((t) => t.status === 'fail')) return 'fail'
+    if (tests.some((t) => t.status === 'warning')) return 'warning'
     return 'pass'
   }
 
@@ -184,7 +194,8 @@ export function MobileTestValidator() {
             Tests de validation mobile
           </h2>
           <p className="text-gray-600">
-            Validation automatisée de l'expérience mobile sur différents appareils
+            Validation automatisée de l'expérience mobile sur différents
+            appareils
           </p>
         </div>
 
@@ -208,10 +219,12 @@ export function MobileTestValidator() {
                 Test en cours sur {viewports[currentViewport]?.name}...
               </span>
             </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200">
+              <div
                 className="h-full bg-blue-600 transition-all duration-300"
-                style={{ width: `${((currentViewport + 1) / viewports.length) * 100}%` }}
+                style={{
+                  width: `${((currentViewport + 1) / viewports.length) * 100}%`,
+                }}
               />
             </div>
           </CardContent>
@@ -224,7 +237,7 @@ export function MobileTestValidator() {
           {testResults.map((viewport, index) => {
             const IconComponent = viewport.icon
             const overallStatus = getOverallStatus(viewport.tests)
-            
+
             return (
               <Card key={index}>
                 <CardHeader>
@@ -232,15 +245,20 @@ export function MobileTestValidator() {
                     <div className="flex items-center space-x-3">
                       <IconComponent className="h-6 w-6 text-gray-600" />
                       <div>
-                        <CardTitle className="text-lg">{viewport.name}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {viewport.name}
+                        </CardTitle>
                         <CardDescription>
                           {viewport.width} × {viewport.height}px
                         </CardDescription>
                       </div>
                     </div>
                     <Badge className={getStatusColor(overallStatus)}>
-                      {overallStatus === 'pass' ? 'Réussi' : 
-                       overallStatus === 'warning' ? 'Avertissements' : 'Échec'}
+                      {overallStatus === 'pass'
+                        ? 'Réussi'
+                        : overallStatus === 'warning'
+                          ? 'Avertissements'
+                          : 'Échec'}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -248,19 +266,19 @@ export function MobileTestValidator() {
                 <CardContent>
                   <div className="grid gap-3">
                     {viewport.tests.map((test) => (
-                      <div 
+                      <div
                         key={test.id}
-                        className="flex items-start justify-between p-3 rounded-lg border"
+                        className="flex items-start justify-between rounded-lg border p-3"
                       >
-                        <div className="flex items-start space-x-3 flex-1">
+                        <div className="flex flex-1 items-start space-x-3">
                           {getTestStatusIcon(test.status)}
                           <div className="flex-1">
                             <h4 className="text-sm font-medium">{test.name}</h4>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="mt-1 text-xs text-gray-600">
                               {test.description}
                             </p>
                             {test.details && (
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="mt-1 text-xs text-gray-500">
                                 {test.details}
                               </p>
                             )}
@@ -290,11 +308,11 @@ export function MobileTestValidator() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-3">
-              <h4 className="font-medium flex items-center space-x-2">
+              <h4 className="flex items-center space-x-2 font-medium">
                 <Touch className="h-4 w-4" />
                 <span>Interactions tactiles</span>
               </h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-6">
+              <ul className="space-y-1 pl-6 text-sm text-gray-600">
                 <li>• Taille minimale des boutons : 44px</li>
                 <li>• Espacement entre éléments cliquables</li>
                 <li>• Feedback visuel au toucher (active:scale-95)</li>
@@ -303,11 +321,11 @@ export function MobileTestValidator() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-medium flex items-center space-x-2">
+              <h4 className="flex items-center space-x-2 font-medium">
                 <Eye className="h-4 w-4" />
                 <span>Lisibilité</span>
               </h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-6">
+              <ul className="space-y-1 pl-6 text-sm text-gray-600">
                 <li>• Taille de police ≥ 16px sur mobile</li>
                 <li>• Contraste suffisant (4.5:1 minimum)</li>
                 <li>• Texte tronqué avec ellipsis</li>
@@ -316,11 +334,11 @@ export function MobileTestValidator() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-medium flex items-center space-x-2">
+              <h4 className="flex items-center space-x-2 font-medium">
                 <Smartphone className="h-4 w-4" />
                 <span>Layout responsive</span>
               </h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-6">
+              <ul className="space-y-1 pl-6 text-sm text-gray-600">
                 <li>• Grilles adaptatives (grid-cols-2 md:grid-cols-4)</li>
                 <li>• Espacement réduit sur mobile</li>
                 <li>• Navigation simplifiée</li>
@@ -329,11 +347,11 @@ export function MobileTestValidator() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-medium flex items-center space-x-2">
+              <h4 className="flex items-center space-x-2 font-medium">
                 <Zap className="h-4 w-4" />
                 <span>Performance</span>
               </h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-6">
+              <ul className="space-y-1 pl-6 text-sm text-gray-600">
                 <li>• Hauteurs de graphiques adaptatives</li>
                 <li>• Images optimisées et lazy loading</li>
                 <li>• Animations fluides (CSS transforms)</li>

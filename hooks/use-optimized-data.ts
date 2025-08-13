@@ -20,8 +20,10 @@ export function useOptimizedData<T>({
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  
-  const cacheRef = useRef<Map<string, { data: T; timestamp: number }>>(new Map())
+
+  const cacheRef = useRef<Map<string, { data: T; timestamp: number }>>(
+    new Map()
+  )
   const lastFetchRef = useRef<number>(0)
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -31,7 +33,7 @@ export function useOptimizedData<T>({
 
   const loadData = useCallback(async () => {
     const now = Date.now()
-    
+
     // Vérifier le cache
     const cached = cacheRef.current.get(cacheKey)
     if (cached && now - cached.timestamp < staleTime) {
@@ -48,23 +50,23 @@ export function useOptimizedData<T>({
     try {
       setLoading(true)
       setError(null)
-      
+
       // Annuler la requête précédente
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
-      
+
       abortControllerRef.current = new AbortController()
       lastFetchRef.current = now
-      
+
       const result = await fetcher()
-      
+
       // Mettre en cache
       cacheRef.current.set(cacheKey, {
         data: result,
         timestamp: now,
       })
-      
+
       // Nettoyer le cache ancien
       cacheRef.current.forEach((value, key) => {
         if (now - value.timestamp > cacheTime) {

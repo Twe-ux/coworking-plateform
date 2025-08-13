@@ -61,14 +61,14 @@ export async function connectToDatabase(
 ): Promise<{ client: MongoClient; db: Db }> {
   let retryCount = 0
   const maxRetries = 3
-  
+
   while (retryCount < maxRetries) {
     try {
       const connectedClient = await clientPromise
-      
+
       // Test la connexion avec un ping
       await connectedClient.db().admin().ping()
-      
+
       const targetDbName = dbName || databaseName
 
       // Utiliser le cache pour éviter les reconnexions inutiles
@@ -93,22 +93,26 @@ export async function connectToDatabase(
       }
 
       return { client: connectedClient, db }
-      
     } catch (error) {
       retryCount++
-      console.error(`Tentative de connexion MongoDB ${retryCount}/${maxRetries} échouée:`, error)
-      
+      console.error(
+        `Tentative de connexion MongoDB ${retryCount}/${maxRetries} échouée:`,
+        error
+      )
+
       if (retryCount >= maxRetries) {
         throw new Error(
           `Impossible de se connecter à MongoDB après ${maxRetries} tentatives: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
         )
       }
-      
+
       // Attendre avant la prochaine tentative (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.pow(2, retryCount) * 1000)
+      )
     }
   }
-  
+
   // Cette ligne ne devrait jamais être atteinte, mais TypeScript l'exige
   throw new Error('Erreur inattendue lors de la connexion MongoDB')
 }
@@ -219,19 +223,19 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
  * Fonction de connexion Mongoose pour compatibilité avec les modèles Space et Booking
  */
 interface CachedConnection {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
+  conn: typeof mongoose | null
+  promise: Promise<typeof mongoose> | null
 }
 
-let cached: CachedConnection = (global as any).mongoose;
+let cached: CachedConnection = (global as any).mongoose
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (global as any).mongoose = { conn: null, promise: null }
 }
 
 export default async function dbConnect(): Promise<typeof mongoose> {
   if (cached.conn) {
-    return cached.conn;
+    return cached.conn
   }
 
   if (!cached.promise) {
@@ -239,22 +243,22 @@ export default async function dbConnect(): Promise<typeof mongoose> {
       .connect(uri)
       .then((mongoose) => {
         console.log('✅ MongoDB connecté via Mongoose')
-        return mongoose;
+        return mongoose
       })
       .catch((reason) => {
-        console.error("❌ Échec connexion MongoDB Mongoose:", reason);
-        throw reason;
-      });
+        console.error('❌ Échec connexion MongoDB Mongoose:', reason)
+        throw reason
+      })
   }
 
   try {
-    cached.conn = await cached.promise;
+    cached.conn = await cached.promise
   } catch (e) {
-    cached.promise = null;
-    throw e;
+    cached.promise = null
+    throw e
   }
 
-  return cached.conn;
+  return cached.conn
 }
 
 // Les autres fonctions sont déjà exportées individuellement

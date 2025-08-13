@@ -157,7 +157,7 @@ export function OccupancyAnalytics() {
   const formatPercentage = useMemo(() => {
     return (value: number) => `${value.toFixed(1)}%`
   }, [])
-  
+
   const formatHours = useMemo(() => {
     return (value: number) => `${value.toFixed(1)}h`
   }, [])
@@ -183,10 +183,10 @@ export function OccupancyAnalytics() {
       {/* En-tête avec contrôles - Mobile optimisé */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 md:text-2xl">
             Analytics d&apos;occupation
           </h2>
-          <p className="text-sm md:text-base text-gray-600">
+          <p className="text-sm text-gray-600 md:text-base">
             Utilisation et performance des espaces de travail
           </p>
         </div>
@@ -197,12 +197,14 @@ export function OccupancyAnalytics() {
           <select
             value={selectedSpace}
             onChange={(e) => setSelectedSpace(e.target.value)}
-            className="rounded-md border p-2 text-sm touch-manipulation min-h-10 md:min-w-48"
+            className="min-h-10 touch-manipulation rounded-md border p-2 text-sm md:min-w-48"
           >
             <option value="all">Tous les espaces</option>
             {analytics.spaces.map((space) => (
               <option key={space.spaceId} value={space.spaceId}>
-                {space.spaceName.length > 30 ? space.spaceName.substring(0, 30) + '...' : space.spaceName}
+                {space.spaceName.length > 30
+                  ? space.spaceName.substring(0, 30) + '...'
+                  : space.spaceName}
               </option>
             ))}
           </select>
@@ -217,7 +219,7 @@ export function OccupancyAnalytics() {
                   size="sm"
                   variant={period === p ? 'default' : 'outline'}
                   onClick={() => setPeriod(p)}
-                  className="text-xs touch-manipulation min-h-10"
+                  className="min-h-10 touch-manipulation text-xs"
                 >
                   {p === '7d' ? '7j' : p === '30d' ? '30j' : '90j'}
                 </Button>
@@ -230,9 +232,11 @@ export function OccupancyAnalytics() {
               size="sm"
               onClick={loadAnalytics}
               disabled={loading}
-              className="flex items-center space-x-1 touch-manipulation min-h-10"
+              className="flex min-h-10 touch-manipulation items-center space-x-1"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              />
               <span className="hidden sm:block">Actualiser</span>
             </Button>
           </div>
@@ -245,17 +249,17 @@ export function OccupancyAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
                   Taux d&apos;occupation
                 </p>
-                <p className="text-lg md:text-2xl font-bold text-blue-600">
+                <p className="text-lg font-bold text-blue-600 md:text-2xl">
                   {formatPercentage(analytics.averageOccupancyRate)}
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">
+                <p className="mt-1 truncate text-xs text-gray-500">
                   Tous espaces
                 </p>
               </div>
-              <Activity className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <Activity className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -264,15 +268,17 @@ export function OccupancyAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">Heures réservées</p>
-                <p className="text-lg md:text-2xl font-bold text-green-600">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
+                  Heures réservées
+                </p>
+                <p className="text-lg font-bold text-green-600 md:text-2xl">
                   {Math.round(analytics.totalBookedHours)}h
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">
+                <p className="mt-1 truncate text-xs text-gray-500">
                   Sur {Math.round(analytics.totalCapacityHours)}h
                 </p>
               </div>
-              <Clock className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <Clock className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -281,20 +287,21 @@ export function OccupancyAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
                   Espace populaire
                 </p>
-                <p className="text-lg md:text-2xl font-bold text-purple-600 truncate">
-                  {analytics.mostPopularSpace ? 
-                    (analytics.mostPopularSpace.length > 12 ? 
-                      analytics.mostPopularSpace.substring(0, 12) + '...' : 
-                      analytics.mostPopularSpace
-                    ) : 'N/A'
-                  }
+                <p className="truncate text-lg font-bold text-purple-600 md:text-2xl">
+                  {analytics.mostPopularSpace
+                    ? analytics.mostPopularSpace.length > 12
+                      ? analytics.mostPopularSpace.substring(0, 12) + '...'
+                      : analytics.mostPopularSpace
+                    : 'N/A'}
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">Le plus réservé</p>
+                <p className="mt-1 truncate text-xs text-gray-500">
+                  Le plus réservé
+                </p>
               </div>
-              <MapPin className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <MapPin className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -303,15 +310,17 @@ export function OccupancyAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">Créneau de pointe</p>
-                <p className="text-lg md:text-2xl font-bold text-amber-600">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
+                  Créneau de pointe
+                </p>
+                <p className="text-lg font-bold text-amber-600 md:text-2xl">
                   {analytics.peakTime || 'N/A'}
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">
+                <p className="mt-1 truncate text-xs text-gray-500">
                   Heure demandée
                 </p>
               </div>
-              <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <TrendingUp className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -320,7 +329,9 @@ export function OccupancyAnalytics() {
       {/* Performance des espaces - Mobile responsive */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base md:text-lg">Performance par espace</CardTitle>
+          <CardTitle className="text-base md:text-lg">
+            Performance par espace
+          </CardTitle>
           <CardDescription className="text-sm">
             Taux d&apos;occupation et utilisation de chaque espace
           </CardDescription>
@@ -362,7 +373,7 @@ export function OccupancyAnalytics() {
                   contentStyle={{
                     fontSize: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid #e5e7eb',
                   }}
                 />
                 <Bar
@@ -390,7 +401,9 @@ export function OccupancyAnalytics() {
         {/* Usage par créneau horaire */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Usage par créneaux horaires</CardTitle>
+            <CardTitle className="text-base md:text-lg">
+              Usage par créneaux horaires
+            </CardTitle>
             <CardDescription className="text-sm">
               Répartition des réservations dans la journée
             </CardDescription>
@@ -400,12 +413,9 @@ export function OccupancyAnalytics() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={analytics.hourlyUsage}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis 
-                    dataKey="hour" 
-                    fontSize={10}
-                  />
-                  <YAxis 
-                    tickFormatter={(value) => value.toString()} 
+                  <XAxis dataKey="hour" fontSize={10} />
+                  <YAxis
+                    tickFormatter={(value) => value.toString()}
                     fontSize={10}
                     width={30}
                   />
@@ -414,7 +424,7 @@ export function OccupancyAnalytics() {
                     contentStyle={{
                       fontSize: '12px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e7eb'
+                      border: '1px solid #e5e7eb',
                     }}
                   />
                   <Line
@@ -434,7 +444,9 @@ export function OccupancyAnalytics() {
         {/* Utilisation de la capacité - Simplifiée pour mobile */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Utilisation de la capacité</CardTitle>
+            <CardTitle className="text-base md:text-lg">
+              Utilisation de la capacité
+            </CardTitle>
             <CardDescription className="text-sm">
               Ratio personnes/capacité par espace
             </CardDescription>
@@ -446,18 +458,23 @@ export function OccupancyAnalytics() {
                 {analytics.capacityUtilization.map((item, index) => (
                   <div key={index} className="rounded-lg border p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium truncate flex-1">{item.spaceName}</span>
-                      <span className="text-lg font-bold" style={{ color: item.color }}>
+                      <span className="flex-1 truncate text-sm font-medium">
+                        {item.spaceName}
+                      </span>
+                      <span
+                        className="text-lg font-bold"
+                        style={{ color: item.color }}
+                      >
                         {formatPercentage(item.utilizationRate)}
                       </span>
                     </div>
                     <div className="mt-2">
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                        <div
                           className="h-full transition-all duration-300"
-                          style={{ 
-                            backgroundColor: item.color, 
-                            width: `${item.utilizationRate}%` 
+                          style={{
+                            backgroundColor: item.color,
+                            width: `${item.utilizationRate}%`,
                           }}
                         />
                       </div>
@@ -496,7 +513,7 @@ export function OccupancyAnalytics() {
                       contentStyle={{
                         fontSize: '12px',
                         borderRadius: '8px',
-                        border: '1px solid #e5e7eb'
+                        border: '1px solid #e5e7eb',
                       }}
                     />
                   </RadialBarChart>
@@ -505,15 +522,18 @@ export function OccupancyAnalytics() {
 
               <div className="mt-4 grid grid-cols-1 gap-2">
                 {analytics.capacityUtilization.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 min-w-0 flex-1">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center space-x-2">
                       <div
-                        className="h-3 w-3 rounded flex-shrink-0"
+                        className="h-3 w-3 flex-shrink-0 rounded"
                         style={{ backgroundColor: item.color }}
                       />
                       <span className="truncate text-sm">{item.spaceName}</span>
                     </div>
-                    <div className="text-right flex-shrink-0">
+                    <div className="flex-shrink-0 text-right">
                       <div className="text-sm font-medium">
                         {formatPercentage(item.utilizationRate)}
                       </div>
@@ -532,7 +552,9 @@ export function OccupancyAnalytics() {
       {/* Tendance hebdomadaire - Mobile responsive */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base md:text-lg">Évolution hebdomadaire</CardTitle>
+          <CardTitle className="text-base md:text-lg">
+            Évolution hebdomadaire
+          </CardTitle>
           <CardDescription className="text-sm">
             Comparaison des taux d&apos;occupation par semaine
           </CardDescription>
@@ -542,15 +564,15 @@ export function OccupancyAnalytics() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analytics.weeklyComparison}>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="week" 
+                <XAxis
+                  dataKey="week"
                   fontSize={10}
                   angle={-45}
                   textAnchor="end"
                   height={40}
                 />
-                <YAxis 
-                  tickFormatter={formatPercentage} 
+                <YAxis
+                  tickFormatter={formatPercentage}
                   fontSize={10}
                   width={40}
                 />
@@ -564,13 +586,13 @@ export function OccupancyAnalytics() {
                   contentStyle={{
                     fontSize: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid #e5e7eb',
                   }}
                 />
-                <Bar 
-                  dataKey="occupancyRate" 
-                  fill="#10b981" 
-                  radius={[2, 2, 0, 0]} 
+                <Bar
+                  dataKey="occupancyRate"
+                  fill="#10b981"
+                  radius={[2, 2, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -581,13 +603,15 @@ export function OccupancyAnalytics() {
       {/* Détails des espaces - Mobile optimisé */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base md:text-lg">Détails par espace</CardTitle>
+          <CardTitle className="text-base md:text-lg">
+            Détails par espace
+          </CardTitle>
           <CardDescription className="text-sm">
             Métriques détaillées pour chaque espace de travail
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 md:gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
             {analytics.spaces.map((space) => (
               <Card
                 key={space.spaceId}
@@ -597,11 +621,11 @@ export function OccupancyAnalytics() {
                 <CardContent className="p-3 md:p-4">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
-                      <h4 className="truncate pr-2 text-sm font-medium flex-1">
+                      <h4 className="flex-1 truncate pr-2 text-sm font-medium">
                         {space.spaceName}
                       </h4>
                       <Badge
-                        className="text-xs flex-shrink-0"
+                        className="flex-shrink-0 text-xs"
                         style={{
                           backgroundColor: `${space.color}20`,
                           color: space.color,
@@ -642,7 +666,7 @@ export function OccupancyAnalytics() {
                         <span className="text-xs text-gray-500">
                           Créneaux populaires:
                         </span>
-                        <div className="text-xs font-medium text-blue-600 truncate">
+                        <div className="truncate text-xs font-medium text-blue-600">
                           {space.peakHours.slice(0, 2).join(', ')}
                           {space.peakHours.length > 2 && '...'}
                         </div>

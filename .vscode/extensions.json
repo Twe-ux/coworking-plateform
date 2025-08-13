@@ -16,8 +16,5 @@
     "GitLab.gitlab-workflow",
     "github.vscode-pull-request-github"
   ],
-  "unwantedRecommendations": [
-    "hookyqr.beautify",
-    "ms-vscode.vscode-typescript"
-  ]
+  "unwantedRecommendations": ["hookyqr.beautify", "ms-vscode.vscode-typescript"]
 }

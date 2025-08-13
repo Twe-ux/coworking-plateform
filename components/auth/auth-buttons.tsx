@@ -63,7 +63,7 @@ export default function AuthButtons({
   const { toast } = useToast()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const pathname = usePathname()
-  
+
   // Version simplifiée pour éviter les problèmes
   const [showSkeleton, setShowSkeleton] = useState(false)
 
@@ -114,7 +114,6 @@ export default function AuthButtons({
     }
   }, [isAuthenticated, isLoading])
 
-
   // Show skeleton only during initial loading
   if (isLoading) {
     return <AuthButtonsSkeleton variant={variant} size={size} />
@@ -150,7 +149,7 @@ export default function AuthButtons({
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -5 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
         className={
           variant === 'homepage'
             ? 'mx-auto mb-8 flex max-w-sm flex-col items-center justify-center gap-3 sm:mb-12 sm:max-w-none sm:flex-row sm:gap-4'

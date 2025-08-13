@@ -5,7 +5,9 @@ A comprehensive employee scheduling and planning system for coworking spaces bui
 ## Components
 
 ### EmployeeScheduling
+
 The main scheduling component featuring:
+
 - Monthly calendar view with employee shifts
 - List view for detailed schedule overview
 - Visual shift type indicators (morning, afternoon, evening, night)
@@ -13,7 +15,9 @@ The main scheduling component featuring:
 - Mobile-first responsive design
 
 ### EmployeeList
+
 Employee management component featuring:
+
 - Grid and list view modes
 - Search and filter by role
 - Employee statistics and information
@@ -21,7 +25,9 @@ Employee management component featuring:
 - Contact information display
 
 ### ShiftAssignment
+
 Modal component for creating and editing shifts featuring:
+
 - Employee selection with visual indicators
 - Shift type presets with time slots
 - Custom time selection
@@ -32,6 +38,7 @@ Modal component for creating and editing shifts featuring:
 ## Features
 
 ### Accessibility
+
 - ARIA labels and descriptions
 - Keyboard navigation support
 - Screen reader friendly
@@ -39,12 +46,14 @@ Modal component for creating and editing shifts featuring:
 - Color contrast compliance
 
 ### Mobile-First Design
+
 - Responsive breakpoints for all screen sizes
 - Touch-friendly interactions
 - Optimized layouts for mobile devices
 - Collapsible navigation and controls
 
 ### Visual Design
+
 - Color-coded employees and shift types
 - Intuitive iconography
 - Clear visual hierarchy
@@ -65,6 +74,7 @@ import { EmployeeScheduling, EmployeeList, ShiftAssignment } from '@/components/
 ## Hardcoded Data
 
 The system includes sample data for demonstration:
+
 - 6 employees with different roles (Manager, Reception, Security, Maintenance, Cleaning)
 - Color-coded roles for easy identification
 - Sample shifts across different types and times

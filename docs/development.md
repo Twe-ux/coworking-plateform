@@ -20,13 +20,14 @@ This guide provides detailed information for developers working on the Coworking
 ### Prerequisites
 
 - **Node.js**: 18.0.0 or later
-- **pnpm**: 8.0.0 or later 
+- **pnpm**: 8.0.0 or later
 - **Docker**: Latest version (optional but recommended)
 - **Git**: Latest version
 
 ### Initial Setup
 
 1. **Clone and install**
+
    ```bash
    git clone <repository-url>
    cd coworking-platform
@@ -34,27 +35,30 @@ This guide provides detailed information for developers working on the Coworking
    ```
 
 2. **Environment configuration**
+
    ```bash
    cp .env.example .env.local
    # Configure your environment variables
    ```
 
 3. **Database setup**
+
    ```bash
    # Using Docker (recommended)
    pnpm db:setup
-   
+
    # Or manually start MongoDB and Redis
    ```
 
 4. **Start development**
+
    ```bash
    # All applications
    pnpm dev
-   
+
    # Or individual apps
    pnpm dev:web
-   pnpm dev:dashboard  
+   pnpm dev:dashboard
    pnpm dev:admin
    pnpm dev:api
    ```
@@ -296,7 +300,7 @@ const UserSchema = new Schema({
   name: { type: String, required: true },
   role: { type: String, enum: ['user', 'owner', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 })
 
 export const User = model('User', UserSchema)
@@ -324,11 +328,11 @@ export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id
     const user = await UserService.findById(userId)
-    
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
-    
+
     logger.info('User profile retrieved', { userId })
     res.json(user)
   } catch (error) {
@@ -357,7 +361,7 @@ describe('GET /api/users/profile', () => {
       .get('/api/users/profile')
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
-    
+
     expect(response.body).toHaveProperty('email')
   })
 })
@@ -457,21 +461,24 @@ The GitHub Actions workflow includes:
 ### Common Issues
 
 1. **Port conflicts**
+
    ```bash
    # Check what's using the port
    lsof -i :3000
-   
+
    # Kill the process
    kill -9 <PID>
    ```
 
 2. **Dependency issues**
+
    ```bash
    # Clean and reinstall
    pnpm reset
    ```
 
 3. **Docker issues**
+
    ```bash
    # Clean Docker environment
    pnpm dev:clean
@@ -501,10 +508,11 @@ The GitHub Actions workflow includes:
    - Set breakpoints in TypeScript files
 
 2. **Console debugging**
+
    ```bash
    # API debugging
    DEBUG=* pnpm dev:api
-   
+
    # Database queries
    MONGOOSE_DEBUG=true pnpm dev:api
    ```

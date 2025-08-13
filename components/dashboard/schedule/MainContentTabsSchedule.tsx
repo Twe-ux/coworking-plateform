@@ -30,7 +30,7 @@ export default function MainContentTabsSchedule({
   userRole?: string
 }) {
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="">
       <TabsList
         className={`grid w-full ${canManageEmployees ? 'grid-cols-2' : 'grid-cols-1'}`}
       >
@@ -46,8 +46,8 @@ export default function MainContentTabsSchedule({
         )}
       </TabsList>
 
-      <TabsContent value="schedule" className="space-y-4">
-        <div className="flex items-center justify-between">
+      <TabsContent value="schedule" className="">
+        {/* <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Gestion des Plannings</h2>
           {canManageEmployees && (
             <Button
@@ -58,7 +58,7 @@ export default function MainContentTabsSchedule({
               Ajouter un créneau
             </Button>
           )}
-        </div>
+        </div> */}
 
         <EmployeeScheduling
           className="w-full"

@@ -8,7 +8,7 @@ import { logSecurityEvent, getRealIP } from '@/lib/auth-utils'
 export async function POST(request: NextRequest) {
   const ip = getRealIP(request)
   const userAgent = request.headers.get('user-agent') || 'unknown'
-  
+
   try {
     // Log de l'action de nettoyage
     await logSecurityEvent({
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       ip,
       userAgent,
       success: true,
-      details: { reason: 'manual_cleanup' }
+      details: { reason: 'manual_cleanup' },
     })
 
     const response = NextResponse.json({
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     ]
 
     // Nettoyer tous les cookies NextAuth
-    cookiesToClear.forEach(cookieName => {
+    cookiesToClear.forEach((cookieName) => {
       response.cookies.set(cookieName, '', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error) {
     console.error('Erreur lors du nettoyage de session:', error)
-    
+
     await logSecurityEvent({
       userId: undefined,
       action: 'SESSION_CLEANUP_ERROR',
@@ -65,9 +65,11 @@ export async function POST(request: NextRequest) {
       ip,
       userAgent,
       success: false,
-      details: { error: error instanceof Error ? error.message : 'unknown_error' }
+      details: {
+        error: error instanceof Error ? error.message : 'unknown_error',
+      },
     })
-    
+
     return NextResponse.json(
       { error: 'Erreur lors du nettoyage de la session' },
       { status: 500 }

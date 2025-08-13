@@ -10,12 +10,16 @@ interface AccessibilityContextType {
   currentFocus: string | null
 }
 
-const AccessibilityContext = createContext<AccessibilityContextType | null>(null)
+const AccessibilityContext = createContext<AccessibilityContextType | null>(
+  null
+)
 
 export const useAccessibility = () => {
   const context = useContext(AccessibilityContext)
   if (!context) {
-    throw new Error('useAccessibility must be used within AccessibilityProvider')
+    throw new Error(
+      'useAccessibility must be used within AccessibilityProvider'
+    )
   }
   return context
 }
@@ -24,19 +28,26 @@ interface AccessibilityProviderProps {
   children: React.ReactNode
 }
 
-export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children }) => {
-  const [announcements, setAnnouncements] = useState<{ id: string; message: string; priority: 'polite' | 'assertive' }[]>([])
+export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
+  children,
+}) => {
+  const [announcements, setAnnouncements] = useState<
+    { id: string; message: string; priority: 'polite' | 'assertive' }[]
+  >([])
   const [currentFocus, setCurrentFocus] = useState<string | null>(null)
   const skipLinkRef = useRef<HTMLAnchorElement>(null)
   const mainContentRef = useRef<HTMLDivElement>(null)
 
-  const announce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+  const announce = (
+    message: string,
+    priority: 'polite' | 'assertive' = 'polite'
+  ) => {
     const id = Math.random().toString(36).substr(2, 9)
-    setAnnouncements(prev => [...prev, { id, message, priority }])
-    
+    setAnnouncements((prev) => [...prev, { id, message, priority }])
+
     // Remove announcement after it's been read
     setTimeout(() => {
-      setAnnouncements(prev => prev.filter(ann => ann.id !== id))
+      setAnnouncements((prev) => prev.filter((ann) => ann.id !== id))
     }, 1000)
   }
 
@@ -68,7 +79,10 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
       // Help shortcut
       if (event.altKey && event.key === 'h') {
         event.preventDefault()
-        announce('Raccourcis disponibles: Alt+S pour aller au contenu, Alt+H pour l\'aide', 'assertive')
+        announce(
+          "Raccourcis disponibles: Alt+S pour aller au contenu, Alt+H pour l'aide",
+          'assertive'
+        )
       }
 
       // Escape to close modals or return to previous step
@@ -78,7 +92,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
           // Let modal handle escape
           return
         }
-        
+
         // Announce escape behavior
         announce('Touche Échap pressée')
       }
@@ -102,14 +116,14 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
   }, [])
 
   return (
-    <AccessibilityContext.Provider 
+    <AccessibilityContext.Provider
       value={{ announce, setFocus, skipToContent, currentFocus }}
     >
       {/* Skip to content link */}
       <a
         ref={skipLinkRef}
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-coffee-primary focus:px-4 focus:py-2 focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-coffee-primary/50"
+        className="focus:bg-coffee-primary focus:ring-coffee-primary/50 sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:px-4 focus:py-2 focus:text-white focus:shadow-lg focus:ring-2 focus:outline-none"
         onClick={(e) => {
           e.preventDefault()
           skipToContent()
@@ -178,21 +192,24 @@ const KeyboardShortcutsHelp: React.FC = () => {
             className="fixed inset-0 z-40 bg-black/50"
             onClick={() => setShowHelp(false)}
           />
-          
+
           {/* Help modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-white p-6 shadow-xl"
+            className="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-white p-6 shadow-xl"
             role="dialog"
             aria-labelledby="shortcuts-title"
             aria-describedby="shortcuts-description"
           >
             <div className="space-y-4">
               <div>
-                <h3 id="shortcuts-title" className="text-lg font-semibold text-coffee-primary">
+                <h3
+                  id="shortcuts-title"
+                  className="text-coffee-primary text-lg font-semibold"
+                >
                   Raccourcis clavier
                 </h3>
                 <p id="shortcuts-description" className="text-sm text-gray-600">
@@ -203,7 +220,9 @@ const KeyboardShortcutsHelp: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Alt + S</span>
-                  <span className="text-sm text-gray-600">Aller au contenu</span>
+                  <span className="text-sm text-gray-600">
+                    Aller au contenu
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Alt + H</span>
@@ -211,7 +230,9 @@ const KeyboardShortcutsHelp: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Échap</span>
-                  <span className="text-sm text-gray-600">Fermer les modales</span>
+                  <span className="text-sm text-gray-600">
+                    Fermer les modales
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Tab</span>
@@ -223,13 +244,15 @@ const KeyboardShortcutsHelp: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Flèches</span>
-                  <span className="text-sm text-gray-600">Navigation dans les groupes</span>
+                  <span className="text-sm text-gray-600">
+                    Navigation dans les groupes
+                  </span>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowHelp(false)}
-                className="w-full rounded-md bg-coffee-primary px-4 py-2 text-white hover:bg-coffee-primary/90 focus:outline-none focus:ring-2 focus:ring-coffee-primary/50"
+                className="bg-coffee-primary hover:bg-coffee-primary/90 focus:ring-coffee-primary/50 w-full rounded-md px-4 py-2 text-white focus:ring-2 focus:outline-none"
                 autoFocus
               >
                 Fermer (Échap)
@@ -245,42 +268,51 @@ const KeyboardShortcutsHelp: React.FC = () => {
 // Hook for form accessibility
 export const useFormAccessibility = () => {
   const { announce } = useAccessibility()
-  
+
   const announceError = (fieldName: string, error: string) => {
     announce(`Erreur sur le champ ${fieldName}: ${error}`, 'assertive')
   }
-  
+
   const announceSuccess = (message: string) => {
     announce(message, 'polite')
   }
-  
+
   const announceFieldChange = (fieldName: string, value: string) => {
     announce(`${fieldName} modifié: ${value}`, 'polite')
   }
-  
+
   return { announceError, announceSuccess, announceFieldChange }
 }
 
 // Hook for step navigation accessibility
 export const useStepAccessibility = () => {
   const { announce, setFocus } = useAccessibility()
-  
-  const announceStepChange = (currentStep: number, totalSteps: number, stepTitle: string) => {
-    announce(`Étape ${currentStep} sur ${totalSteps}: ${stepTitle}`, 'assertive')
+
+  const announceStepChange = (
+    currentStep: number,
+    totalSteps: number,
+    stepTitle: string
+  ) => {
+    announce(
+      `Étape ${currentStep} sur ${totalSteps}: ${stepTitle}`,
+      'assertive'
+    )
   }
-  
+
   const announceValidationError = (errors: string[]) => {
     const errorMessage = `${errors.length} erreur${errors.length > 1 ? 's' : ''} trouvée${errors.length > 1 ? 's' : ''}: ${errors.join(', ')}`
     announce(errorMessage, 'assertive')
   }
-  
+
   const focusFirstError = () => {
-    const errorElement = document.querySelector('[aria-invalid="true"]') as HTMLElement
+    const errorElement = document.querySelector(
+      '[aria-invalid="true"]'
+    ) as HTMLElement
     if (errorElement) {
       errorElement.focus()
     }
   }
-  
+
   return { announceStepChange, announceValidationError, focusFirstError }
 }
 

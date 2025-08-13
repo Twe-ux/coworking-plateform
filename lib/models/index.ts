@@ -22,7 +22,10 @@ export {
 // Types utiles pour les API
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed'
 export type DurationType = 'hour' | 'day' | 'week' | 'month'
-export type SpaceSpecialty = 'Café coworking' | 'Salle privée' | 'Zone silencieuse'
+export type SpaceSpecialty =
+  | 'Café coworking'
+  | 'Salle privée'
+  | 'Zone silencieuse'
 
 // Interface pour les données de création de réservation
 export interface CreateBookingData {

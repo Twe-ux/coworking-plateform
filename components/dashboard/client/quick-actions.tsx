@@ -12,7 +12,7 @@ const actions = [
     icon: Calendar,
     href: '/reservation',
     color: 'bg-blue-500 hover:bg-blue-600',
-    textColor: 'text-white'
+    textColor: 'text-white',
   },
   {
     title: 'Mes réservations',
@@ -20,7 +20,7 @@ const actions = [
     icon: Clock,
     href: '/dashboard/client/bookings',
     color: 'bg-orange-500 hover:bg-orange-600',
-    textColor: 'text-white'
+    textColor: 'text-white',
   },
   {
     title: 'Commande café',
@@ -28,7 +28,7 @@ const actions = [
     icon: Coffee,
     href: '/dashboard/client/orders',
     color: 'bg-amber-500 hover:bg-amber-600',
-    textColor: 'text-white'
+    textColor: 'text-white',
   },
   {
     title: 'Explorer espaces',
@@ -36,13 +36,13 @@ const actions = [
     icon: MapPin,
     href: '/spaces',
     color: 'bg-green-500 hover:bg-green-600',
-    textColor: 'text-white'
-  }
+    textColor: 'text-white',
+  },
 ]
 
 export function QuickActions() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {actions.map((action, index) => (
         <motion.div
           key={action.title}
@@ -52,12 +52,12 @@ export function QuickActions() {
         >
           <Link href={action.href}>
             <Button
-              className={`w-full h-24 flex flex-col items-center justify-center space-y-2 ${action.color} ${action.textColor}`}
+              className={`flex h-24 w-full flex-col items-center justify-center space-y-2 ${action.color} ${action.textColor}`}
               variant="default"
             >
               <action.icon className="h-6 w-6" />
               <div className="text-center">
-                <div className="font-medium text-sm">{action.title}</div>
+                <div className="text-sm font-medium">{action.title}</div>
                 <div className="text-xs opacity-90">{action.description}</div>
               </div>
             </Button>

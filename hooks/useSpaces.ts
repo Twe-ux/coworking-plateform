@@ -110,12 +110,12 @@ export function useSpaceDetails(spaceId: string) {
             ...result.data,
             availability: {
               ...result.data.availability,
-              nextAvailable: new Date(result.data.availability.nextAvailable)
+              nextAvailable: new Date(result.data.availability.nextAvailable),
             },
             reviews: result.data.reviews.map((review: any) => ({
               ...review,
-              date: new Date(review.date)
-            }))
+              date: new Date(review.date),
+            })),
           }
           setSpace(spaceData)
           setError(null)
@@ -123,7 +123,7 @@ export function useSpaceDetails(spaceId: string) {
           setError(result.error)
         }
       } catch (err) {
-        setError('Erreur lors de la récupération des détails de l\'espace')
+        setError("Erreur lors de la récupération des détails de l'espace")
         console.error('Erreur useSpaceDetails:', err)
       } finally {
         setIsLoading(false)

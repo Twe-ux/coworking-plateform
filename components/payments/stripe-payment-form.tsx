@@ -6,23 +6,25 @@ import {
   Elements,
   CardElement,
   useStripe,
-  useElements
+  useElements,
 } from '@stripe/react-stripe-js'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Coffee, 
-  CreditCard, 
-  Lock, 
+import {
+  Coffee,
+  CreditCard,
+  Lock,
   AlertCircle,
   CheckCircle,
-  Loader2 
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 // Configuration Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+)
 
 const CARD_ELEMENT_OPTIONS = {
   style: {
@@ -56,7 +58,13 @@ interface PaymentFormProps {
   onError: (error: string) => void
 }
 
-function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: PaymentFormProps) {
+function PaymentForm({
+  amount,
+  bookingId,
+  bookingDetails,
+  onSuccess,
+  onError,
+}: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -71,24 +79,24 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
         const response = await fetch('/api/payments/create-intent', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             amount: amount * 100, // en centimes
             bookingId,
-            currency: 'eur'
-          })
+            currency: 'eur',
+          }),
         })
 
         const data = await response.json()
-        
+
         if (data.clientSecret) {
           setClientSecret(data.clientSecret)
         } else {
           onError('Erreur lors de la création du paiement')
         }
       } catch (error) {
-        onError('Erreur lors de l\'initialisation du paiement')
+        onError("Erreur lors de l'initialisation du paiement")
       }
     }
 
@@ -99,7 +107,7 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
     event.preventDefault()
 
     if (!stripe || !elements || !clientSecret) {
-      onError('Stripe n\'est pas encore chargé')
+      onError("Stripe n'est pas encore chargé")
       return
     }
 
@@ -115,14 +123,17 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
     }
 
     // Confirmer le paiement
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: 'Client', // Vous pouvez récupérer le nom depuis la session
+    const { error, paymentIntent } = await stripe.confirmCardPayment(
+      clientSecret,
+      {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: 'Client', // Vous pouvez récupérer le nom depuis la session
+          },
         },
       }
-    })
+    )
 
     if (error) {
       setCardError(error.message || 'Une erreur est survenue')
@@ -130,7 +141,7 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
       onSuccess({
         paymentIntent,
-        status: 'succeeded'
+        status: 'succeeded',
       })
     }
   }
@@ -141,27 +152,27 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="mx-auto max-w-md">
       {/* Header avec thème café */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
+        className="mb-6 text-center"
       >
-        <div className="flex justify-center mb-4">
+        <div className="mb-4 flex justify-center">
           <div className="relative">
-            <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-full p-4">
+            <div className="rounded-full bg-gradient-to-r from-amber-100 to-orange-100 p-4">
               <Coffee className="h-8 w-8 text-amber-700" />
             </div>
-            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1">
+            <div className="absolute -top-1 -right-1 rounded-full bg-green-500 p-1">
               <Lock className="h-3 w-3 text-white" />
             </div>
           </div>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <h3 className="mb-2 text-xl font-semibold text-gray-900">
           Paiement sécurisé
         </h3>
-        <p className="text-gray-600 text-sm">
+        <p className="text-sm text-gray-600">
           Propulsé par <strong>Stripe</strong> • Cryptage SSL 256-bit
         </p>
       </motion.div>
@@ -171,16 +182,19 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 mb-6 border border-amber-200"
+        className="mb-6 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4"
       >
         <div className="flex items-center gap-3">
-          <div className="bg-amber-200 rounded-lg p-2">
+          <div className="rounded-lg bg-amber-200 p-2">
             <CreditCard className="h-5 w-5 text-amber-700" />
           </div>
           <div className="flex-1">
-            <h4 className="font-medium text-gray-900">{bookingDetails.spaceName}</h4>
+            <h4 className="font-medium text-gray-900">
+              {bookingDetails.spaceName}
+            </h4>
             <p className="text-sm text-gray-600">
-              {bookingDetails.date} • {bookingDetails.startTime} - {bookingDetails.endTime}
+              {bookingDetails.date} • {bookingDetails.startTime} -{' '}
+              {bookingDetails.endTime}
             </p>
           </div>
           <div className="text-right">
@@ -202,25 +216,29 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
           <label className="block text-sm font-medium text-gray-700">
             Informations de carte
           </label>
-          <div className={cn(
-            "border-2 rounded-lg p-4 transition-colors",
-            cardError ? "border-red-300 bg-red-50" : 
-            cardComplete ? "border-green-300 bg-green-50" : 
-            "border-gray-200 bg-white hover:border-amber-300"
-          )}>
+          <div
+            className={cn(
+              'rounded-lg border-2 p-4 transition-colors',
+              cardError
+                ? 'border-red-300 bg-red-50'
+                : cardComplete
+                  ? 'border-green-300 bg-green-50'
+                  : 'border-gray-200 bg-white hover:border-amber-300'
+            )}
+          >
             <CardElement
               options={CARD_ELEMENT_OPTIONS}
               onChange={handleCardChange}
             />
           </div>
-          
+
           <AnimatePresence>
             {cardError && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 text-red-600 text-sm"
+                className="flex items-center gap-2 text-sm text-red-600"
               >
                 <AlertCircle className="h-4 w-4" />
                 {cardError}
@@ -234,7 +252,7 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 text-green-600 text-sm"
+                className="flex items-center gap-2 text-sm text-green-600"
               >
                 <CheckCircle className="h-4 w-4" />
                 Carte valide
@@ -253,7 +271,7 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
         <Button
           type="submit"
           disabled={!stripe || !clientSecret || !cardComplete || isProcessing}
-          className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+          className="w-full rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:from-amber-700 hover:to-orange-700 hover:shadow-xl"
         >
           {isProcessing ? (
             <div className="flex items-center gap-2">
@@ -269,7 +287,7 @@ function PaymentForm({ amount, bookingId, bookingDetails, onSuccess, onError }: 
         </Button>
 
         {/* Trust indicators */}
-        <div className="flex justify-center items-center gap-4 pt-4 border-t">
+        <div className="flex items-center justify-center gap-4 border-t pt-4">
           <Badge variant="outline" className="text-xs">
             SSL Sécurisé
           </Badge>

@@ -19,20 +19,20 @@ export default defineConfig({
     responseTimeout: 10000,
     env: {
       NEXTAUTH_URL: 'http://localhost:3000',
-      NEXTAUTH_SECRET: 'test-secret-key'
-    }
+      NEXTAUTH_SECRET: 'test-secret-key',
+    },
   },
   component: {
     devServer: {
       framework: 'next',
-      bundler: 'webpack'
+      bundler: 'webpack',
     },
     specPattern: 'cypress/component/**/*.cy.{js,jsx,ts,tsx}',
-    supportFile: 'cypress/support/component.ts'
+    supportFile: 'cypress/support/component.ts',
   },
   // Mobile device configurations
   retries: {
     runMode: 2,
-    openMode: 0
-  }
+    openMode: 0,
+  },
 })

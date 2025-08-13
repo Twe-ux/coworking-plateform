@@ -20,7 +20,7 @@ const registerSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     // Validation des données
     const validatedData = registerSchema.parse(body)
     const { firstName, lastName, email, password } = validatedData
@@ -71,9 +71,9 @@ export async function POST(request: NextRequest) {
       const emailResult = await sendWelcomeEmail({
         email,
         firstName,
-        lastName
+        lastName,
       })
-      
+
       if (!emailResult.success) {
         console.error('Échec envoi email de bienvenue:', emailResult.error)
         // On continue, l'inscription a réussi
@@ -96,13 +96,13 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Erreur registration:', error)
-    
+
     // Erreur de validation
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           message: 'Données invalides',
-          errors: error.errors.map(e => e.message)
+          errors: error.errors.map((e) => e.message),
         },
         { status: 400 }
       )

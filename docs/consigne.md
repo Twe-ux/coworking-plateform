@@ -3,6 +3,7 @@
 ## 🎯 Philosophie du Projet
 
 ### Principes Fondamentaux
+
 1. **Mobile-First Always**: Chaque décision de design part du mobile
 2. **Performance Obsession**: Viser 95+ sur Lighthouse
 3. **Accessibilité Native**: WCAG 2.1 AA minimum
@@ -12,15 +13,17 @@
 ## 📱 Standards Mobile-First
 
 ### Breakpoints
+
 ```scss
 // Mobile First Breakpoints
-$mobile: 0px;      // Default
-$tablet: 768px;    // md:
-$desktop: 1024px;  // lg:
-$wide: 1280px;     // xl:
+$mobile: 0px; // Default
+$tablet: 768px; // md:
+$desktop: 1024px; // lg:
+$wide: 1280px; // xl:
 ```
 
 ### Règles CSS
+
 ```css
 /* ❌ INTERDIT - Desktop First */
 .component {
@@ -40,6 +43,7 @@ $wide: 1280px;     // xl:
 ```
 
 ### Touch Targets
+
 - Minimum 44x44px pour tous les éléments cliquables
 - Espacement minimum 8px entre targets
 - Hover states optionnels (touch first)
@@ -49,6 +53,7 @@ $wide: 1280px;     // xl:
 ### 🚀 Principes de Performance et Modularité
 
 #### Code Splitting Obligatoire
+
 ```typescript
 // ❌ INTERDIT - Import monolithique
 import { BookingSystem } from './booking-system' // 500KB bundle
@@ -56,9 +61,9 @@ import { BookingSystem } from './booking-system' // 500KB bundle
 // ✅ OBLIGATOIRE - Dynamic imports avec code splitting
 const BookingSystem = dynamic(
   () => import('./booking-system').then(mod => mod.BookingSystem),
-  { 
+  {
     loading: () => <BookingSkeleton />,
-    ssr: false 
+    ssr: false
   }
 )
 
@@ -67,6 +72,7 @@ const BookingPage = lazy(() => import('./pages/booking'))
 ```
 
 #### Règles de Code Splitting
+
 1. **Tout composant > 50KB** doit être lazy loaded
 2. **Chaque route** = un bundle séparé
 3. **Modals et overlays** = toujours en dynamic import
@@ -76,22 +82,22 @@ const BookingPage = lazy(() => import('./pages/booking'))
 ```typescript
 // Exemple de splitting intelligent
 // utils/dynamic-imports.ts
-export const loadStripeCheckout = () => 
-  import('@stripe/stripe-js').then(m => m.loadStripe)
+export const loadStripeCheckout = () =>
+  import('@stripe/stripe-js').then((m) => m.loadStripe)
 
 export const loadChartLibrary = () =>
-  import('recharts').then(m => ({
+  import('recharts').then((m) => ({
     LineChart: m.LineChart,
-    BarChart: m.BarChart
+    BarChart: m.BarChart,
   }))
 
-export const loadRichTextEditor = () =>
-  import('@/components/rich-text-editor')
+export const loadRichTextEditor = () => import('@/components/rich-text-editor')
 ```
 
 ### 🔄 Réutilisation Maximale des Composants
 
 #### Architecture Atomique
+
 ```
 components/
 ├── atoms/              # Éléments de base réutilisables
@@ -117,6 +123,7 @@ components/
 ```
 
 #### Patterns de Réutilisation
+
 ```typescript
 // ✅ Composant générique réutilisable
 export const DataTable = <T extends Record<string, any>>({
@@ -136,6 +143,7 @@ export const DataTable = <T extends Record<string, any>>({
 ```
 
 #### Composition over Duplication
+
 ```typescript
 // ❌ INTERDIT - Duplication
 const BookingButton = () => (
@@ -165,25 +173,27 @@ const ActionButton = ({ children, ...props }) => (
 ### 📦 Stratégies de Bundle
 
 #### Configuration Next.js
+
 ```javascript
 // next.config.js
 module.exports = {
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['@/components/ui']
+    optimizePackageImports: ['@/components/ui'],
   },
   modularizeImports: {
     '@/components/ui': {
-      transform: '@/components/ui/{{member}}'
+      transform: '@/components/ui/{{member}}',
     },
-    'lodash': {
-      transform: 'lodash/{{member}}'
-    }
-  }
+    lodash: {
+      transform: 'lodash/{{member}}',
+    },
+  },
 }
 ```
 
 #### Imports Optimisés
+
 ```typescript
 // ❌ INTERDIT - Import total
 import _ from 'lodash'
@@ -197,12 +207,14 @@ import { Calendar, User, Settings } from 'lucide-react'
 ### 🎯 Métriques de Performance
 
 Chaque composant doit respecter :
+
 - **First Load JS**: < 85KB par route
 - **Largest Contentful Paint**: < 2.5s
 - **Time to Interactive**: < 3.5s
 - **Bundle Size Growth**: < 5KB par feature
 
 ### Structure des Composants
+
 ```typescript
 // ✅ Structure standard d'un composant
 import { FC } from 'react'
@@ -230,23 +242,25 @@ ComponentName.displayName = 'ComponentName'
 ```
 
 ### Conventions de Nommage
+
 ```typescript
 // Fichiers et dossiers
-components/booking-calendar.tsx  // kebab-case
-hooks/use-booking.ts            // kebab-case avec préfixe use-
-utils/format-date.ts            // kebab-case
+components / booking - calendar.tsx // kebab-case
+hooks / use - booking.ts // kebab-case avec préfixe use-
+utils / format - date.ts // kebab-case
 
 // Composants React
-BookingCalendar                 // PascalCase
-useBooking                      // camelCase pour hooks
-formatDate                      // camelCase pour fonctions
+BookingCalendar // PascalCase
+useBooking // camelCase pour hooks
+formatDate // camelCase pour fonctions
 
 // Variables et constantes
-const MAX_BOOKING_DAYS = 30     // SCREAMING_SNAKE_CASE pour constantes
-const bookingData = {}          // camelCase pour variables
+const MAX_BOOKING_DAYS = 30 // SCREAMING_SNAKE_CASE pour constantes
+const bookingData = {} // camelCase pour variables
 ```
 
 ### Imports Organization
+
 ```typescript
 // 1. React/Next imports
 import { useState, useEffect } from 'react'
@@ -271,6 +285,7 @@ import type { Booking } from '@/types'
 ## 🔒 Sécurité
 
 ### Validation des Données
+
 ```typescript
 // ✅ TOUJOURS valider côté serveur
 import { z } from 'zod'
@@ -279,34 +294,29 @@ const bookingSchema = z.object({
   date: z.string().datetime(),
   duration: z.number().min(30).max(480),
   spaceId: z.string().uuid(),
-  userId: z.string().uuid()
+  userId: z.string().uuid(),
 })
 
 // API Route
 export async function POST(req: Request) {
   const body = await req.json()
-  
+
   // Validation
   const validated = bookingSchema.safeParse(body)
   if (!validated.success) {
-    return NextResponse.json(
-      { error: validated.error },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: validated.error }, { status: 400 })
   }
-  
+
   // Vérification des permissions
   const session = await getServerSession()
   if (!session) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 }
 ```
 
 ### Gestion des Secrets
+
 ```bash
 # .env.local
 # ❌ JAMAIS de secrets dans le code
@@ -322,6 +332,7 @@ NEXT_PUBLIC_*  # Variables publiques (client-side)
 ## 🎨 UI/UX Standards
 
 ### Composants shadcn/ui
+
 ```typescript
 // ✅ Toujours étendre les composants shadcn/ui
 import { Button as BaseButton } from '@/components/ui/button'
@@ -339,20 +350,22 @@ export const Button = ({ loading, ...props }) => {
 ```
 
 ### États de Chargement
+
 ```typescript
 // ✅ Pattern standard pour les états
 const Component = () => {
   const { data, error, isLoading } = useQuery()
-  
+
   if (isLoading) return <Skeleton />
   if (error) return <ErrorBoundary error={error} />
   if (!data) return <EmptyState />
-  
+
   return <Content data={data} />
 }
 ```
 
 ### Animations
+
 ```css
 /* Utiliser les transitions CSS pour les animations simples */
 .component {
@@ -365,6 +378,7 @@ const Component = () => {
 ## 📊 Performance
 
 ### Images
+
 ```typescript
 // ✅ Toujours utiliser Next Image
 import Image from 'next/image'
@@ -381,6 +395,7 @@ import Image from 'next/image'
 ```
 
 ### Code Splitting
+
 ```typescript
 // ✅ Lazy loading pour les gros composants
 const HeavyComponent = dynamic(
@@ -393,10 +408,10 @@ const HeavyComponent = dynamic(
 ```
 
 ### Optimisation MongoDB
+
 ```typescript
 // ✅ Toujours utiliser les projections
-const bookings = await Booking
-  .find({ userId })
+const bookings = await Booking.find({ userId })
   .select('date spaceId status') // Seulement les champs nécessaires
   .limit(10)
   .lean() // Pour des objets JS simples
@@ -405,20 +420,21 @@ const bookings = await Booking
 ## 🧪 Standards de Test
 
 ### Structure des Tests
+
 ```typescript
 // component.test.tsx
 describe('ComponentName', () => {
   it('should render correctly', () => {
     // Arrange
     const props = { ... }
-    
+
     // Act
     render(<Component {...props} />)
-    
+
     // Assert
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
-  
+
   it('should handle user interaction', async () => {
     // Test des interactions
   })
@@ -426,6 +442,7 @@ describe('ComponentName', () => {
 ```
 
 ### Coverage Minimum
+
 - Composants critiques: 90%
 - API routes: 85%
 - Utils/Helpers: 95%
@@ -434,6 +451,7 @@ describe('ComponentName', () => {
 ## 🚀 Git Workflow
 
 ### Branches
+
 ```bash
 main              # Production
 develop           # Development
@@ -443,6 +461,7 @@ hotfix/*         # Fixes urgents prod
 ```
 
 ### Commits
+
 ```bash
 # Format Conventional Commits
 feat: add booking calendar component
@@ -455,25 +474,31 @@ chore: update dependencies
 ```
 
 ### Pull Requests
+
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests pass
 - [ ] E2E tests pass
 - [ ] Manual testing completed
 
 ## Screenshots
+
 (if applicable)
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Comments added for complex logic
@@ -484,6 +509,7 @@ Brief description of changes
 ## 📝 Documentation
 
 ### Code Comments
+
 ```typescript
 /**
  * Calcule le prix total d'une réservation
@@ -498,7 +524,9 @@ function calculateTotalPrice(booking: Booking, addOns: AddOn[]): number {
 ```
 
 ### README Standards
+
 Chaque module doit avoir un README avec :
+
 - Description
 - Installation
 - Configuration
@@ -509,11 +537,13 @@ Chaque module doit avoir un README avec :
 ## ⚡ Checklist Quotidienne
 
 ### Avant de Commencer
+
 - [ ] Pull latest from develop
 - [ ] Vérifier les issues assignées
 - [ ] Lire les updates du sprint
 
 ### Avant de Commit
+
 - [ ] Prettier executé
 - [ ] ESLint sans erreurs
 - [ ] Tests passent
@@ -521,6 +551,7 @@ Chaque module doit avoir un README avec :
 - [ ] Mobile-first vérifié
 
 ### Avant la PR
+
 - [ ] Self-review complète
 - [ ] Documentation à jour
 - [ ] Screenshots si UI
@@ -543,6 +574,7 @@ Chaque module doit avoir un README avec :
 ## 💡 Best Practices Spécifiques
 
 ### Gestion des Erreurs
+
 ```typescript
 // ✅ Toujours avoir une stratégie d'erreur
 try {
@@ -550,33 +582,35 @@ try {
 } catch (error) {
   // Log pour monitoring
   logger.error('Operation failed', { error, context })
-  
+
   // Feedback utilisateur
   toast.error('Une erreur est survenue')
-  
+
   // Recovery si possible
   await fallbackOperation()
 }
 ```
 
 ### Internationalisation Ready
+
 ```typescript
 // Préparer pour i18n même si monolangue
 const messages = {
   booking: {
     success: 'Réservation confirmée',
-    error: 'Erreur lors de la réservation'
-  }
+    error: 'Erreur lors de la réservation',
+  },
 }
 ```
 
 ### Monitoring & Analytics
+
 ```typescript
 // Track des événements importants
 analytics.track('booking_completed', {
   spaceType: booking.space.type,
   duration: booking.duration,
-  value: booking.totalPrice
+  value: booking.totalPrice,
 })
 ```
 

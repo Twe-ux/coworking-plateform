@@ -19,7 +19,7 @@ export function MobileTest() {
 
   // Debug touch events
   const addTouchEvent = (event: string) => {
-    setTouchEvents(prev => [...prev.slice(-4), event])
+    setTouchEvents((prev) => [...prev.slice(-4), event])
   }
 
   React.useEffect(() => {
@@ -45,7 +45,7 @@ export function MobileTest() {
 
   if (!isMobile) {
     return (
-      <div className="hidden md:block p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="hidden rounded-lg border border-yellow-200 bg-yellow-50 p-4 md:block">
         <p className="text-sm text-yellow-800">
           Mobile test component - only visible on mobile devices
         </p>
@@ -54,9 +54,9 @@ export function MobileTest() {
   }
 
   return (
-    <div className="md:hidden fixed bottom-20 left-4 right-4 z-50 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
-      <h3 className="font-semibold text-sm mb-3">Mobile Debug Panel</h3>
-      
+    <div className="fixed right-4 bottom-20 left-4 z-50 rounded-lg border border-gray-200 bg-white p-4 shadow-lg md:hidden">
+      <h3 className="mb-3 text-sm font-semibold">Mobile Debug Panel</h3>
+
       <div className="space-y-2 text-xs">
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -75,7 +75,7 @@ export function MobileTest() {
 
         <div>
           <strong>Recent Touch Events:</strong>
-          <div className="bg-gray-50 p-2 rounded text-xs font-mono">
+          <div className="rounded bg-gray-50 p-2 font-mono text-xs">
             {touchEvents.map((event, i) => (
               <div key={i}>{event}</div>
             ))}
@@ -83,15 +83,11 @@ export function MobileTest() {
         </div>
 
         <div className="flex gap-2">
-          <Button 
-            size="sm" 
-            onClick={toggleSidebar}
-            className="flex-1"
-          >
+          <Button size="sm" onClick={toggleSidebar} className="flex-1">
             Toggle Sidebar
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             onClick={() => setOpenMobile(!openMobile)}
             className="flex-1"
@@ -101,7 +97,9 @@ export function MobileTest() {
         </div>
 
         <div className="text-xs text-gray-600">
-          <p><strong>Test Gestures:</strong></p>
+          <p>
+            <strong>Test Gestures:</strong>
+          </p>
           <p>• Swipe right from left edge to open</p>
           <p>• Swipe left on sidebar to close</p>
           <p>• Tap overlay to close</p>
@@ -131,13 +129,13 @@ export function MobilePerformanceMonitor() {
     const measureFPS = () => {
       frameCount++
       const currentTime = Date.now()
-      
+
       if (currentTime - startTime >= 1000) {
         setFps(Math.round((frameCount * 1000) / (currentTime - startTime)))
         frameCount = 0
         startTime = currentTime
       }
-      
+
       animationFrame = requestAnimationFrame(measureFPS)
     }
 
@@ -169,7 +167,7 @@ export function MobilePerformanceMonitor() {
   if (!isMobile) return null
 
   return (
-    <div className="md:hidden fixed top-4 right-4 z-50 p-2 bg-black/80 text-white text-xs rounded">
+    <div className="fixed top-4 right-4 z-50 rounded bg-black/80 p-2 text-xs text-white md:hidden">
       <div>FPS: {fps}</div>
       <div>Touch: {touchLatency}ms</div>
     </div>

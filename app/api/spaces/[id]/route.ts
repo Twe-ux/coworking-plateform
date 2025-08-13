@@ -16,13 +16,16 @@ export async function GET(
     const spaceId = params.id
 
     // Récupérer l'espace par son ID personnalisé
-    const space: any = await Space.findOne({ id: spaceId, available: true }).lean()
+    const space: any = await Space.findOne({
+      id: spaceId,
+      available: true,
+    }).lean()
 
     if (!space) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Espace non trouvé ou indisponible' 
+        {
+          success: false,
+          error: 'Espace non trouvé ou indisponible',
         },
         { status: 404 }
       )
@@ -36,23 +39,27 @@ export async function GET(
           _id: null,
           totalBookings: { $sum: 1 },
           avgRating: { $avg: '$rating' }, // Si vous avez un système de notation
-          totalRevenue: { $sum: '$totalPrice' }
-        }
-      }
+          totalRevenue: { $sum: '$totalPrice' },
+        },
+      },
     ])
 
-    const stats = bookingStats[0] || { totalBookings: 0, avgRating: space.rating, totalRevenue: 0 }
+    const stats = bookingStats[0] || {
+      totalBookings: 0,
+      avgRating: space.rating,
+      totalRevenue: 0,
+    }
 
     // Récupérer les avis récents (si vous avez un système d'avis)
-    const recentBookings = await Booking.find({ 
-      spaceName: space.name, 
+    const recentBookings = await Booking.find({
+      spaceName: space.name,
       status: 'confirmed',
-      review: { $exists: true } // Si vous stockez les avis dans les réservations
+      review: { $exists: true }, // Si vous stockez les avis dans les réservations
     })
-    .populate('user', 'firstName lastName')
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .lean()
+      .populate('user', 'firstName lastName')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean()
 
     // Formater les données complètes pour les détails
     const spaceDetails = {
@@ -73,7 +80,7 @@ export async function GET(
         icon: 'Wifi', // Vous pouvez mapper les icônes selon les features
         name: feature,
         description: feature,
-        included: true
+        included: true,
       })),
       amenities: space.amenities || [],
       rules: [
@@ -81,11 +88,11 @@ export async function GET(
         'Silence demandé après 18h',
         `Maximum ${space.capacity} personnes simultanément`,
         'Réservation requise',
-        'Nettoyage après usage obligatoire'
+        'Nettoyage après usage obligatoire',
       ],
       availability: {
         today: true, // Vous pouvez implémenter une logique plus sophistiquée
-        nextAvailable: new Date()
+        nextAvailable: new Date(),
       },
       reviews: recentBookings.map((booking: any) => ({
         id: booking._id?.toString() || booking.id,
@@ -93,29 +100,28 @@ export async function GET(
         rating: booking.rating || 5,
         comment: booking.review || 'Très bel espace !',
         date: booking.createdAt,
-        verified: true
+        verified: true,
       })),
       coordinates: {
         lat: 48.5734, // Coordonnées par défaut, vous pouvez les ajouter au modèle
-        lng: 7.7521
+        lng: 7.7521,
       },
       openingHours: space.openingHours,
       specialty: space.specialty,
-      isPopular: space.isPopular
+      isPopular: space.isPopular,
     }
 
     return NextResponse.json({
       success: true,
-      data: spaceDetails
+      data: spaceDetails,
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API Space détails:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la récupération des détails de l\'espace',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la récupération des détails de l'espace",
+        details: error.message,
       },
       { status: 500 }
     )

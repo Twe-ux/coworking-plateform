@@ -13,18 +13,18 @@ interface DashboardCardProps {
   variant?: 'default' | 'primary' | 'outline'
 }
 
-export function DashboardCard({ 
-  title, 
-  description, 
-  children, 
-  className = '', 
+export function DashboardCard({
+  title,
+  description,
+  children,
+  className = '',
   icon: Icon,
-  variant = 'default' 
+  variant = 'default',
 }: DashboardCardProps) {
   const variants = {
     default: 'bg-white border border-gray-200',
     primary: 'bg-orange-50 border border-orange-200',
-    outline: 'bg-transparent border border-gray-300'
+    outline: 'bg-transparent border border-gray-300',
   }
 
   return (
@@ -35,9 +35,13 @@ export function DashboardCard({
     >
       <div className="flex items-start space-x-3">
         {Icon && (
-          <div className={`flex-shrink-0 p-2 rounded-lg ${
-            variant === 'primary' ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
-          }`}>
+          <div
+            className={`flex-shrink-0 rounded-lg p-2 ${
+              variant === 'primary'
+                ? 'bg-orange-100 text-orange-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
             <Icon className="h-5 w-5" />
           </div>
         )}
@@ -46,9 +50,7 @@ export function DashboardCard({
           {description && (
             <p className="mt-1 text-sm text-gray-500">{description}</p>
           )}
-          {children && (
-            <div className="mt-4">{children}</div>
-          )}
+          {children && <div className="mt-4">{children}</div>}
         </div>
       </div>
     </motion.div>

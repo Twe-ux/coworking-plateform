@@ -86,7 +86,7 @@ export default function ClientDashboard() {
         // Fetch bookings and stats in parallel
         const [bookingsResponse, statsResponse] = await Promise.all([
           fetch('/api/bookings'),
-          fetch('/api/bookings/stats')
+          fetch('/api/bookings/stats'),
         ])
 
         const bookingsData = await bookingsResponse.json()
@@ -94,7 +94,8 @@ export default function ClientDashboard() {
 
         if (!bookingsResponse.ok) {
           throw new Error(
-            bookingsData.error || 'Erreur lors de la récupération des réservations'
+            bookingsData.error ||
+              'Erreur lors de la récupération des réservations'
           )
         }
 
@@ -284,10 +285,11 @@ export default function ClientDashboard() {
               {
                 title: 'Réservations Actives',
                 value: displayStats.activeBookings || displayStats.active,
-                change: statsLoading ? 'Chargement...' : 
-                       stats?.thisMonth?.changeFromLastMonth 
-                         ? `${stats.thisMonth.changeFromLastMonth > 0 ? '+' : ''}${stats.thisMonth.changeFromLastMonth.toFixed(0)}% ce mois`
-                         : 'À venir',
+                change: statsLoading
+                  ? 'Chargement...'
+                  : stats?.thisMonth?.changeFromLastMonth
+                    ? `${stats.thisMonth.changeFromLastMonth > 0 ? '+' : ''}${stats.thisMonth.changeFromLastMonth.toFixed(0)}% ce mois`
+                    : 'À venir',
                 icon: Calendar,
                 gradient: 'from-blue-500 to-cyan-500',
                 bgGradient: 'from-blue-50 to-cyan-50',
@@ -303,10 +305,11 @@ export default function ClientDashboard() {
               {
                 title: 'Ce Mois-ci',
                 value: stats?.thisMonth?.bookings || displayStats.thisMonth,
-                change: statsLoading ? 'Chargement...' : 
-                       stats?.thisMonth?.spent 
-                         ? `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.thisMonth.spent)} dépensé`
-                         : 'Aucune dépense',
+                change: statsLoading
+                  ? 'Chargement...'
+                  : stats?.thisMonth?.spent
+                    ? `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.thisMonth.spent)} dépensé`
+                    : 'Aucune dépense',
                 icon: TrendingUp,
                 gradient: 'from-green-500 to-emerald-500',
                 bgGradient: 'from-green-50 to-emerald-50',
@@ -314,9 +317,9 @@ export default function ClientDashboard() {
               {
                 title: 'Total Heures',
                 value: Math.round(displayStats.totalHoursSpent || 0),
-                change: stats?.overview?.averageSessionDuration 
-                         ? `Moy. ${stats.overview.averageSessionDuration.toFixed(1)}h/session`
-                         : "Temps passé",
+                change: stats?.overview?.averageSessionDuration
+                  ? `Moy. ${stats.overview.averageSessionDuration.toFixed(1)}h/session`
+                  : 'Temps passé',
                 icon: Users,
                 gradient: 'from-purple-500 to-pink-500',
                 bgGradient: 'from-purple-50 to-pink-50',
@@ -540,7 +543,8 @@ export default function ClientDashboard() {
                               {favorite.space.name}
                             </span>
                             <p className="text-xs text-gray-600">
-                              {favorite.bookingCount} réservation{favorite.bookingCount > 1 ? 's' : ''}
+                              {favorite.bookingCount} réservation
+                              {favorite.bookingCount > 1 ? 's' : ''}
                             </p>
                           </div>
                         </div>
@@ -548,7 +552,7 @@ export default function ClientDashboard() {
                           <div className="text-xs font-medium text-gray-900">
                             {new Intl.NumberFormat('fr-FR', {
                               style: 'currency',
-                              currency: 'EUR'
+                              currency: 'EUR',
                             }).format(favorite.totalSpent)}
                           </div>
                           <div className="text-xs text-gray-600">
@@ -588,19 +592,21 @@ export default function ClientDashboard() {
                         <div className="text-2xl font-bold text-gray-900">
                           {new Intl.NumberFormat('fr-FR', {
                             style: 'currency',
-                            currency: 'EUR'
+                            currency: 'EUR',
                           }).format(stats?.overview?.totalSpent || 0)}
                         </div>
                         <p className="text-sm text-gray-600">Total dépensé</p>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-4 text-center">
                         <div>
                           <div className="text-lg font-semibold text-blue-600">
                             {new Intl.NumberFormat('fr-FR', {
                               style: 'currency',
-                              currency: 'EUR'
-                            }).format(stats?.overview?.averageBookingPrice || 0)}
+                              currency: 'EUR',
+                            }).format(
+                              stats?.overview?.averageBookingPrice || 0
+                            )}
                           </div>
                           <p className="text-xs text-gray-500">Prix moyen</p>
                         </div>
@@ -608,7 +614,7 @@ export default function ClientDashboard() {
                           <div className="text-lg font-semibold text-green-600">
                             {new Intl.NumberFormat('fr-FR', {
                               style: 'currency',
-                              currency: 'EUR'
+                              currency: 'EUR',
                             }).format(stats?.thisMonth?.spent || 0)}
                           </div>
                           <p className="text-xs text-gray-500">Ce mois</p>
@@ -641,41 +647,60 @@ export default function ClientDashboard() {
                       ))}
                     </div>
                   ) : bookings.length > 0 ? (
-                    bookings
-                      .slice(0, 3)
-                      .map((booking, index) => {
-                        const isRecent = new Date(booking.createdAt).getTime() > Date.now() - 24 * 60 * 60 * 1000 // 24h
-                        const statusColor = 
-                          booking.status === 'confirmed' ? 'green' :
-                          booking.status === 'pending' ? 'blue' :
-                          booking.status === 'payment_pending' ? 'amber' : 'red'
-                        
-                        return (
-                          <div key={booking.id} className="flex items-start space-x-3">
-                            <div
-                              className={`mt-2 h-2 w-2 rounded-full ${
-                                statusColor === 'green' ? 'bg-green-500' :
-                                statusColor === 'blue' ? 'bg-blue-500' :
-                                statusColor === 'amber' ? 'bg-amber-500' : 'bg-red-500'
-                              }`}
-                            />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">
-                                {booking.status === 'confirmed' && 'Réservation confirmée'}
-                                {booking.status === 'pending' && 'Réservation en attente'}
-                                {booking.status === 'payment_pending' && 'Paiement en attente'}
-                                {booking.status === 'cancelled' && 'Réservation annulée'}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                {booking.space.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {format(parseISO(booking.createdAt), 'd MMM yyyy', { locale: fr })}
-                              </p>
-                            </div>
+                    bookings.slice(0, 3).map((booking, index) => {
+                      const isRecent =
+                        new Date(booking.createdAt).getTime() >
+                        Date.now() - 24 * 60 * 60 * 1000 // 24h
+                      const statusColor =
+                        booking.status === 'confirmed'
+                          ? 'green'
+                          : booking.status === 'pending'
+                            ? 'blue'
+                            : booking.status === 'payment_pending'
+                              ? 'amber'
+                              : 'red'
+
+                      return (
+                        <div
+                          key={booking.id}
+                          className="flex items-start space-x-3"
+                        >
+                          <div
+                            className={`mt-2 h-2 w-2 rounded-full ${
+                              statusColor === 'green'
+                                ? 'bg-green-500'
+                                : statusColor === 'blue'
+                                  ? 'bg-blue-500'
+                                  : statusColor === 'amber'
+                                    ? 'bg-amber-500'
+                                    : 'bg-red-500'
+                            }`}
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {booking.status === 'confirmed' &&
+                                'Réservation confirmée'}
+                              {booking.status === 'pending' &&
+                                'Réservation en attente'}
+                              {booking.status === 'payment_pending' &&
+                                'Paiement en attente'}
+                              {booking.status === 'cancelled' &&
+                                'Réservation annulée'}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {booking.space.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {format(
+                                parseISO(booking.createdAt),
+                                'd MMM yyyy',
+                                { locale: fr }
+                              )}
+                            </p>
                           </div>
-                        )
-                      })
+                        </div>
+                      )
+                    })
                   ) : (
                     <div className="py-4 text-center">
                       <Activity className="mx-auto mb-2 h-8 w-8 text-blue-300" />

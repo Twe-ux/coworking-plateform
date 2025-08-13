@@ -15,7 +15,7 @@ import { fr } from 'date-fns/locale'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -35,7 +35,11 @@ export async function POST(request: NextRequest) {
     await connectMongoose()
 
     const body = await request.json()
-    const { period = '30d', type = 'revenue', format: exportFormat = 'excel' } = body
+    const {
+      period = '30d',
+      type = 'revenue',
+      format: exportFormat = 'excel',
+    } = body
 
     // Calculer les dates
     const endDate = new Date()
@@ -68,30 +72,30 @@ export async function POST(request: NextRequest) {
       const revenueData = await Booking.aggregate([
         {
           $match: {
-            date: { $gte: startDate, $lte: endDate }
-          }
+            date: { $gte: startDate, $lte: endDate },
+          },
         },
         {
           $lookup: {
             from: 'users',
             localField: 'userId',
             foreignField: '_id',
-            as: 'user'
-          }
+            as: 'user',
+          },
         },
         {
           $lookup: {
             from: 'spaces',
             localField: 'spaceId',
             foreignField: '_id',
-            as: 'space'
-          }
+            as: 'space',
+          },
         },
         {
-          $unwind: '$user'
+          $unwind: '$user',
         },
         {
-          $unwind: '$space'
+          $unwind: '$space',
         },
         {
           $project: {
@@ -105,43 +109,44 @@ export async function POST(request: NextRequest) {
             Statut: '$status',
             'Prix (€)': '$totalPrice',
             'Mode paiement': '$paymentMethod',
-            'Créé le': { $dateToString: { format: '%d/%m/%Y %H:%M', date: '$createdAt' } }
-          }
+            'Créé le': {
+              $dateToString: { format: '%d/%m/%Y %H:%M', date: '$createdAt' },
+            },
+          },
         },
         {
-          $sort: { date: -1 }
-        }
+          $sort: { date: -1 },
+        },
       ])
 
       data = revenueData
       fileName = `rapport-revenus-${period}`
       sheetName = 'Rapport Revenus'
-
     } else if (type === 'occupancy') {
       // Export de l'occupation
       const occupancyData = await Booking.aggregate([
         {
           $match: {
             date: { $gte: startDate, $lte: endDate },
-            status: { $in: ['confirmed', 'completed'] }
-          }
+            status: { $in: ['confirmed', 'completed'] },
+          },
         },
         {
           $lookup: {
             from: 'spaces',
             localField: 'spaceId',
             foreignField: '_id',
-            as: 'space'
-          }
+            as: 'space',
+          },
         },
         {
-          $unwind: '$space'
+          $unwind: '$space',
         },
         {
           $group: {
             _id: {
               spaceId: '$spaceId',
-              date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } }
+              date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
             },
             spaceName: { $first: '$space.name' },
             capacity: { $first: '$space.capacity' },
@@ -155,34 +160,24 @@ export async function POST(request: NextRequest) {
                       {
                         $dateFromString: {
                           dateString: {
-                            $concat: [
-                              '$_id.date',
-                              'T',
-                              '$endTime',
-                              ':00'
-                            ]
-                          }
-                        }
+                            $concat: ['$_id.date', 'T', '$endTime', ':00'],
+                          },
+                        },
                       },
                       {
                         $dateFromString: {
                           dateString: {
-                            $concat: [
-                              '$_id.date',
-                              'T',
-                              '$startTime',
-                              ':00'
-                            ]
-                          }
-                        }
-                      }
-                    ]
+                            $concat: ['$_id.date', 'T', '$startTime', ':00'],
+                          },
+                        },
+                      },
+                    ],
                   },
-                  3600000 // convertir en heures
-                ]
-              }
-            }
-          }
+                  3600000, // convertir en heures
+                ],
+              },
+            },
+          },
         },
         {
           $addFields: {
@@ -190,118 +185,139 @@ export async function POST(request: NextRequest) {
             occupancyRate: {
               $multiply: [
                 { $divide: ['$totalHours', 12] }, // 12h d'ouverture par jour
-                100
-              ]
+                100,
+              ],
             },
             capacityUtilization: {
               $multiply: [
-                { $divide: ['$totalGuests', { $multiply: ['$capacity', '$totalBookings'] }] },
-                100
-              ]
-            }
-          }
+                {
+                  $divide: [
+                    '$totalGuests',
+                    { $multiply: ['$capacity', '$totalBookings'] },
+                  ],
+                },
+                100,
+              ],
+            },
+          },
         },
         {
           $project: {
-            Date: { $dateToString: { format: '%d/%m/%Y', date: { $dateFromString: { dateString: '$date' } } } },
+            Date: {
+              $dateToString: {
+                format: '%d/%m/%Y',
+                date: { $dateFromString: { dateString: '$date' } },
+              },
+            },
             Espace: '$spaceName',
             'Capacité max': '$capacity',
             Réservations: '$totalBookings',
             'Total invités': '$totalGuests',
             'Heures réservées': { $round: ['$totalHours', 2] },
             'Taux occupation (%)': { $round: ['$occupancyRate', 1] },
-            'Utilisation capacité (%)': { $round: ['$capacityUtilization', 1] }
-          }
+            'Utilisation capacité (%)': { $round: ['$capacityUtilization', 1] },
+          },
         },
         {
-          $sort: { Date: -1, Espace: 1 }
-        }
+          $sort: { Date: -1, Espace: 1 },
+        },
       ])
 
       data = occupancyData
       fileName = `rapport-occupation-${period}`
       sheetName = 'Rapport Occupation'
-
     } else if (type === 'complete') {
       // Export complet - plusieurs feuilles
-      const [revenueData, occupancyData, usersData, spacesData] = await Promise.all([
-        // Revenus
-        Booking.aggregate([
-          {
-            $match: {
-              date: { $gte: startDate, $lte: endDate }
-            }
-          },
-          {
-            $group: {
-              _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-              totalRevenue: {
-                $sum: {
-                  $cond: [{ $ne: ['$status', 'cancelled'] }, '$totalPrice', 0]
-                }
+      const [revenueData, occupancyData, usersData, spacesData] =
+        await Promise.all([
+          // Revenus
+          Booking.aggregate([
+            {
+              $match: {
+                date: { $gte: startDate, $lte: endDate },
               },
-              totalBookings: { $sum: 1 },
-              confirmedBookings: {
-                $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] }
-              }
-            }
-          },
-          {
-            $project: {
-              Date: { $dateToString: { format: '%d/%m/%Y', date: { $dateFromString: { dateString: '$_id' } } } },
-              'Revenus (€)': '$totalRevenue',
-              'Réservations totales': '$totalBookings',
-              'Réservations confirmées': '$confirmedBookings'
-            }
-          },
-          { $sort: { Date: -1 } }
-        ]),
+            },
+            {
+              $group: {
+                _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                totalRevenue: {
+                  $sum: {
+                    $cond: [
+                      { $ne: ['$status', 'cancelled'] },
+                      '$totalPrice',
+                      0,
+                    ],
+                  },
+                },
+                totalBookings: { $sum: 1 },
+                confirmedBookings: {
+                  $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] },
+                },
+              },
+            },
+            {
+              $project: {
+                Date: {
+                  $dateToString: {
+                    format: '%d/%m/%Y',
+                    date: { $dateFromString: { dateString: '$_id' } },
+                  },
+                },
+                'Revenus (€)': '$totalRevenue',
+                'Réservations totales': '$totalBookings',
+                'Réservations confirmées': '$confirmedBookings',
+              },
+            },
+            { $sort: { Date: -1 } },
+          ]),
 
-        // Occupation par espace
-        Booking.aggregate([
-          {
-            $match: {
-              date: { $gte: startDate, $lte: endDate },
-              status: { $in: ['confirmed', 'completed'] }
-            }
-          },
-          {
-            $lookup: {
-              from: 'spaces',
-              localField: 'spaceId',
-              foreignField: '_id',
-              as: 'space'
-            }
-          },
-          {
-            $unwind: '$space'
-          },
-          {
-            $group: {
-              _id: '$spaceId',
-              spaceName: { $first: '$space.name' },
-              totalBookings: { $sum: 1 },
-              totalRevenue: { $sum: '$totalPrice' }
-            }
-          },
-          {
-            $project: {
-              Espace: '$spaceName',
-              'Réservations': '$totalBookings',
-              'Revenus (€)': '$totalRevenue'
-            }
-          },
-          { $sort: { 'Revenus (€)': -1 } }
-        ]),
+          // Occupation par espace
+          Booking.aggregate([
+            {
+              $match: {
+                date: { $gte: startDate, $lte: endDate },
+                status: { $in: ['confirmed', 'completed'] },
+              },
+            },
+            {
+              $lookup: {
+                from: 'spaces',
+                localField: 'spaceId',
+                foreignField: '_id',
+                as: 'space',
+              },
+            },
+            {
+              $unwind: '$space',
+            },
+            {
+              $group: {
+                _id: '$spaceId',
+                spaceName: { $first: '$space.name' },
+                totalBookings: { $sum: 1 },
+                totalRevenue: { $sum: '$totalPrice' },
+              },
+            },
+            {
+              $project: {
+                Espace: '$spaceName',
+                Réservations: '$totalBookings',
+                'Revenus (€)': '$totalRevenue',
+              },
+            },
+            { $sort: { 'Revenus (€)': -1 } },
+          ]),
 
-        // Utilisateurs actifs
-        User.find({
-          createdAt: { $gte: startDate, $lte: endDate }
-        }).select('firstName lastName email role createdAt').lean(),
+          // Utilisateurs actifs
+          User.find({
+            createdAt: { $gte: startDate, $lte: endDate },
+          })
+            .select('firstName lastName email role createdAt')
+            .lean(),
 
-        // Espaces
-        Space.find({}).select('name capacity pricePerHour').lean()
-      ])
+          // Espaces
+          Space.find({}).select('name capacity pricePerHour').lean(),
+        ])
 
       // Créer un workbook avec plusieurs feuilles
       const workbook = XLSX.utils.book_new()
@@ -320,43 +336,56 @@ export async function POST(request: NextRequest) {
 
       // Feuille Nouveaux utilisateurs
       if (usersData.length > 0) {
-        const formattedUsers = usersData.map(user => ({
+        const formattedUsers = usersData.map((user) => ({
           Prénom: user.firstName || '',
           Nom: user.lastName || '',
           Email: user.email,
           Rôle: user.role,
-          'Date inscription': format(new Date(user.createdAt), 'dd/MM/yyyy', { locale: fr })
+          'Date inscription': format(new Date(user.createdAt), 'dd/MM/yyyy', {
+            locale: fr,
+          }),
         }))
         const usersSheet = XLSX.utils.json_to_sheet(formattedUsers)
-        XLSX.utils.book_append_sheet(workbook, usersSheet, 'Nouveaux utilisateurs')
+        XLSX.utils.book_append_sheet(
+          workbook,
+          usersSheet,
+          'Nouveaux utilisateurs'
+        )
       }
 
       // Feuille Espaces
       if (spacesData.length > 0) {
-        const formattedSpaces = spacesData.map(space => ({
+        const formattedSpaces = spacesData.map((space) => ({
           Nom: space.name,
           Capacité: space.capacity || 4,
-          'Prix/heure (€)': space.pricePerHour || 0
+          'Prix/heure (€)': space.pricePerHour || 0,
         }))
         const spacesSheet = XLSX.utils.json_to_sheet(formattedSpaces)
         XLSX.utils.book_append_sheet(workbook, spacesSheet, 'Espaces')
       }
 
       // Générer le buffer Excel
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      })
 
       return new NextResponse(excelBuffer, {
         headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': `attachment; filename="rapport-complet-${period}.xlsx"`
-        }
+          'Content-Type':
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': `attachment; filename="rapport-complet-${period}.xlsx"`,
+        },
       })
     }
 
     // Export simple (une seule feuille)
     if (data.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Aucune donnée à exporter pour cette période' },
+        {
+          success: false,
+          error: 'Aucune donnée à exporter pour cette période',
+        },
         { status: 400 }
       )
     }
@@ -365,38 +394,42 @@ export async function POST(request: NextRequest) {
       // Créer le workbook Excel
       const workbook = XLSX.utils.book_new()
       const worksheet = XLSX.utils.json_to_sheet(data)
-      
+
       // Ajuster la largeur des colonnes
-      const columnWidths = Object.keys(data[0]).map(key => ({
-        wch: Math.max(key.length, 15)
+      const columnWidths = Object.keys(data[0]).map((key) => ({
+        wch: Math.max(key.length, 15),
       }))
       worksheet['!cols'] = columnWidths
 
       XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
 
       // Générer le buffer
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      })
 
       return new NextResponse(excelBuffer, {
         headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': `attachment; filename="${fileName}.xlsx"`
-        }
+          'Content-Type':
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': `attachment; filename="${fileName}.xlsx"`,
+        },
       })
     }
 
     // Si d'autres formats sont demandés, retourner une erreur pour le moment
     return NextResponse.json(
-      { success: false, error: 'Format d\'export non supporté' },
+      { success: false, error: "Format d'export non supporté" },
       { status: 400 }
     )
-
   } catch (error) {
     console.error('Erreur export analytics:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )

@@ -105,17 +105,14 @@ export async function PATCH(request: NextRequest) {
     // Valider le statut
     const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed']
     if (!validStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: 'Statut invalide' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Statut invalide' }, { status: 400 })
     }
 
     await connectMongoose()
 
     // Trouver et mettre à jour la réservation
     const booking = await Booking.findById(bookingId)
-    
+
     if (!booking) {
       return NextResponse.json(
         { error: 'Réservation non trouvée' },
@@ -129,7 +126,7 @@ export async function PATCH(request: NextRequest) {
       booking.adminNote = adminNote
     }
     booking.updatedAt = new Date()
-    
+
     await booking.save()
 
     // Récupérer la réservation mise à jour avec les données populées
@@ -161,11 +158,16 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: formattedBooking,
-      message: `Réservation ${status === 'confirmed' ? 'confirmée' : 
-                            status === 'cancelled' ? 'annulée' : 
-                            status === 'completed' ? 'marquée comme terminée' : 'mise à jour'}`
+      message: `Réservation ${
+        status === 'confirmed'
+          ? 'confirmée'
+          : status === 'cancelled'
+            ? 'annulée'
+            : status === 'completed'
+              ? 'marquée comme terminée'
+              : 'mise à jour'
+      }`,
     })
-
   } catch (error: any) {
     console.error('❌ Erreur PATCH Bookings:', error)
     return NextResponse.json(

@@ -8,14 +8,14 @@ import Stripe from 'stripe'
 
 // Initialiser Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil'
+  apiVersion: '2025-07-30.basil',
 })
 
 // Schema de validation
 const createIntentSchema = z.object({
   amount: z.number().min(50, 'Montant minimum 0.50€'), // en centimes
   bookingId: z.string().min(1, 'ID de réservation requis'),
-  currency: z.string().default('eur')
+  currency: z.string().default('eur'),
 })
 
 /**
@@ -35,13 +35,13 @@ export async function POST(request: NextRequest) {
     // Valider les données
     const body = await request.json()
     const validationResult = createIntentSchema.safeParse(body)
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: 'Données invalides', 
+        {
+          error: 'Données invalides',
           code: 'VALIDATION_ERROR',
-          details: validationResult.error.errors
+          details: validationResult.error.errors,
         },
         { status: 400 }
       )
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Vérifier que la réservation existe et appartient à l'utilisateur
     const booking = await Booking.findOne({
       _id: bookingId,
-      userId: session.user.id
+      userId: session.user.id,
     }).populate('spaceId')
 
     if (!booking) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       currency: currency,
       metadata: {
         bookingId: bookingId,
-        userId: session.user.id
+        userId: session.user.id,
       },
       description: `Réservation ${(booking.spaceId as any)?.name || 'Espace'} - ${booking.formattedDate}`,
       receipt_email: session.user.email || undefined,
@@ -98,13 +98,15 @@ export async function POST(request: NextRequest) {
       amount: amount / 100, // convertir en euros
       currency,
       status: 'pending',
-      message: 'PaymentIntent créé avec succès'
+      message: 'PaymentIntent créé avec succès',
     })
-
   } catch (error) {
     console.error('[POST /api/payments/create-intent] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la création du PaymentIntent', code: 'PAYMENT_INTENT_ERROR' },
+      {
+        error: 'Erreur lors de la création du PaymentIntent',
+        code: 'PAYMENT_INTENT_ERROR',
+      },
       { status: 500 }
     )
   }

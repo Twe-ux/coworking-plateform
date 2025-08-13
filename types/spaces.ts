@@ -1,4 +1,9 @@
-export type SpaceType = 'desk' | 'office' | 'meeting-room' | 'common-area' | 'phone-booth'
+export type SpaceType =
+  | 'desk'
+  | 'office'
+  | 'meeting-room'
+  | 'common-area'
+  | 'phone-booth'
 export type SpaceStatus = 'active' | 'maintenance' | 'inactive'
 
 export interface Space {
@@ -25,7 +30,7 @@ export interface SpaceAvailability {
 
 export interface TimeSlot {
   startTime: string // Format HH:mm
-  endTime: string   // Format HH:mm
+  endTime: string // Format HH:mm
   available: boolean
   reservationId?: string
 }

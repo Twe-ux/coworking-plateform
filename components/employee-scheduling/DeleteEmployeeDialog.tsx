@@ -41,18 +41,16 @@ export default function DeleteEmployeeDialog({
           <AlertDialogTitle>Supprimer l'employé</AlertDialogTitle>
           <AlertDialogDescription>
             Êtes-vous sûr de vouloir supprimer{' '}
-            <strong>{employee?.fullName}</strong> ?{' '}
-            Cette action ne peut pas être annulée.
+            <strong>{employee?.fullName}</strong> ? Cette action ne peut pas
+            être annulée.
             <br />
             <br />
-            L'employé sera désactivé et ne sera plus visible dans la liste active,
-            mais ses données historiques seront conservées.
+            L'employé sera désactivé et ne sera plus visible dans la liste
+            active, mais ses données historiques seront conservées.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>
-            Annuler
-          </AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isDeleting}

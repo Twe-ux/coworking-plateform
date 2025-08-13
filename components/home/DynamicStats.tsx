@@ -9,28 +9,30 @@ export default function DynamicStats() {
 
   // Si en cours de chargement, afficher les valeurs par défaut
   const spacesCount = isLoading ? '3' : spaces.length.toString()
-  const spacesLabel = isLoading ? 'espaces' : `espace${spaces.length > 1 ? 's' : ''}`
+  const spacesLabel = isLoading
+    ? 'espaces'
+    : `espace${spaces.length > 1 ? 's' : ''}`
 
   const stats = [
-    { 
-      icon: Coffee, 
-      label: spacesCount, 
-      value: spacesLabel
+    {
+      icon: Coffee,
+      label: spacesCount,
+      value: spacesLabel,
     },
-    { 
-      icon: Users, 
-      label: '50+', 
-      value: 'membres' 
+    {
+      icon: Users,
+      label: '50+',
+      value: 'membres',
     },
-    { 
-      icon: MapPin, 
-      label: 'Strasbourg', 
-      value: 'centre-ville' 
+    {
+      icon: MapPin,
+      label: 'Strasbourg',
+      value: 'centre-ville',
     },
-    { 
-      icon: Star, 
-      label: '4.8/5', 
-      value: 'satisfaction' 
+    {
+      icon: Star,
+      label: '4.8/5',
+      value: 'satisfaction',
     },
   ]
 

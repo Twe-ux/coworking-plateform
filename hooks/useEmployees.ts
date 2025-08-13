@@ -8,7 +8,13 @@ export interface Employee {
   lastName: string
   email?: string
   phone?: string
-  role: 'Manager' | 'Reception' | 'Security' | 'Maintenance' | 'Cleaning' | 'Staff'
+  role:
+    | 'Manager'
+    | 'Reception'
+    | 'Security'
+    | 'Maintenance'
+    | 'Cleaning'
+    | 'Staff'
   color: string
   startDate: string
   isActive: boolean
@@ -36,7 +42,8 @@ export function useEmployees(options: UseEmployeesOptions = {}) {
       // Construire les paramètres de requête
       const params = new URLSearchParams()
       if (options.role) params.append('role', options.role)
-      if (options.active !== undefined) params.append('active', String(options.active))
+      if (options.active !== undefined)
+        params.append('active', String(options.active))
       if (options.search) params.append('search', options.search)
 
       const response = await fetch(`/api/employees?${params.toString()}`)
@@ -62,68 +69,84 @@ export function useEmployees(options: UseEmployeesOptions = {}) {
     fetchEmployees()
   }, [fetchEmployees])
 
-  const createEmployee = useCallback(async (employeeData: {
-    firstName: string
-    lastName: string
-    email?: string
-    phone?: string
-    role: string
-    color?: string
-    startDate?: string
-  }) => {
-    try {
-      const response = await fetch('/api/employees', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(employeeData),
-      })
+  const createEmployee = useCallback(
+    async (employeeData: {
+      firstName: string
+      lastName: string
+      email?: string
+      phone?: string
+      role: string
+      color?: string
+      startDate?: string
+    }) => {
+      try {
+        const response = await fetch('/api/employees', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(employeeData),
+        })
 
-      const result = await response.json()
+        const result = await response.json()
 
-      if (result.success) {
-        // Ajouter le nouvel employé à la liste locale
-        setEmployees(prev => [...prev, result.data])
-        return { success: true, data: result.data }
-      } else {
-        return { success: false, error: result.error, details: result.details }
+        if (result.success) {
+          // Ajouter le nouvel employé à la liste locale
+          setEmployees((prev) => [...prev, result.data])
+          return { success: true, data: result.data }
+        } else {
+          return {
+            success: false,
+            error: result.error,
+            details: result.details,
+          }
+        }
+      } catch (error) {
+        console.error('Erreur création employé:', error)
+        return { success: false, error: 'Erreur de connexion au serveur' }
       }
-    } catch (error) {
-      console.error('Erreur création employé:', error)
-      return { success: false, error: 'Erreur de connexion au serveur' }
-    }
-  }, [])
+    },
+    []
+  )
 
-  const updateEmployee = useCallback(async (
-    id: string, 
-    updateData: Partial<Omit<Employee, 'id' | 'fullName' | 'createdAt' | 'updatedAt'>>
-  ) => {
-    try {
-      const response = await fetch(`/api/employees/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      })
+  const updateEmployee = useCallback(
+    async (
+      id: string,
+      updateData: Partial<
+        Omit<Employee, 'id' | 'fullName' | 'createdAt' | 'updatedAt'>
+      >
+    ) => {
+      try {
+        const response = await fetch(`/api/employees/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        })
 
-      const result = await response.json()
+        const result = await response.json()
 
-      if (result.success) {
-        // Mettre à jour l'employé dans la liste locale
-        setEmployees(prev => 
-          prev.map(emp => emp.id === id ? result.data : emp)
-        )
-        return { success: true, data: result.data }
-      } else {
-        return { success: false, error: result.error, details: result.details }
+        if (result.success) {
+          // Mettre à jour l'employé dans la liste locale
+          setEmployees((prev) =>
+            prev.map((emp) => (emp.id === id ? result.data : emp))
+          )
+          return { success: true, data: result.data }
+        } else {
+          return {
+            success: false,
+            error: result.error,
+            details: result.details,
+          }
+        }
+      } catch (error) {
+        console.error('Erreur mise à jour employé:', error)
+        return { success: false, error: 'Erreur de connexion au serveur' }
       }
-    } catch (error) {
-      console.error('Erreur mise à jour employé:', error)
-      return { success: false, error: 'Erreur de connexion au serveur' }
-    }
-  }, [])
+    },
+    []
+  )
 
   const deleteEmployee = useCallback(async (id: string) => {
     try {
@@ -135,8 +158,8 @@ export function useEmployees(options: UseEmployeesOptions = {}) {
 
       if (result.success) {
         // Marquer l'employé comme inactif dans la liste locale
-        setEmployees(prev => 
-          prev.map(emp => emp.id === id ? { ...emp, isActive: false } : emp)
+        setEmployees((prev) =>
+          prev.map((emp) => (emp.id === id ? { ...emp, isActive: false } : emp))
         )
         return { success: true }
       } else {
@@ -148,29 +171,38 @@ export function useEmployees(options: UseEmployeesOptions = {}) {
     }
   }, [])
 
-  const getEmployeeById = useCallback((id: string) => {
-    return employees.find(emp => emp.id === id)
-  }, [employees])
+  const getEmployeeById = useCallback(
+    (id: string) => {
+      return employees.find((emp) => emp.id === id)
+    },
+    [employees]
+  )
 
-  const getEmployeesByRole = useCallback((role: string) => {
-    return employees.filter(emp => emp.role === role && emp.isActive)
-  }, [employees])
+  const getEmployeesByRole = useCallback(
+    (role: string) => {
+      return employees.filter((emp) => emp.role === role && emp.isActive)
+    },
+    [employees]
+  )
 
   const getActiveEmployees = useCallback(() => {
-    return employees.filter(emp => emp.isActive)
+    return employees.filter((emp) => emp.isActive)
   }, [employees])
 
   // Statistiques
   const statistics = {
     total: employees.length,
-    active: employees.filter(emp => emp.isActive).length,
-    inactive: employees.filter(emp => !emp.isActive).length,
-    byRole: employees.reduce((acc, emp) => {
-      if (emp.isActive) {
-        acc[emp.role] = (acc[emp.role] || 0) + 1
-      }
-      return acc
-    }, {} as Record<string, number>)
+    active: employees.filter((emp) => emp.isActive).length,
+    inactive: employees.filter((emp) => !emp.isActive).length,
+    byRole: employees.reduce(
+      (acc, emp) => {
+        if (emp.isActive) {
+          acc[emp.role] = (acc[emp.role] || 0) + 1
+        }
+        return acc
+      },
+      {} as Record<string, number>
+    ),
   }
 
   return {

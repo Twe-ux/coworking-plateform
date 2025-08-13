@@ -11,7 +11,7 @@ import { subDays, addDays } from 'date-fns'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -42,26 +42,30 @@ export async function GET(request: NextRequest) {
 
     // Récupérer TOUTES les réservations (sans filtre de date d'abord)
     const allBookingsEver = await Booking.find({})
-    .populate('userId', 'firstName lastName email')
-    .populate('spaceId', 'name')
-    .lean()
+      .populate('userId', 'firstName lastName email')
+      .populate('spaceId', 'name')
+      .lean()
 
     console.log('🔍 DEBUG TOUTES RÉSERVATIONS:')
     allBookingsEver.forEach((booking: any, index) => {
-      console.log(`  ${index + 1}. Date: ${new Date(booking.date).toISOString()} | Status: ${booking.status} | Prix: €${booking.totalPrice}`)
+      console.log(
+        `  ${index + 1}. Date: ${new Date(booking.date).toISOString()} | Status: ${booking.status} | Prix: €${booking.totalPrice}`
+      )
     })
 
     // Récupérer les réservations dans la période (même logique que analytics)
     const allBookings = await Booking.find({
-      date: { $gte: startDate, $lte: endDate }
+      date: { $gte: startDate, $lte: endDate },
     })
-    .populate('userId', 'firstName lastName email')
-    .populate('spaceId', 'name')
-    .lean()
+      .populate('userId', 'firstName lastName email')
+      .populate('spaceId', 'name')
+      .lean()
 
     console.log('🔍 DEBUG RÉSERVATIONS DANS PÉRIODE:')
     allBookings.forEach((booking: any, index) => {
-      console.log(`  ${index + 1}. Date: ${new Date(booking.date).toISOString()} | Status: ${booking.status} | Prix: €${booking.totalPrice}`)
+      console.log(
+        `  ${index + 1}. Date: ${new Date(booking.date).toISOString()} | Status: ${booking.status} | Prix: €${booking.totalPrice}`
+      )
     })
 
     // Statistiques par statut
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
         acc[status] = {
           count: 0,
           totalPrice: 0,
-          dates: []
+          dates: [],
         }
       }
       acc[status].count++
@@ -82,16 +86,21 @@ export async function GET(request: NextRequest) {
 
     // Réservations les plus récentes
     const recentBookings = allBookings
-      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
       .slice(0, 5)
       .map((booking: any) => ({
         _id: booking._id,
         status: booking.status,
         date: booking.date,
         totalPrice: booking.totalPrice,
-        user: booking.userId ? `${booking.userId.firstName} ${booking.userId.lastName}` : 'Utilisateur supprimé',
+        user: booking.userId
+          ? `${booking.userId.firstName} ${booking.userId.lastName}`
+          : 'Utilisateur supprimé',
         space: booking.spaceId?.name || 'Espace supprimé',
-        createdAt: booking.createdAt
+        createdAt: booking.createdAt,
       }))
 
     // Toutes les réservations avec leurs dates
@@ -100,7 +109,7 @@ export async function GET(request: NextRequest) {
       date: booking.date,
       status: booking.status,
       totalPrice: booking.totalPrice,
-      createdAt: booking.createdAt
+      createdAt: booking.createdAt,
     }))
 
     const debug = {
@@ -112,21 +121,21 @@ export async function GET(request: NextRequest) {
       recentBookings,
       dateRange: {
         start: startDate,
-        end: endDate
-      }
+        end: endDate,
+      },
     }
 
     return NextResponse.json({
       success: true,
-      debug
+      debug,
     })
-
   } catch (error) {
     console.error('Erreur API debug bookings:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )

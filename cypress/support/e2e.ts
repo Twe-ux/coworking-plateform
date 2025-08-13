@@ -9,14 +9,15 @@ Cypress.Commands.add('setMobileViewport', (device = 'iphone-x') => {
     'iphone-x': { width: 375, height: 812 },
     'iphone-12': { width: 390, height: 844 },
     'iphone-14-pro': { width: 393, height: 852 },
-    'android': { width: 360, height: 640 },
+    android: { width: 360, height: 640 },
     'samsung-s20': { width: 360, height: 800 },
     'pixel-5': { width: 393, height: 851 },
     'ipad-mini': { width: 768, height: 1024 },
-    'ipad': { width: 820, height: 1180 }
+    ipad: { width: 820, height: 1180 },
   }
-  
-  const viewport = devices[device as keyof typeof devices] || devices['iphone-x']
+
+  const viewport =
+    devices[device as keyof typeof devices] || devices['iphone-x']
   cy.viewport(viewport.width, viewport.height)
 })
 
@@ -25,11 +26,11 @@ Cypress.Commands.add('loginAsUser', (role = 'admin') => {
     admin: { email: 'admin@test.com', password: 'password123' },
     manager: { email: 'manager@test.com', password: 'password123' },
     staff: { email: 'staff@test.com', password: 'password123' },
-    client: { email: 'client@test.com', password: 'password123' }
+    client: { email: 'client@test.com', password: 'password123' },
   }
-  
+
   const user = users[role as keyof typeof users]
-  
+
   cy.session([role], () => {
     cy.visit('/login')
     cy.get('[data-testid="email-input"]').type(user.email)
@@ -43,14 +44,14 @@ Cypress.Commands.add('loginAsUser', (role = 'admin') => {
 Cypress.Commands.add('swipe', (direction, element?) => {
   const swipeDistance = 200
   const target = element || cy.get('body')
-  
-  target.then($el => {
+
+  target.then(($el) => {
     const rect = $el[0].getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
-    
+
     let startX, startY, endX, endY
-    
+
     switch (direction) {
       case 'left':
         startX = centerX + swipeDistance / 2
@@ -79,9 +80,11 @@ Cypress.Commands.add('swipe', (direction, element?) => {
       default:
         throw new Error(`Invalid swipe direction: ${direction}`)
     }
-    
+
     cy.wrap($el)
-      .trigger('touchstart', { touches: [{ clientX: startX, clientY: startY }] })
+      .trigger('touchstart', {
+        touches: [{ clientX: startX, clientY: startY }],
+      })
       .trigger('touchmove', { touches: [{ clientX: endX, clientY: endY }] })
       .trigger('touchend')
   })
@@ -89,9 +92,7 @@ Cypress.Commands.add('swipe', (direction, element?) => {
 
 // Custom command for testing touch interactions
 Cypress.Commands.add('touchTap', (selector) => {
-  cy.get(selector)
-    .trigger('touchstart')
-    .trigger('touchend')
+  cy.get(selector).trigger('touchstart').trigger('touchend')
 })
 
 // Accessibility testing commands
@@ -106,7 +107,10 @@ declare global {
     interface Chainable {
       setMobileViewport(device?: string): Chainable<void>
       loginAsUser(role?: string): Chainable<void>
-      swipe(direction: 'left' | 'right' | 'up' | 'down', element?: Chainable): Chainable<void>
+      swipe(
+        direction: 'left' | 'right' | 'up' | 'down',
+        element?: Chainable
+      ): Chainable<void>
       touchTap(selector: string): Chainable<void>
       checkA11y(context?: string, options?: any): Chainable<void>
     }

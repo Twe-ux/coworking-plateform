@@ -3,12 +3,12 @@
  * Safe for client-side use without server dependencies
  */
 
-import { 
-  UserRole, 
-  ROLE_HIERARCHY, 
+import {
+  UserRole,
+  ROLE_HIERARCHY,
   PROTECTED_ROUTES,
   PUBLIC_ROUTES,
-  AuthSession 
+  AuthSession,
 } from '@/types/auth'
 
 /**
@@ -22,7 +22,10 @@ export function hasRole(userRole: UserRole, requiredRole: UserRole): boolean {
 /**
  * Vérifie si un utilisateur peut accéder à une route
  */
-export function hasRouteAccess(userRole: UserRole | undefined, route: string): boolean {
+export function hasRouteAccess(
+  userRole: UserRole | undefined,
+  route: string
+): boolean {
   // Routes publiques accessibles à tous
   if (PUBLIC_ROUTES.includes(route)) {
     return true

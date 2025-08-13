@@ -3,7 +3,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronRight } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 export interface BookingStep {
@@ -37,7 +41,11 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
   const progressValue = ((currentStep - 1) / (steps.length - 1)) * 100
 
   const handleStepClick = (stepNumber: number) => {
-    if (allowClickNavigation && onStepClick && (completedSteps.includes(stepNumber) || stepNumber <= currentStep)) {
+    if (
+      allowClickNavigation &&
+      onStepClick &&
+      (completedSteps.includes(stepNumber) || stepNumber <= currentStep)
+    ) {
       onStepClick(stepNumber)
     }
   }
@@ -50,12 +58,15 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
   }
 
   const isStepClickable = (stepNumber: number) => {
-    return allowClickNavigation && (completedSteps.includes(stepNumber) || stepNumber <= currentStep)
+    return (
+      allowClickNavigation &&
+      (completedSteps.includes(stepNumber) || stepNumber <= currentStep)
+    )
   }
 
   if (variant === 'vertical') {
     return (
-      <div className={cn("space-y-4", className)}>
+      <div className={cn('space-y-4', className)}>
         {steps.map((step, index) => {
           const stepNumber = step.id
           const status = getStepStatus(stepNumber)
@@ -72,12 +83,16 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
             >
               {/* Connector line */}
               {index < steps.length - 1 && (
-                <div className="absolute left-6 top-12 h-8 w-0.5 bg-gray-200">
+                <div className="absolute top-12 left-6 h-8 w-0.5 bg-gray-200">
                   <motion.div
-                    className="h-full w-full bg-coffee-primary origin-top"
+                    className="bg-coffee-primary h-full w-full origin-top"
                     initial={{ scaleY: 0 }}
-                    animate={{ 
-                      scaleY: status === 'completed' || (status === 'current' && index < currentStep - 1) ? 1 : 0 
+                    animate={{
+                      scaleY:
+                        status === 'completed' ||
+                        (status === 'current' && index < currentStep - 1)
+                          ? 1
+                          : 0,
                     }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   />
@@ -89,13 +104,16 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
                 <TooltipTrigger asChild>
                   <motion.button
                     className={cn(
-                      "relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300",
+                      'relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300',
                       {
-                        "border-coffee-primary bg-coffee-primary text-white shadow-lg": status === 'completed',
-                        "border-coffee-primary bg-white text-coffee-primary shadow-md ring-4 ring-coffee-primary/20": status === 'current',
-                        "border-gray-300 bg-gray-100 text-gray-400": status === 'upcoming',
-                        "cursor-pointer hover:scale-105": isClickable,
-                        "cursor-not-allowed": !isClickable,
+                        'border-coffee-primary bg-coffee-primary text-white shadow-lg':
+                          status === 'completed',
+                        'border-coffee-primary text-coffee-primary ring-coffee-primary/20 bg-white shadow-md ring-4':
+                          status === 'current',
+                        'border-gray-300 bg-gray-100 text-gray-400':
+                          status === 'upcoming',
+                        'cursor-pointer hover:scale-105': isClickable,
+                        'cursor-not-allowed': !isClickable,
                       }
                     )}
                     onClick={() => handleStepClick(stepNumber)}
@@ -150,10 +168,11 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
               <div className="min-w-0 flex-1 pb-8">
                 <motion.h4
                   className={cn(
-                    "font-semibold transition-colors duration-300",
+                    'font-semibold transition-colors duration-300',
                     {
-                      "text-coffee-primary": status === 'current' || status === 'completed',
-                      "text-gray-400": status === 'upcoming',
+                      'text-coffee-primary':
+                        status === 'current' || status === 'completed',
+                      'text-gray-400': status === 'upcoming',
                     }
                   )}
                   animate={{
@@ -162,13 +181,13 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
                 >
                   {step.title}
                 </motion.h4>
-                <p className={cn(
-                  "mt-1 text-sm transition-colors duration-300",
-                  {
-                    "text-coffee-primary/70": status === 'current' || status === 'completed',
-                    "text-gray-400": status === 'upcoming',
-                  }
-                )}>
+                <p
+                  className={cn('mt-1 text-sm transition-colors duration-300', {
+                    'text-coffee-primary/70':
+                      status === 'current' || status === 'completed',
+                    'text-gray-400': status === 'upcoming',
+                  })}
+                >
                   {step.description}
                 </p>
               </div>
@@ -180,16 +199,18 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Progress bar */}
       {showProgress && (
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-coffee-primary/60">
-            <span>Étape {currentStep} sur {steps.length}</span>
+          <div className="text-coffee-primary/60 flex justify-between text-sm">
+            <span>
+              Étape {currentStep} sur {steps.length}
+            </span>
             <span>{Math.round(progressValue)}% complété</span>
           </div>
-          <Progress 
-            value={progressValue} 
+          <Progress
+            value={progressValue}
             className="h-2"
             aria-label={`Progression: ${Math.round(progressValue)}%`}
           />
@@ -211,13 +232,16 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
                 <TooltipTrigger asChild>
                   <motion.button
                     className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition-all duration-300 sm:h-12 sm:w-12",
+                      'relative flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition-all duration-300 sm:h-12 sm:w-12',
                       {
-                        "border-coffee-primary bg-coffee-primary text-white shadow-lg": status === 'completed',
-                        "border-coffee-primary bg-white text-coffee-primary shadow-md ring-2 ring-coffee-primary/20": status === 'current',
-                        "border-gray-300 bg-gray-100 text-gray-400": status === 'upcoming',
-                        "cursor-pointer hover:scale-105": isClickable,
-                        "cursor-not-allowed": !isClickable,
+                        'border-coffee-primary bg-coffee-primary text-white shadow-lg':
+                          status === 'completed',
+                        'border-coffee-primary text-coffee-primary ring-coffee-primary/20 bg-white shadow-md ring-2':
+                          status === 'current',
+                        'border-gray-300 bg-gray-100 text-gray-400':
+                          status === 'upcoming',
+                        'cursor-pointer hover:scale-105': isClickable,
+                        'cursor-not-allowed': !isClickable,
                       }
                     )}
                     onClick={() => handleStepClick(stepNumber)}
@@ -264,7 +288,7 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
                     {/* Pulse effect for current step */}
                     {status === 'current' && (
                       <motion.div
-                        className="absolute inset-0 rounded-full border-2 border-coffee-primary"
+                        className="border-coffee-primary absolute inset-0 rounded-full border-2"
                         animate={{
                           scale: [1, 1.2, 1],
                           opacity: [0.7, 0, 0.7],
@@ -272,7 +296,7 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
                         transition={{
                           duration: 2,
                           repeat: Infinity,
-                          ease: "easeInOut",
+                          ease: 'easeInOut',
                         }}
                       />
                     )}
@@ -290,14 +314,17 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
               {index < steps.length - 1 && (
                 <div className="relative mx-2 h-0.5 w-12 bg-gray-200 sm:mx-4 sm:w-16">
                   <motion.div
-                    className="h-full bg-coffee-primary origin-left"
+                    className="bg-coffee-primary h-full origin-left"
                     initial={{ scaleX: 0 }}
-                    animate={{ 
-                      scaleX: status === 'completed' || (index < currentStep - 1) ? 1 : 0 
+                    animate={{
+                      scaleX:
+                        status === 'completed' || index < currentStep - 1
+                          ? 1
+                          : 0,
                     }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   />
-                  <ChevronRight className="absolute -right-1 -top-2 h-4 w-4 text-gray-400" />
+                  <ChevronRight className="absolute -top-2 -right-1 h-4 w-4 text-gray-400" />
                 </div>
               )}
             </div>
@@ -313,11 +340,11 @@ const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({
         transition={{ duration: 0.3 }}
         className="text-center"
       >
-        <h3 className="font-semibold text-coffee-primary">
-          {steps.find(s => s.id === currentStep)?.title}
+        <h3 className="text-coffee-primary font-semibold">
+          {steps.find((s) => s.id === currentStep)?.title}
         </h3>
-        <p className="mt-1 text-sm text-coffee-primary/70">
-          {steps.find(s => s.id === currentStep)?.description}
+        <p className="text-coffee-primary/70 mt-1 text-sm">
+          {steps.find((s) => s.id === currentStep)?.description}
         </p>
       </motion.div>
     </div>

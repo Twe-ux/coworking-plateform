@@ -85,10 +85,11 @@ export default withAuth(
       pathname.startsWith('/dashboard/admin')
     ) {
       // En développement, utiliser une CSP plus permissive pour éviter les blocages
-      const scriptSrc = process.env.NODE_ENV === 'development' 
-        ? "'self' 'unsafe-inline' 'unsafe-eval'"
-        : "'self' 'unsafe-inline'"
-      
+      const scriptSrc =
+        process.env.NODE_ENV === 'development'
+          ? "'self' 'unsafe-inline' 'unsafe-eval'"
+          : "'self' 'unsafe-inline'"
+
       response.headers.set(
         'Content-Security-Policy',
         `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' data:; connect-src 'self' https://api.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';`

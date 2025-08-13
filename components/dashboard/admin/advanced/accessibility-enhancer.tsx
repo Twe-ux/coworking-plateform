@@ -1,12 +1,18 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { 
+import {
   Accessibility,
   Eye,
   Keyboard,
@@ -16,7 +22,7 @@ import {
   Focus,
   MousePointer,
   CheckCircle,
-  Settings
+  Settings,
 } from 'lucide-react'
 
 interface AccessibilityFeature {
@@ -36,7 +42,7 @@ export function AccessibilityEnhancer() {
       description: 'Améliore le contraste pour une meilleure lisibilité',
       icon: Contrast,
       enabled: false,
-      category: 'visual'
+      category: 'visual',
     },
     {
       id: 'large-text',
@@ -44,7 +50,7 @@ export function AccessibilityEnhancer() {
       description: 'Augmente la taille du texte de 125%',
       icon: ZoomIn,
       enabled: false,
-      category: 'visual'
+      category: 'visual',
     },
     {
       id: 'focus-indicators',
@@ -52,7 +58,7 @@ export function AccessibilityEnhancer() {
       description: 'Focus plus visible pour la navigation clavier',
       icon: Focus,
       enabled: true,
-      category: 'motor'
+      category: 'motor',
     },
     {
       id: 'keyboard-navigation',
@@ -60,15 +66,15 @@ export function AccessibilityEnhancer() {
       description: 'Séquence de tabulation logique et cohérente',
       icon: Keyboard,
       enabled: true,
-      category: 'motor'
+      category: 'motor',
     },
     {
       id: 'screen-reader',
-      name: 'Support lecteur d\'écran',
-      description: 'ARIA labels et descriptions pour lecteurs d\'écran',
+      name: "Support lecteur d'écran",
+      description: "ARIA labels et descriptions pour lecteurs d'écran",
       icon: Volume2,
       enabled: true,
-      category: 'auditory'
+      category: 'auditory',
     },
     {
       id: 'reduced-motion',
@@ -76,7 +82,7 @@ export function AccessibilityEnhancer() {
       description: 'Respecte prefer-reduced-motion du système',
       icon: MousePointer,
       enabled: true,
-      category: 'cognitive'
+      category: 'cognitive',
     },
     {
       id: 'clear-labels',
@@ -84,8 +90,8 @@ export function AccessibilityEnhancer() {
       description: 'Textes et instructions clairs et compréhensibles',
       icon: Eye,
       enabled: true,
-      category: 'cognitive'
-    }
+      category: 'cognitive',
+    },
   ])
 
   const [currentScore, setCurrentScore] = useState(0)
@@ -96,17 +102,19 @@ export function AccessibilityEnhancer() {
   }, [features])
 
   const calculateAccessibilityScore = () => {
-    const enabledFeatures = features.filter(f => f.enabled).length
+    const enabledFeatures = features.filter((f) => f.enabled).length
     const score = Math.round((enabledFeatures / features.length) * maxScore)
     setCurrentScore(score)
   }
 
   const toggleFeature = (featureId: string) => {
-    setFeatures(prev => prev.map(feature => 
-      feature.id === featureId 
-        ? { ...feature, enabled: !feature.enabled }
-        : feature
-    ))
+    setFeatures((prev) =>
+      prev.map((feature) =>
+        feature.id === featureId
+          ? { ...feature, enabled: !feature.enabled }
+          : feature
+      )
+    )
   }
 
   const getScoreColor = (score: number) => {
@@ -125,30 +133,33 @@ export function AccessibilityEnhancer() {
     visual: 'Visuel',
     motor: 'Moteur',
     cognitive: 'Cognitif',
-    auditory: 'Auditif'
+    auditory: 'Auditif',
   }
 
   const categoryIcons = {
     visual: Eye,
     motor: MousePointer,
     cognitive: Focus,
-    auditory: Volume2
+    auditory: Volume2,
   }
 
-  const groupedFeatures = features.reduce((acc, feature) => {
-    if (!acc[feature.category]) {
-      acc[feature.category] = []
-    }
-    acc[feature.category].push(feature)
-    return acc
-  }, {} as Record<string, AccessibilityFeature[]>)
+  const groupedFeatures = features.reduce(
+    (acc, feature) => {
+      if (!acc[feature.category]) {
+        acc[feature.category] = []
+      }
+      acc[feature.category].push(feature)
+      return acc
+    },
+    {} as Record<string, AccessibilityFeature[]>
+  )
 
   return (
     <div className="space-y-6">
       {/* Header avec score */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+          <h2 className="flex items-center space-x-2 text-2xl font-bold text-gray-900">
             <Accessibility className="h-6 w-6" />
             <span>Améliorations d'accessibilité</span>
           </h2>
@@ -170,14 +181,17 @@ export function AccessibilityEnhancer() {
       {/* Progress bar */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Progression de l'accessibilité</span>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-medium">
+              Progression de l'accessibilité
+            </span>
             <span className="text-sm text-gray-600">
-              {features.filter(f => f.enabled).length} / {features.length} fonctionnalités activées
+              {features.filter((f) => f.enabled).length} / {features.length}{' '}
+              fonctionnalités activées
             </span>
           </div>
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div 
+          <div className="h-3 overflow-hidden rounded-full bg-gray-200">
+            <div
               className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
               style={{ width: `${currentScore}%` }}
             />
@@ -188,36 +202,47 @@ export function AccessibilityEnhancer() {
       {/* Fonctionnalités par catégorie */}
       <div className="grid gap-6">
         {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => {
-          const CategoryIcon = categoryIcons[category as keyof typeof categoryIcons]
-          
+          const CategoryIcon =
+            categoryIcons[category as keyof typeof categoryIcons]
+
           return (
             <Card key={category}>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <CategoryIcon className="h-5 w-5" />
-                  <span>{categoryLabels[category as keyof typeof categoryLabels]}</span>
+                  <span>
+                    {categoryLabels[category as keyof typeof categoryLabels]}
+                  </span>
                 </CardTitle>
                 <CardDescription>
-                  Améliorations pour l'accessibilité {categoryLabels[category as keyof typeof categoryLabels].toLowerCase()}
+                  Améliorations pour l'accessibilité{' '}
+                  {categoryLabels[
+                    category as keyof typeof categoryLabels
+                  ].toLowerCase()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {categoryFeatures.map((feature) => {
                     const FeatureIcon = feature.icon
-                    
+
                     return (
-                      <div key={feature.id} className="flex items-center justify-between p-3 rounded-lg border">
-                        <div className="flex items-start space-x-3 flex-1">
-                          <FeatureIcon className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <div
+                        key={feature.id}
+                        className="flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <div className="flex flex-1 items-start space-x-3">
+                          <FeatureIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-600" />
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <h4 className="text-sm font-medium">{feature.name}</h4>
+                              <h4 className="text-sm font-medium">
+                                {feature.name}
+                              </h4>
                               {feature.enabled && (
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="mt-1 text-xs text-gray-600">
                               {feature.description}
                             </p>
                           </div>
@@ -256,8 +281,10 @@ export function AccessibilityEnhancer() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-3">
-              <h4 className="font-medium text-green-700">✓ Principe 1 : Perceptible</h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-4">
+              <h4 className="font-medium text-green-700">
+                ✓ Principe 1 : Perceptible
+              </h4>
+              <ul className="space-y-1 pl-4 text-sm text-gray-600">
                 <li>• Contraste minimum 4.5:1 pour le texte normal</li>
                 <li>• Contraste minimum 3:1 pour le texte large</li>
                 <li>• Support du redimensionnement jusqu'à 200%</li>
@@ -266,8 +293,10 @@ export function AccessibilityEnhancer() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-medium text-green-700">✓ Principe 2 : Utilisable</h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-4">
+              <h4 className="font-medium text-green-700">
+                ✓ Principe 2 : Utilisable
+              </h4>
+              <ul className="space-y-1 pl-4 text-sm text-gray-600">
                 <li>• Navigation clavier complète</li>
                 <li>• Indicateurs de focus visibles</li>
                 <li>• Pas de contenu clignotant &gt; 3Hz</li>
@@ -276,8 +305,10 @@ export function AccessibilityEnhancer() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-medium text-green-700">✓ Principe 3 : Compréhensible</h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-4">
+              <h4 className="font-medium text-green-700">
+                ✓ Principe 3 : Compréhensible
+              </h4>
+              <ul className="space-y-1 pl-4 text-sm text-gray-600">
                 <li>• Langue de la page définie (lang="fr")</li>
                 <li>• Étiquettes et instructions claires</li>
                 <li>• Messages d'erreur explicites</li>
@@ -286,8 +317,10 @@ export function AccessibilityEnhancer() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-medium text-green-700">✓ Principe 4 : Robuste</h4>
-              <ul className="space-y-1 text-sm text-gray-600 pl-4">
+              <h4 className="font-medium text-green-700">
+                ✓ Principe 4 : Robuste
+              </h4>
+              <ul className="space-y-1 pl-4 text-sm text-gray-600">
                 <li>• Code HTML valide et sémantique</li>
                 <li>• ARIA labels appropriés</li>
                 <li>• Compatible lecteurs d'écran</li>
@@ -308,8 +341,8 @@ export function AccessibilityEnhancer() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium mb-2">Classes CSS d'accessibilité</h4>
+            <div className="rounded-lg bg-gray-50 p-4">
+              <h4 className="mb-2 font-medium">Classes CSS d'accessibilité</h4>
               <code className="text-sm text-gray-800">
                 {`// Interactions tactiles optimisées
 .touch-manipulation { touch-action: manipulation; }
@@ -325,8 +358,8 @@ export function AccessibilityEnhancer() {
               </code>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium mb-2">Attributs ARIA implémentés</h4>
+            <div className="rounded-lg bg-gray-50 p-4">
+              <h4 className="mb-2 font-medium">Attributs ARIA implémentés</h4>
               <code className="text-sm text-gray-800">
                 {`// Exemples d'attributs ARIA utilisés
 aria-label="Actualiser les données"
@@ -337,8 +370,8 @@ role="button" tabIndex={0} // Pour les éléments cliquables`}
               </code>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium mb-2">Navigation clavier</h4>
+            <div className="rounded-lg bg-gray-50 p-4">
+              <h4 className="mb-2 font-medium">Navigation clavier</h4>
               <code className="text-sm text-gray-800">
                 {`// Support des raccourcis clavier
 - Tab / Shift+Tab : Navigation entre éléments

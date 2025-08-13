@@ -31,7 +31,9 @@ export default function SpaceCarousel() {
   // Fonction pour passer au slide suivant
   const nextSlide = useCallback(() => {
     if (spaces.length > 0) {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % Math.ceil(spaces.length / 3))
+      setCurrentIndex(
+        (prevIndex) => (prevIndex + 1) % Math.ceil(spaces.length / 3)
+      )
     }
   }, [spaces.length])
 
@@ -39,7 +41,9 @@ export default function SpaceCarousel() {
   const prevSlide = useCallback(() => {
     if (spaces.length > 0) {
       setCurrentIndex(
-        (prevIndex) => (prevIndex - 1 + Math.ceil(spaces.length / 3)) % Math.ceil(spaces.length / 3)
+        (prevIndex) =>
+          (prevIndex - 1 + Math.ceil(spaces.length / 3)) %
+          Math.ceil(spaces.length / 3)
       )
     }
   }, [spaces.length])
@@ -61,22 +65,25 @@ export default function SpaceCarousel() {
   }, [spaces.length, autoScrollEnabled, nextSlide])
 
   // Gestion du drag
-  const handleDragEnd = useCallback((event: any, info: PanInfo) => {
-    const threshold = 50 // Seuil minimum de drag en pixels
-    
-    if (Math.abs(info.offset.x) > threshold) {
-      if (info.offset.x > 0) {
-        // Drag vers la droite -> slide précédent
-        prevSlide()
-      } else {
-        // Drag vers la gauche -> slide suivant
-        nextSlide()
+  const handleDragEnd = useCallback(
+    (event: any, info: PanInfo) => {
+      const threshold = 50 // Seuil minimum de drag en pixels
+
+      if (Math.abs(info.offset.x) > threshold) {
+        if (info.offset.x > 0) {
+          // Drag vers la droite -> slide précédent
+          prevSlide()
+        } else {
+          // Drag vers la gauche -> slide suivant
+          nextSlide()
+        }
+        // Réinitialiser l'auto-scroll après un drag
+        setAutoScrollEnabled(false)
+        setTimeout(() => setAutoScrollEnabled(true), 100)
       }
-      // Réinitialiser l'auto-scroll après un drag
-      setAutoScrollEnabled(false)
-      setTimeout(() => setAutoScrollEnabled(true), 100)
-    }
-  }, [nextSlide, prevSlide])
+    },
+    [nextSlide, prevSlide]
+  )
 
   // Obtenir les 3 espaces à afficher
   const getDisplayedSpaces = () => {
@@ -92,11 +99,11 @@ export default function SpaceCarousel() {
       <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
         {[...Array(3)].map((_, index) => (
           <div key={index} className="animate-pulse">
-            <div className="h-64 bg-gray-300 rounded-2xl mb-4"></div>
+            <div className="mb-4 h-64 rounded-2xl bg-gray-300"></div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-300 rounded"></div>
-              <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+              <div className="h-4 rounded bg-gray-300"></div>
+              <div className="h-4 w-3/4 rounded bg-gray-300"></div>
+              <div className="h-4 w-1/2 rounded bg-gray-300"></div>
             </div>
           </div>
         ))}
@@ -106,8 +113,8 @@ export default function SpaceCarousel() {
 
   if (error || spaces.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600 text-lg">
+      <div className="py-12 text-center">
+        <p className="text-lg text-gray-600">
           {error || 'Aucun espace disponible pour le moment.'}
         </p>
       </div>
@@ -124,12 +131,12 @@ export default function SpaceCarousel() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3 cursor-grab active:cursor-grabbing"
+            className="mx-auto grid max-w-5xl cursor-grab gap-8 active:cursor-grabbing md:grid-cols-3"
             initial={{ opacity: 0, x: 300 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -300 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            drag={spaces.length > 3 ? "x" : false}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            drag={spaces.length > 3 ? 'x' : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
@@ -145,40 +152,48 @@ export default function SpaceCarousel() {
                 whileHover={{ scale: 1.03, y: -5 }}
               >
                 {/* Image Background */}
-                <div className={`relative h-64 bg-gradient-to-br ${space.color || 'from-coffee-primary to-coffee-accent'}`}>
+                <div
+                  className={`relative h-64 bg-gradient-to-br ${space.color || 'from-coffee-primary to-coffee-accent'}`}
+                >
                   {/* Image réelle si disponible, sinon gradient */}
-                  {space.image && space.image !== '/images/spaces/default.jpg' && (
-                    <img 
-                      src={space.image} 
-                      alt={space.name}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      onError={(e) => {
-                        // En cas d'erreur de chargement, garder le gradient
-                        console.log('Erreur de chargement image:', space.image)
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
-                  )}
-                  
+                  {space.image &&
+                    space.image !== '/images/spaces/default.jpg' && (
+                      <img
+                        src={space.image}
+                        alt={space.name}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        onError={(e) => {
+                          // En cas d'erreur de chargement, garder le gradient
+                          console.log(
+                            'Erreur de chargement image:',
+                            space.image
+                          )
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    )}
+
                   <div className="absolute inset-0 bg-black/40 transition-colors duration-300 group-hover:bg-black/20" />
-                  
+
                   {/* Badge rating */}
                   <div className="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 backdrop-blur-sm">
                     <Star className="h-4 w-4 fill-current text-yellow-500" />
-                    <span className="text-sm font-semibold">{space.rating}</span>
+                    <span className="text-sm font-semibold">
+                      {space.rating}
+                    </span>
                   </div>
 
                   {/* Badge populaire */}
                   {space.isPopular && (
-                    <div className="absolute top-4 left-4 rounded-full bg-coffee-accent px-3 py-1 text-xs font-semibold text-white">
+                    <div className="bg-coffee-accent absolute top-4 left-4 rounded-full px-3 py-1 text-xs font-semibold text-white">
                       Populaire
                     </div>
                   )}
-                  
+
                   {/* Informations principales */}
                   <div className="absolute bottom-4 left-4 text-white">
                     <h3 className="mb-1 text-2xl font-bold">{space.name}</h3>
-                    <p className="flex items-center gap-1 text-white/90 mb-2">
+                    <p className="mb-2 flex items-center gap-1 text-white/90">
                       <MapPin className="h-4 w-4" />
                       {space.location}
                     </p>
@@ -193,21 +208,23 @@ export default function SpaceCarousel() {
                 <div className="bg-white p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="text-coffee-primary">
-                      <span className="text-2xl font-bold">{space.pricePerHour}€</span>
+                      <span className="text-2xl font-bold">
+                        {space.pricePerHour}€
+                      </span>
                       <span className="text-sm text-gray-600">/heure</span>
                     </div>
-                    <span className="text-sm text-coffee-accent font-medium bg-coffee-accent/10 px-3 py-1 rounded-full">
+                    <span className="text-coffee-accent bg-coffee-accent/10 rounded-full px-3 py-1 text-sm font-medium">
                       {space.specialty}
                     </span>
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="mb-4 line-clamp-2 text-sm text-gray-600">
                     {space.description}
                   </p>
 
                   {/* Features (max 3 pour l'affichage) */}
-                  <div className="space-y-2 mb-4">
+                  <div className="mb-4 space-y-2">
                     {space.features.slice(0, 3).map((feature, featureIndex) => (
                       <div
                         key={featureIndex}
@@ -218,7 +235,7 @@ export default function SpaceCarousel() {
                       </div>
                     ))}
                     {space.features.length > 3 && (
-                      <div className="text-xs text-coffee-accent">
+                      <div className="text-coffee-accent text-xs">
                         +{space.features.length - 3} autres équipements
                       </div>
                     )}
@@ -253,7 +270,7 @@ export default function SpaceCarousel() {
               className={`h-3 w-10 rounded-full transition-all duration-300 hover:scale-110 ${
                 index === currentIndex
                   ? 'bg-coffee-primary shadow-lg'
-                  : 'bg-gray-300 hover:bg-coffee-primary/60'
+                  : 'hover:bg-coffee-primary/60 bg-gray-300'
               }`}
               aria-label={`Aller au groupe d'espaces ${index + 1}`}
             />
@@ -264,9 +281,16 @@ export default function SpaceCarousel() {
       {/* Compteur d'espaces */}
       <div className="mt-6 text-center text-sm text-gray-500">
         {spaces.length > 3 ? (
-          <>Espaces {currentIndex * 3 + 1}-{Math.min((currentIndex + 1) * 3, spaces.length)} sur {spaces.length}</>
+          <>
+            Espaces {currentIndex * 3 + 1}-
+            {Math.min((currentIndex + 1) * 3, spaces.length)} sur{' '}
+            {spaces.length}
+          </>
         ) : (
-          <>{spaces.length} espace{spaces.length > 1 ? 's' : ''} disponible{spaces.length > 1 ? 's' : ''}</>
+          <>
+            {spaces.length} espace{spaces.length > 1 ? 's' : ''} disponible
+            {spaces.length > 1 ? 's' : ''}
+          </>
         )}
       </div>
     </div>

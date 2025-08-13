@@ -5,6 +5,7 @@ This guide covers the comprehensive mobile testing setup for the coworking platf
 ## 📱 Overview
 
 The mobile testing suite covers:
+
 - **Sidebar touch gestures** - Swipe interactions and mobile-specific navigation
 - **Mobile navigation** - Bottom navigation bar and responsive behavior
 - **Responsive components** - Adaptive layouts across different screen sizes
@@ -13,12 +14,14 @@ The mobile testing suite covers:
 ## 🧪 Testing Stack
 
 ### Unit Testing (Jest + Vitest)
+
 - **Framework**: Vitest with jsdom environment
 - **Testing Library**: React Testing Library
 - **Accessibility**: jest-axe for automated accessibility testing
 - **Mocks**: MSW for API mocking
 
 ### E2E Testing (Cypress)
+
 - **Framework**: Cypress v13.6+
 - **Accessibility**: cypress-axe for accessibility testing
 - **Mobile Simulation**: Custom commands for mobile interactions
@@ -91,6 +94,7 @@ npm run test:all
 ## 📱 Mobile Viewports Tested
 
 ### Smartphones
+
 - **iPhone SE**: 375x667px - Smallest common mobile screen
 - **iPhone X**: 375x812px - Standard modern mobile
 - **iPhone 12**: 390x844px - Current generation iPhone
@@ -99,11 +103,13 @@ npm run test:all
 - **Samsung S20**: 360x800px - Popular Android device
 
 ### Tablets
+
 - **iPad Mini**: 768x1024px - Compact tablet
 - **iPad**: 820x1180px - Standard iPad
 - **iPad Landscape**: 1024x768px - Tablet in landscape mode
 
 ### Desktop (for responsive comparison)
+
 - **Small Desktop**: 1024x768px
 - **Medium Desktop**: 1280x1024px
 - **Large Desktop**: 1920x1080px
@@ -126,6 +132,7 @@ describe('MobileBottomNav', () => {
 ```
 
 **Coverage includes:**
+
 - Role-based navigation items
 - Touch-friendly target sizes (48px minimum)
 - Active state indication with `aria-current="page"`
@@ -140,7 +147,7 @@ Tests sidebar mobile interactions and gestures:
 // Example gesture test
 it('opens sidebar with swipe gesture from left edge', async () => {
   render(<SidebarComponent />)
-  
+
   await act(async () => {
     fireEvent.touchStart(document, {
       touches: [{ clientX: 10, clientY: 400 }]
@@ -150,12 +157,13 @@ it('opens sidebar with swipe gesture from left edge', async () => {
     })
     fireEvent.touchEnd(document)
   })
-  
+
   expect(mockSetOpenMobile).toHaveBeenCalledWith(true)
 })
 ```
 
 **Coverage includes:**
+
 - Edge swipe gesture recognition
 - Touch event handling
 - Sidebar open/close states
@@ -174,13 +182,13 @@ it('adapts to different mobile screen sizes', () => {
     { width: 375, height: 812 },
     { width: 414, height: 896 }
   ]
-  
+
   mobileViewports.forEach(viewport => {
     Object.defineProperties(window, {
       innerWidth: { value: viewport.width },
       innerHeight: { value: viewport.height }
     })
-    
+
     const { unmount } = render(<Component />)
     // Test component adaptation
     unmount()
@@ -189,6 +197,7 @@ it('adapts to different mobile screen sizes', () => {
 ```
 
 **Coverage includes:**
+
 - Viewport-specific rendering
 - Breakpoint transitions
 - Content reflow and truncation
@@ -209,6 +218,7 @@ it('meets WCAG AA accessibility standards', async () => {
 ```
 
 **Coverage includes:**
+
 - WCAG 2.1 AA compliance
 - Screen reader support
 - Keyboard navigation
@@ -264,14 +274,14 @@ const mockSession = {
     id: '1',
     email: 'test@example.com',
     name: 'Test User',
-    role: 'admin' // client, staff, manager, admin
+    role: 'admin', // client, staff, manager, admin
   },
-  expires: '2024-12-31'
+  expires: '2024-12-31',
 }
 
 mockUseSession.mockReturnValue({
   data: mockSession,
-  status: 'authenticated'
+  status: 'authenticated',
 })
 ```
 
@@ -283,7 +293,7 @@ const mockSidebarState = {
   setOpenMobile: vi.fn(),
   openMobile: false,
   toggleSidebar: vi.fn(),
-  state: 'collapsed'
+  state: 'collapsed',
 }
 ```
 
@@ -339,12 +349,14 @@ npm run cypress:mobile -- --record
 ## 📈 Coverage Goals
 
 ### Unit Tests
+
 - **Components**: 90%+ coverage for mobile components
 - **Interactions**: All touch interactions tested
 - **Responsive**: All breakpoints covered
 - **Accessibility**: All WCAG criteria tested
 
 ### E2E Tests
+
 - **User Journeys**: Complete mobile navigation flows
 - **Cross-Device**: Testing on multiple viewport sizes
 - **Error States**: Network failures and recovery
@@ -366,13 +378,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: Run mobile unit tests
         run: npm run test:mobile
-      
+
       - name: Run mobile E2E tests
         run: npm run test:e2e:mobile
         env:
@@ -382,26 +394,31 @@ jobs:
 ## 📚 Best Practices
 
 ### 1. Test Organization
+
 - Group tests by component and functionality
 - Use descriptive test names
 - Follow AAA pattern (Arrange, Act, Assert)
 
 ### 2. Mobile-First Testing
+
 - Start tests with mobile viewport
 - Test responsive scaling up to desktop
 - Consider touch-first interactions
 
 ### 3. Accessibility Focus
+
 - Test with screen readers in mind
 - Verify keyboard navigation
 - Check color contrast and focus indicators
 
 ### 4. Performance Considerations
+
 - Test animation smoothness
 - Verify 60fps during interactions
 - Monitor memory usage during gesture tests
 
 ### 5. Real-World Scenarios
+
 - Test with actual mobile devices when possible
 - Consider network conditions
 - Test with various accessibility settings enabled

@@ -9,17 +9,19 @@ import * as React from 'react'
 export function useMobile() {
   const [isMobile, setIsMobile] = React.useState(false)
   const [isTablet, setIsTablet] = React.useState(false)
-  const [orientation, setOrientation] = React.useState<'portrait' | 'landscape'>('portrait')
+  const [orientation, setOrientation] = React.useState<
+    'portrait' | 'landscape'
+  >('portrait')
 
   React.useEffect(() => {
     const checkDevice = () => {
       const width = window.innerWidth
       const height = window.innerHeight
-      
+
       // Mobile breakpoints (following Tailwind defaults)
       const mobile = width < 768
       const tablet = width >= 768 && width < 1024
-      
+
       setIsMobile(mobile)
       setIsTablet(tablet)
       setOrientation(height > width ? 'portrait' : 'landscape')
@@ -67,9 +69,9 @@ export function useTouch() {
     const checkTouch = () => {
       setIsTouch(
         'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        // @ts-ignore - for older browsers
-        navigator.msMaxTouchPoints > 0
+          navigator.maxTouchPoints > 0 ||
+          // @ts-ignore - for older browsers
+          navigator.msMaxTouchPoints > 0
       )
     }
 
@@ -94,18 +96,28 @@ export function useSafeArea() {
   React.useEffect(() => {
     const updateSafeArea = () => {
       const computedStyle = getComputedStyle(document.documentElement)
-      
+
       setSafeAreaInsets({
-        top: parseInt(computedStyle.getPropertyValue('env(safe-area-inset-top)') || '0'),
-        right: parseInt(computedStyle.getPropertyValue('env(safe-area-inset-right)') || '0'),
-        bottom: parseInt(computedStyle.getPropertyValue('env(safe-area-inset-bottom)') || '0'),
-        left: parseInt(computedStyle.getPropertyValue('env(safe-area-inset-left)') || '0'),
+        top: parseInt(
+          computedStyle.getPropertyValue('env(safe-area-inset-top)') || '0'
+        ),
+        right: parseInt(
+          computedStyle.getPropertyValue('env(safe-area-inset-right)') || '0'
+        ),
+        bottom: parseInt(
+          computedStyle.getPropertyValue('env(safe-area-inset-bottom)') || '0'
+        ),
+        left: parseInt(
+          computedStyle.getPropertyValue('env(safe-area-inset-left)') || '0'
+        ),
       })
     }
 
     updateSafeArea()
     window.addEventListener('resize', updateSafeArea, { passive: true })
-    window.addEventListener('orientationchange', updateSafeArea, { passive: true })
+    window.addEventListener('orientationchange', updateSafeArea, {
+      passive: true,
+    })
 
     return () => {
       window.removeEventListener('resize', updateSafeArea)

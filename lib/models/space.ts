@@ -23,18 +23,29 @@ export interface ISpace extends Document {
   color?: string // Couleur pour l'affichage des cartes
   openingHours?: {
     monday: { open: string; close: string; closed?: boolean } | { closed: true }
-    tuesday: { open: string; close: string; closed?: boolean } | { closed: true }
-    wednesday: { open: string; close: string; closed?: boolean } | { closed: true }
-    thursday: { open: string; close: string; closed?: boolean } | { closed: true }
+    tuesday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
+    wednesday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
+    thursday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
     friday: { open: string; close: string; closed?: boolean } | { closed: true }
-    saturday: { open: string; close: string; closed?: boolean } | { closed: true }
+    saturday:
+      | { open: string; close: string; closed?: boolean }
+      | { closed: true }
     sunday: { open: string; close: string; closed?: boolean } | { closed: true }
   }
   createdAt: Date
   updatedAt: Date
-  
+
   // Méthodes
-  getPriceForDuration(duration: number, durationType: 'hour' | 'day' | 'week' | 'month'): number
+  getPriceForDuration(
+    duration: number,
+    durationType: 'hour' | 'day' | 'week' | 'month'
+  ): number
   isOpenNow(): boolean
 }
 
@@ -43,14 +54,14 @@ const spaceSchema = new Schema<ISpace>(
   {
     id: {
       type: String,
-      required: [true, 'L\'ID de l\'espace est obligatoire'],
+      required: [true, "L'ID de l'espace est obligatoire"],
       unique: true,
       trim: true,
       index: true,
     },
     name: {
       type: String,
-      required: [true, 'Le nom de l\'espace est obligatoire'],
+      required: [true, "Le nom de l'espace est obligatoire"],
       trim: true,
       maxlength: [100, 'Le nom ne peut dépasser 100 caractères'],
     },
@@ -63,7 +74,7 @@ const spaceSchema = new Schema<ISpace>(
     capacity: {
       type: Number,
       required: [true, 'La capacité est obligatoire'],
-      min: [1, 'La capacité doit être d\'au moins 1 personne'],
+      min: [1, "La capacité doit être d'au moins 1 personne"],
       max: [100, 'La capacité ne peut dépasser 100 personnes'],
     },
     pricePerHour: {
@@ -114,19 +125,22 @@ const spaceSchema = new Schema<ISpace>(
       {
         type: String,
         trim: true,
-        maxlength: [50, 'Chaque caractéristique ne peut dépasser 50 caractères'],
+        maxlength: [
+          50,
+          'Chaque caractéristique ne peut dépasser 50 caractères',
+        ],
       },
     ],
     image: {
       type: String,
-      required: [true, 'L\'image est obligatoire'],
+      required: [true, "L'image est obligatoire"],
       trim: true,
       validate: {
         validator: function (value: string) {
           // Vérifier que c'est une URL valide ou un chemin d'image
           return /^(https?:\/\/|\/|data:image\/)/.test(value)
         },
-        message: 'Format d\'image invalide',
+        message: "Format d'image invalide",
       },
     },
     available: {
@@ -143,7 +157,7 @@ const spaceSchema = new Schema<ISpace>(
         validator: function (value: number) {
           return Number.isInteger(value * 10)
         },
-        message: 'La note ne peut avoir qu\'une décimale maximum',
+        message: "La note ne peut avoir qu'une décimale maximum",
       },
     },
     specialty: {
@@ -185,7 +199,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -194,7 +208,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -206,7 +220,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -215,7 +229,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -227,7 +241,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -236,7 +250,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -248,7 +262,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -257,7 +271,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -269,7 +283,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -278,7 +292,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -290,7 +304,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -299,7 +313,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -311,7 +325,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         close: {
@@ -320,7 +334,7 @@ const spaceSchema = new Schema<ISpace>(
             validator: function (value: string) {
               return !value || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
             },
-            message: 'Format d\'heure invalide',
+            message: "Format d'heure invalide",
           },
         },
         closed: { type: Boolean, default: false },
@@ -335,9 +349,15 @@ const spaceSchema = new Schema<ISpace>(
 )
 
 // Index pour les recherches fréquentes
-spaceSchema.index({ available: 1, specialty: 1 }, { name: 'available_specialty' })
+spaceSchema.index(
+  { available: 1, specialty: 1 },
+  { name: 'available_specialty' }
+)
 spaceSchema.index({ isPopular: -1, rating: -1 }, { name: 'popular_rating' })
-spaceSchema.index({ name: 'text', location: 'text', description: 'text' }, { name: 'text_search' })
+spaceSchema.index(
+  { name: 'text', location: 'text', description: 'text' },
+  { name: 'text_search' }
+)
 
 // Méthodes virtuelles
 spaceSchema.virtual('isOpen').get(function (this: ISpace) {
@@ -498,7 +518,7 @@ export const defaultSpaces: Partial<ISpace>[] = [
     specialty: 'Salle privée',
     isPopular: true,
     description:
-      'Une salle de réunion privée et lumineuse avec verrière, équipée pour les présentations professionnelles et les réunions d\'équipe.',
+      "Une salle de réunion privée et lumineuse avec verrière, équipée pour les présentations professionnelles et les réunions d'équipe.",
     amenities: [
       'Table de conférence',
       'Chaises de bureau',
@@ -566,7 +586,9 @@ export const defaultSpaces: Partial<ISpace>[] = [
 export async function insertDefaultSpaces(): Promise<void> {
   try {
     // Vérifier si les espaces existent déjà
-    const existingSpaces = await Space.find({ id: { $in: ['places', 'verriere', 'etage'] } })
+    const existingSpaces = await Space.find({
+      id: { $in: ['places', 'verriere', 'etage'] },
+    })
 
     if (existingSpaces.length === 0) {
       await Space.insertMany(defaultSpaces)
@@ -575,7 +597,7 @@ export async function insertDefaultSpaces(): Promise<void> {
       console.log('Les espaces par défaut existent déjà')
     }
   } catch (error) {
-    console.error('Erreur lors de l\'insertion des espaces par défaut:', error)
+    console.error("Erreur lors de l'insertion des espaces par défaut:", error)
     throw error
   }
 }

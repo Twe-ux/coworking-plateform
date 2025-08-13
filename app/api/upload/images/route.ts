@@ -16,7 +16,7 @@ cloudinary.config({
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -34,7 +34,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier la configuration Cloudinary
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    if (
+      !process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
       console.warn('⚠️  Configuration Cloudinary manquante - upload simulé')
       return simulateUpload(request)
     }
@@ -56,31 +60,33 @@ export async function POST(request: NextRequest) {
 
       // Upload vers Cloudinary
       return new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            resource_type: 'auto',
-            folder: 'coworking-spaces', // Organiser dans un dossier
-            transformation: [
-              { width: 800, height: 600, crop: 'fill', quality: 'auto' },
-              { format: 'webp' } // Format optimisé
-            ]
-          },
-          (error, result) => {
-            if (error) {
-              console.error('Erreur upload Cloudinary:', error)
-              reject(error)
-            } else {
-              resolve({
-                url: result?.secure_url,
-                publicId: result?.public_id,
-                width: result?.width,
-                height: result?.height,
-                format: result?.format,
-                bytes: result?.bytes
-              })
+        cloudinary.uploader
+          .upload_stream(
+            {
+              resource_type: 'auto',
+              folder: 'coworking-spaces', // Organiser dans un dossier
+              transformation: [
+                { width: 800, height: 600, crop: 'fill', quality: 'auto' },
+                { format: 'webp' }, // Format optimisé
+              ],
+            },
+            (error, result) => {
+              if (error) {
+                console.error('Erreur upload Cloudinary:', error)
+                reject(error)
+              } else {
+                resolve({
+                  url: result?.secure_url,
+                  publicId: result?.public_id,
+                  width: result?.width,
+                  height: result?.height,
+                  format: result?.format,
+                  bytes: result?.bytes,
+                })
+              }
             }
-          }
-        ).end(buffer)
+          )
+          .end(buffer)
       })
     })
 
@@ -89,15 +95,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       images: uploadResults,
-      message: `${uploadResults.length} image(s) uploadée(s) avec succès`
+      message: `${uploadResults.length} image(s) uploadée(s) avec succès`,
     })
-
   } catch (error) {
     console.error('Erreur API upload images:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )
@@ -118,7 +124,7 @@ async function simulateUpload(request: NextRequest) {
       const buffer = Buffer.from(bytes)
       const base64 = buffer.toString('base64')
       const mimeType = file.type
-      
+
       return {
         url: `data:${mimeType};base64,${base64}`,
         publicId: `simulated_${Date.now()}_${index}`,
@@ -126,7 +132,7 @@ async function simulateUpload(request: NextRequest) {
         height: 600,
         format: file.type.split('/')[1],
         bytes: file.size,
-        simulated: true
+        simulated: true,
       }
     })
   )
@@ -135,6 +141,6 @@ async function simulateUpload(request: NextRequest) {
     success: true,
     images: simulatedResults,
     message: `${simulatedResults.length} image(s) uploadée(s) (mode simulation)`,
-    simulated: true
+    simulated: true,
   })
 }

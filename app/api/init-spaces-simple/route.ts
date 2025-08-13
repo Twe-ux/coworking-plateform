@@ -12,7 +12,13 @@ const defaultSpaces = [
     pricePerDay: 35,
     pricePerWeek: 149,
     pricePerMonth: 399,
-    features: ['WiFi Fibre', 'Prises électriques', 'Vue sur rue', 'Accès boissons', 'Ambiance café'],
+    features: [
+      'WiFi Fibre',
+      'Prises électriques',
+      'Vue sur rue',
+      'Accès boissons',
+      'Ambiance café',
+    ],
     image: 'bg-gradient-to-br from-coffee-primary to-coffee-accent',
     available: true,
     rating: 4.8,
@@ -30,7 +36,13 @@ const defaultSpaces = [
     pricePerDay: 45,
     pricePerWeek: 189,
     pricePerMonth: 499,
-    features: ['Lumière naturelle', 'Espace privé', 'Tableau blanc', 'Climatisation', 'Calme'],
+    features: [
+      'Lumière naturelle',
+      'Espace privé',
+      'Tableau blanc',
+      'Climatisation',
+      'Calme',
+    ],
     image: 'bg-gradient-to-br from-blue-400 to-indigo-600',
     available: true,
     rating: 4.9,
@@ -48,7 +60,13 @@ const defaultSpaces = [
     pricePerDay: 40,
     pricePerWeek: 169,
     pricePerMonth: 449,
-    features: ['Zone silencieuse', 'Écrans partagés', 'Salon détente', 'Vue dégagée', 'Concentration'],
+    features: [
+      'Zone silencieuse',
+      'Écrans partagés',
+      'Salon détente',
+      'Vue dégagée',
+      'Concentration',
+    ],
     image: 'bg-gradient-to-br from-green-400 to-emerald-600',
     available: true,
     rating: 4.7,
@@ -66,45 +84,44 @@ const defaultSpaces = [
 export async function POST() {
   try {
     console.log('🔄 Connexion à MongoDB...')
-    
+
     const { db } = await connectToDatabase()
     const spacesCollection = db.collection('spaces')
-    
+
     console.log('🔄 Vérification des espaces existants...')
-    
+
     // Vérifier si des espaces existent déjà
     const existingSpacesCount = await spacesCollection.countDocuments()
-    
+
     if (existingSpacesCount > 0) {
       console.log(`ℹ️  ${existingSpacesCount} espace(s) déjà présent(s)`)
       return NextResponse.json({
         message: `${existingSpacesCount} espace(s) déjà présent(s)`,
-        existingCount: existingSpacesCount
+        existingCount: existingSpacesCount,
       })
     }
-    
+
     console.log('🔄 Insertion des espaces par défaut...')
-    
+
     // Insérer les espaces par défaut
     const result = await spacesCollection.insertMany(defaultSpaces)
-    
+
     console.log(`✅ ${result.insertedCount} espace(s) inséré(s) avec succès`)
-    
+
     return NextResponse.json({
       message: `${result.insertedCount} espace(s) initialisé(s) avec succès`,
       spaces: defaultSpaces.map((space, index) => ({
         ...space,
-        _id: result.insertedIds[index]
-      }))
+        _id: result.insertedIds[index],
+      })),
     })
-    
   } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation des espaces:', error)
-    
+    console.error("❌ Erreur lors de l'initialisation des espaces:", error)
+
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de l\'initialisation des espaces',
-        details: error instanceof Error ? error.message : 'Erreur inconnue'
+      {
+        error: "Erreur lors de l'initialisation des espaces",
+        details: error instanceof Error ? error.message : 'Erreur inconnue',
       },
       { status: 500 }
     )

@@ -10,7 +10,7 @@ import mongoose from 'mongoose'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -29,14 +29,14 @@ export async function GET(request: NextRequest) {
     await connectMongoose()
 
     const db = mongoose.connection.db
-    
+
     // Lister toutes les collections
     const collections = await db.listCollections().toArray()
-    
+
     const debug = {
-      collections: collections.map(c => c.name),
+      collections: collections.map((c) => c.name),
       connectionState: mongoose.connection.readyState,
-      dbName: db.databaseName
+      dbName: db.databaseName,
     }
 
     // Vérifier quelques collections importantes
@@ -45,16 +45,18 @@ export async function GET(request: NextRequest) {
         const collection = db.collection(collectionName)
         const count = await collection.countDocuments()
         const sample = await collection.findOne({})
-        
+
         debug[`${collectionName}_info`] = {
           count,
-          sampleDocument: sample ? {
-            _id: sample._id,
-            keys: Object.keys(sample),
-            ...(sample.date && { date: sample.date }),
-            ...(sample.status && { status: sample.status }),
-            ...(sample.totalPrice && { totalPrice: sample.totalPrice })
-          } : null
+          sampleDocument: sample
+            ? {
+                _id: sample._id,
+                keys: Object.keys(sample),
+                ...(sample.date && { date: sample.date }),
+                ...(sample.status && { status: sample.status }),
+                ...(sample.totalPrice && { totalPrice: sample.totalPrice }),
+              }
+            : null,
         }
       } catch (error) {
         debug[`${collectionName}_info`] = { error: 'Collection non trouvée' }
@@ -63,15 +65,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      debug
+      debug,
     })
-
   } catch (error) {
     console.error('Erreur API debug collections:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )

@@ -7,27 +7,33 @@ interface HeaderScheduleProps {
   showActions?: boolean
 }
 
-export default function HeaderSchedule({ 
-  title = "Staff Scheduling",
-  subtitle = "Manage employee schedules and assignments",
-  showActions = true
+export default function HeaderSchedule({
+  title = 'Planning des Employés',
+  subtitle = 'Gérer les plannings et les affectations des employés',
+  showActions = true,
 }: HeaderScheduleProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-        <p className="mt-1 text-gray-600">
-          {subtitle}
-        </p>
+        <p className="mt-1 text-gray-600">{subtitle}</p>
       </div>
 
-      {showActions && (
+      {/* {showActions && (
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
             <Download className="h-4 w-4" />
             Import
           </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
             <Upload className="h-4 w-4" />
             Export
           </Button>
@@ -36,7 +42,7 @@ export default function HeaderSchedule({
             Settings
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

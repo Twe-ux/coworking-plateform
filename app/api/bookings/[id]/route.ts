@@ -39,7 +39,10 @@ export async function GET(
 
     // Récupérer la réservation avec les données liées
     const booking = await Booking.findById(bookingId)
-      .populate('spaceId', 'id name location capacity specialty image features rating')
+      .populate(
+        'spaceId',
+        'id name location capacity specialty image features rating'
+      )
       .lean()
 
     if (!booking) {
@@ -60,7 +63,9 @@ export async function GET(
     }
 
     // Récupérer les données utilisateur pour l'email
-    const user = await User.findById((booking as any).userId).select('email firstName lastName').lean()
+    const user = await User.findById((booking as any).userId)
+      .select('email firstName lastName')
+      .lean()
 
     // Formater la réponse
     return NextResponse.json({
@@ -68,16 +73,18 @@ export async function GET(
       booking: {
         id: (booking as any)._id.toString(),
         userId: (booking as any).userId.toString(),
-        space: (booking as any).spaceId ? {
-          id: (booking as any).spaceId.id,
-          name: (booking as any).spaceId.name,
-          location: (booking as any).spaceId.location,
-          capacity: (booking as any).spaceId.capacity,
-          specialty: (booking as any).spaceId.specialty,
-          image: (booking as any).spaceId.image,
-          features: (booking as any).spaceId.features,
-          rating: (booking as any).spaceId.rating
-        } : null,
+        space: (booking as any).spaceId
+          ? {
+              id: (booking as any).spaceId.id,
+              name: (booking as any).spaceId.name,
+              location: (booking as any).spaceId.location,
+              capacity: (booking as any).spaceId.capacity,
+              specialty: (booking as any).spaceId.specialty,
+              image: (booking as any).spaceId.image,
+              features: (booking as any).spaceId.features,
+              rating: (booking as any).spaceId.rating,
+            }
+          : null,
         date: (booking as any).date.toISOString(),
         startTime: (booking as any).startTime,
         endTime: (booking as any).endTime,
@@ -92,17 +99,21 @@ export async function GET(
         createdAt: (booking as any).createdAt.toISOString(),
         updatedAt: (booking as any).updatedAt.toISOString(),
       },
-      user: user ? {
-        email: (user as any).email,
-        firstName: (user as any).firstName,
-        lastName: (user as any).lastName
-      } : null
+      user: user
+        ? {
+            email: (user as any).email,
+            firstName: (user as any).firstName,
+            lastName: (user as any).lastName,
+          }
+        : null,
     })
-
   } catch (error) {
     console.error('[GET /api/bookings/[id]] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération de la réservation', code: 'INTERNAL_ERROR' },
+      {
+        error: 'Erreur lors de la récupération de la réservation',
+        code: 'INTERNAL_ERROR',
+      },
       { status: 500 }
     )
   }
@@ -138,8 +149,10 @@ export async function DELETE(
     await connectMongoose()
 
     // Récupérer la réservation avec les données liées
-    const booking = await Booking.findById(bookingId)
-      .populate('spaceId', 'name location')
+    const booking = await Booking.findById(bookingId).populate(
+      'spaceId',
+      'name location'
+    )
 
     if (!booking) {
       return NextResponse.json(
@@ -161,7 +174,10 @@ export async function DELETE(
     // Vérifier que la réservation peut être annulée
     if (!booking.canBeCancelled()) {
       return NextResponse.json(
-        { error: 'Réservation ne peut pas être annulée', code: 'CANCELLATION_NOT_ALLOWED' },
+        {
+          error: 'Réservation ne peut pas être annulée',
+          code: 'CANCELLATION_NOT_ALLOWED',
+        },
         { status: 400 }
       )
     }
@@ -173,10 +189,11 @@ export async function DELETE(
       const bookingDateTime = new Date(booking.date)
       const [hours, minutes] = booking.startTime.split(':').map(Number)
       bookingDateTime.setHours(hours, minutes, 0, 0)
-      
+
       const now = new Date()
-      const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
-      
+      const hoursUntilBooking =
+        (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+
       if (hoursUntilBooking >= 24) {
         refundAmount = booking.totalPrice
       } else if (hoursUntilBooking >= 2) {
@@ -193,7 +210,7 @@ export async function DELETE(
     // Récupérer les données utilisateur pour l'email
     const [user, space] = await Promise.all([
       User.findById(booking.userId),
-      Space.findById(booking.spaceId)
+      Space.findById(booking.spaceId),
     ])
 
     // Envoyer l'email d'annulation de manière asynchrone
@@ -202,23 +219,32 @@ export async function DELETE(
         try {
           await sendBookingCancellationEmail({
             email: user.email,
-            firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
-            lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
+            firstName:
+              user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
+            lastName:
+              user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
             bookingId: booking._id.toString(),
             spaceName: space.name,
             date: format(booking.date, 'dd MMMM yyyy', { locale: fr }),
             startTime: booking.startTime,
             endTime: booking.endTime,
-            refundAmount
+            refundAmount,
           })
-          console.log(`✅ Email d'annulation envoyé pour la réservation ${booking._id}`)
+          console.log(
+            `✅ Email d'annulation envoyé pour la réservation ${booking._id}`
+          )
         } catch (error) {
-          console.error(`❌ Erreur envoi email d'annulation pour ${booking._id}:`, error)
+          console.error(
+            `❌ Erreur envoi email d'annulation pour ${booking._id}:`,
+            error
+          )
         }
       })
     }
 
-    console.log(`[BOOKING_CANCELLED] User ${session.user.id} cancelled booking ${booking._id}`)
+    console.log(
+      `[BOOKING_CANCELLED] User ${session.user.id} cancelled booking ${booking._id}`
+    )
 
     return NextResponse.json({
       success: true,
@@ -227,14 +253,18 @@ export async function DELETE(
         id: booking._id.toString(),
         status: booking.status,
         refundAmount,
-        refundPolicy: refundAmount ? 'Remboursement traité sous 3-5 jours ouvrés' : 'Aucun remboursement applicable'
-      }
+        refundPolicy: refundAmount
+          ? 'Remboursement traité sous 3-5 jours ouvrés'
+          : 'Aucun remboursement applicable',
+      },
     })
-
   } catch (error) {
     console.error('[DELETE /api/bookings/[id]] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de l\'annulation de la réservation', code: 'INTERNAL_ERROR' },
+      {
+        error: "Erreur lors de l'annulation de la réservation",
+        code: 'INTERNAL_ERROR',
+      },
       { status: 500 }
     )
   }

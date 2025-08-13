@@ -87,9 +87,9 @@ export default function ProfilePage() {
         await fetch('/api/user/profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             name: profile?.name,
-            image: avatarUrl 
+            image: avatarUrl,
           }),
         })
 
@@ -99,7 +99,7 @@ export default function ProfilePage() {
 
         // Mettre à jour la session
         await update({ image: avatarUrl })
-        
+
         alert('Avatar mis à jour avec succès !')
       } else {
         alert(result.error || "Erreur lors de l'upload")

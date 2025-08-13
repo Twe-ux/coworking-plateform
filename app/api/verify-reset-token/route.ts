@@ -25,9 +25,10 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { 
-          message: 'Token de réinitialisation invalide ou expiré. Veuillez demander un nouveau lien de réinitialisation.',
-          valid: false 
+        {
+          message:
+            'Token de réinitialisation invalide ou expiré. Veuillez demander un nouveau lien de réinitialisation.',
+          valid: false,
         },
         { status: 400 }
       )
@@ -35,10 +36,10 @@ export async function GET(request: NextRequest) {
 
     // Token valide
     return NextResponse.json(
-      { 
+      {
         message: 'Token valide.',
         valid: true,
-        email: user.email // Pour afficher l'email dans l'interface (optionnel)
+        email: user.email, // Pour afficher l'email dans l'interface (optionnel)
       },
       { status: 200 }
     )
@@ -46,9 +47,9 @@ export async function GET(request: NextRequest) {
     console.error('Erreur verify-reset-token:', error)
 
     return NextResponse.json(
-      { 
+      {
         message: 'Erreur lors de la vérification du token.',
-        valid: false 
+        valid: false,
       },
       { status: 500 }
     )

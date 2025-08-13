@@ -38,162 +38,165 @@ export async function GET(request: NextRequest) {
       pendingBookings,
       thisMonthBookings,
       lastMonthBookings,
-      thisYearBookings
+      thisYearBookings,
     ] = await Promise.all([
       // Total des réservations
       Booking.countDocuments({ userId }),
-      
+
       // Réservations actives (confirmées et futures)
-      Booking.countDocuments({ 
-        userId, 
+      Booking.countDocuments({
+        userId,
         status: 'confirmed',
-        date: { $gte: now }
+        date: { $gte: now },
       }),
-      
+
       // Réservations terminées
-      Booking.countDocuments({ 
-        userId, 
+      Booking.countDocuments({
+        userId,
         status: { $in: ['completed', 'confirmed'] },
-        date: { $lt: now }
+        date: { $lt: now },
       }),
-      
+
       // Réservations annulées
       Booking.countDocuments({ userId, status: 'cancelled' }),
-      
+
       // Réservations en attente
-      Booking.countDocuments({ 
-        userId, 
-        status: { $in: ['pending', 'payment_pending'] }
+      Booking.countDocuments({
+        userId,
+        status: { $in: ['pending', 'payment_pending'] },
       }),
-      
+
       // Ce mois-ci
-      Booking.countDocuments({ 
-        userId, 
-        createdAt: { $gte: startOfMonth }
+      Booking.countDocuments({
+        userId,
+        createdAt: { $gte: startOfMonth },
       }),
-      
+
       // Mois dernier
-      Booking.countDocuments({ 
-        userId, 
-        createdAt: { $gte: startOfLastMonth, $lt: endOfLastMonth }
+      Booking.countDocuments({
+        userId,
+        createdAt: { $gte: startOfLastMonth, $lt: endOfLastMonth },
       }),
-      
+
       // Cette année
-      Booking.countDocuments({ 
-        userId, 
-        createdAt: { $gte: startOfYear }
-      })
+      Booking.countDocuments({
+        userId,
+        createdAt: { $gte: startOfYear },
+      }),
     ])
 
     // Calculer le total dépensé
     const totalSpentResult = await Booking.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           userId,
-          status: { $in: ['confirmed', 'completed'] }
-        } 
+          status: { $in: ['confirmed', 'completed'] },
+        },
       },
-      { 
-        $group: { 
-          _id: null, 
-          total: { $sum: '$totalPrice' } 
-        } 
-      }
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$totalPrice' },
+        },
+      },
     ])
 
-    const totalSpent = totalSpentResult.length > 0 ? totalSpentResult[0].total : 0
+    const totalSpent =
+      totalSpentResult.length > 0 ? totalSpentResult[0].total : 0
 
     // Total dépensé ce mois-ci
     const thisMonthSpentResult = await Booking.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           userId,
           status: { $in: ['confirmed', 'completed'] },
-          createdAt: { $gte: startOfMonth }
-        } 
+          createdAt: { $gte: startOfMonth },
+        },
       },
-      { 
-        $group: { 
-          _id: null, 
-          total: { $sum: '$totalPrice' } 
-        } 
-      }
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$totalPrice' },
+        },
+      },
     ])
 
-    const thisMonthSpent = thisMonthSpentResult.length > 0 ? thisMonthSpentResult[0].total : 0
+    const thisMonthSpent =
+      thisMonthSpentResult.length > 0 ? thisMonthSpentResult[0].total : 0
 
     // Temps total passé (en heures)
     const timeSpentResult = await Booking.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           userId,
-          status: { $in: ['confirmed', 'completed'] }
-        } 
+          status: { $in: ['confirmed', 'completed'] },
+        },
       },
-      { 
-        $group: { 
-          _id: null, 
-          totalHours: { 
+      {
+        $group: {
+          _id: null,
+          totalHours: {
             $sum: {
               $cond: [
                 { $eq: ['$durationType', 'hour'] },
                 '$duration',
-                { $multiply: ['$duration', 24] } // Convertir les jours en heures
-              ]
-            }
-          }
-        } 
-      }
+                { $multiply: ['$duration', 24] }, // Convertir les jours en heures
+              ],
+            },
+          },
+        },
+      },
     ])
 
-    const totalHoursSpent = timeSpentResult.length > 0 ? timeSpentResult[0].totalHours : 0
+    const totalHoursSpent =
+      timeSpentResult.length > 0 ? timeSpentResult[0].totalHours : 0
 
     // Espaces les plus réservés
     const favoriteSpacesResult = await Booking.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           userId,
-          status: { $in: ['confirmed', 'completed'] }
-        } 
+          status: { $in: ['confirmed', 'completed'] },
+        },
       },
-      { 
-        $group: { 
-          _id: '$spaceId', 
+      {
+        $group: {
+          _id: '$spaceId',
           count: { $sum: 1 },
           totalSpent: { $sum: '$totalPrice' },
-          totalHours: { 
+          totalHours: {
             $sum: {
               $cond: [
                 { $eq: ['$durationType', 'hour'] },
                 '$duration',
-                { $multiply: ['$duration', 24] }
-              ]
-            }
-          }
-        } 
+                { $multiply: ['$duration', 24] },
+              ],
+            },
+          },
+        },
       },
       { $sort: { count: -1 } },
       { $limit: 5 },
-      { 
+      {
         $lookup: {
           from: 'spaces',
           localField: '_id',
           foreignField: '_id',
-          as: 'space'
-        }
+          as: 'space',
+        },
       },
-      { $unwind: '$space' }
+      { $unwind: '$space' },
     ])
 
-    const favoriteSpaces = favoriteSpacesResult.map(item => ({
+    const favoriteSpaces = favoriteSpacesResult.map((item) => ({
       space: {
         id: item.space.id,
         name: item.space.name,
-        location: item.space.location
+        location: item.space.location,
       },
       bookingCount: item.count,
       totalSpent: item.totalSpent,
-      totalHours: item.totalHours
+      totalHours: item.totalHours,
     }))
 
     // Activité par mois (12 derniers mois)
@@ -201,32 +204,37 @@ export async function GET(request: NextRequest) {
       {
         $match: {
           userId,
-          createdAt: { 
-            $gte: new Date(now.getFullYear() - 1, now.getMonth(), 1) 
-          }
-        }
+          createdAt: {
+            $gte: new Date(now.getFullYear() - 1, now.getMonth(), 1),
+          },
+        },
       },
       {
         $group: {
           _id: {
             year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' }
+            month: { $month: '$createdAt' },
           },
           count: { $sum: 1 },
-          totalSpent: { $sum: '$totalPrice' }
-        }
+          totalSpent: { $sum: '$totalPrice' },
+        },
       },
-      { $sort: { '_id.year': 1, '_id.month': 1 } }
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
     ])
 
     // Moyennes
-    const averageBookingPrice = totalBookings > 0 ? totalSpent / totalBookings : 0
-    const averageSessionDuration = totalBookings > 0 ? totalHoursSpent / totalBookings : 0
+    const averageBookingPrice =
+      totalBookings > 0 ? totalSpent / totalBookings : 0
+    const averageSessionDuration =
+      totalBookings > 0 ? totalHoursSpent / totalBookings : 0
 
     // Calculer les pourcentages de changement
-    const monthOverMonthChange = lastMonthBookings > 0 
-      ? ((thisMonthBookings - lastMonthBookings) / lastMonthBookings) * 100 
-      : thisMonthBookings > 0 ? 100 : 0
+    const monthOverMonthChange =
+      lastMonthBookings > 0
+        ? ((thisMonthBookings - lastMonthBookings) / lastMonthBookings) * 100
+        : thisMonthBookings > 0
+          ? 100
+          : 0
 
     return NextResponse.json({
       overview: {
@@ -238,40 +246,45 @@ export async function GET(request: NextRequest) {
         totalSpent,
         totalHoursSpent,
         averageBookingPrice,
-        averageSessionDuration
+        averageSessionDuration,
       },
       thisMonth: {
         bookings: thisMonthBookings,
         spent: thisMonthSpent,
-        changeFromLastMonth: monthOverMonthChange
+        changeFromLastMonth: monthOverMonthChange,
       },
       thisYear: {
-        bookings: thisYearBookings
+        bookings: thisYearBookings,
       },
       favoriteSpaces,
-      monthlyActivity: monthlyActivity.map(item => ({
+      monthlyActivity: monthlyActivity.map((item) => ({
         year: item._id.year,
         month: item._id.month,
         count: item.count,
-        totalSpent: item.totalSpent
+        totalSpent: item.totalSpent,
       })),
       insights: {
-        mostActiveMonth: monthlyActivity.length > 0 
-          ? monthlyActivity.reduce((max, current) => 
-              current.count > max.count ? current : max, monthlyActivity[0])
-          : null,
+        mostActiveMonth:
+          monthlyActivity.length > 0
+            ? monthlyActivity.reduce(
+                (max, current) => (current.count > max.count ? current : max),
+                monthlyActivity[0]
+              )
+            : null,
         streak: {
           // TODO: Calculer la série de réservations consécutives
           current: 0,
-          best: 0
-        }
-      }
+          best: 0,
+        },
+      },
     })
-
   } catch (error) {
     console.error('[GET /api/bookings/stats] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des statistiques', code: 'INTERNAL_ERROR' },
+      {
+        error: 'Erreur lors de la récupération des statistiques',
+        code: 'INTERNAL_ERROR',
+      },
       { status: 500 }
     )
   }

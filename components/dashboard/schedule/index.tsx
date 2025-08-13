@@ -11,7 +11,13 @@ import HeaderSchedule from './HeaderSchedule'
 import MainContentTabsSchedule from './MainContentTabsSchedule'
 import QuickActionsSchedule from './QuickActionsShedule'
 import StatisticsCardsSchedule from './StatisticsCardsSchedule'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
@@ -25,16 +31,20 @@ import { Clock, Edit2, Trash2, Plus, Calendar } from 'lucide-react'
 export default function SchedulePage() {
   const { data: session } = useSession()
   const userRole = (session?.user as any)?.role
-  
+
   // Charger les employés et shifts depuis l'API
-  const { employees, isLoading: employeesLoading, error: employeesError } = useEmployees({ active: true })
-  const { 
-    shifts, 
-    isLoading: shiftsLoading, 
-    error: shiftsError, 
-    createShift, 
-    updateShift, 
-    deleteShift 
+  const {
+    employees,
+    isLoading: employeesLoading,
+    error: employeesError,
+  } = useEmployees({ active: true })
+  const {
+    shifts,
+    isLoading: shiftsLoading,
+    error: shiftsError,
+    createShift,
+    updateShift,
+    deleteShift,
   } = useShifts({ active: true })
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null
@@ -63,21 +73,28 @@ export default function SchedulePage() {
     location?: string
   }) => {
     // Utiliser la date locale pour éviter les problèmes de fuseau horaire
-    const localDate = new Date(shiftData.date.getFullYear(), shiftData.date.getMonth(), shiftData.date.getDate())
+    const localDate = new Date(
+      shiftData.date.getFullYear(),
+      shiftData.date.getMonth(),
+      shiftData.date.getDate()
+    )
     const result = await createShift({
       ...shiftData,
-      date: localDate.toISOString().split('T')[0]
+      date: localDate.toISOString().split('T')[0],
     })
-    
+
     if (!result.success) {
       console.error('Erreur lors de la création du créneau:', result.error)
       // TODO: Afficher une notification d'erreur
     }
   }
 
-  const handleUpdateShift = async (shiftId: string, updates: Partial<Shift>) => {
+  const handleUpdateShift = async (
+    shiftId: string,
+    updates: Partial<Shift>
+  ) => {
     const result = await updateShift(shiftId, updates)
-    
+
     if (!result.success) {
       console.error('Erreur lors de la mise à jour du créneau:', result.error)
       // TODO: Afficher une notification d'erreur
@@ -86,7 +103,7 @@ export default function SchedulePage() {
 
   const handleDeleteShift = async (shiftId: string) => {
     const result = await deleteShift(shiftId)
-    
+
     if (result.success) {
       // Fermer les modals et rafraîchir
       setShowDayShiftsModal(false)
@@ -109,12 +126,12 @@ export default function SchedulePage() {
     if (date) {
       setClickedDate(date)
       setSelectedDate(date)
-      
+
       // Vérifier s'il y a des shifts existants pour cette date
-      const dayShifts = shifts.filter(s => 
-        s.date.toDateString() === date.toDateString()
+      const dayShifts = shifts.filter(
+        (s) => s.date.toDateString() === date.toDateString()
       )
-      
+
       if (dayShifts.length > 0) {
         // Il y a des shifts existants, ouvrir directement la fenêtre de gestion
         setSelectedDateShifts(dayShifts)
@@ -183,10 +200,14 @@ export default function SchedulePage() {
   if (employeesLoading || shiftsLoading) {
     return (
       <div className="container space-y-6 p-2">
-        <HeaderSchedule title={isStaff ? "Mon Planning" : "Staff Scheduling"} subtitle="Chargement..." showActions={false} />
+        <HeaderSchedule
+          title={isStaff ? 'Mon Planning' : 'Staff Scheduling'}
+          subtitle="Chargement..."
+          showActions={false}
+        />
         <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-32 rounded bg-gray-200"></div>
+          <div className="h-64 rounded bg-gray-200"></div>
         </div>
       </div>
     )
@@ -195,10 +216,16 @@ export default function SchedulePage() {
   if (employeesError || shiftsError) {
     return (
       <div className="container space-y-6 p-2">
-        <HeaderSchedule title={isStaff ? "Mon Planning" : "Staff Scheduling"} subtitle="Erreur de chargement" showActions={false} />
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <HeaderSchedule
+          title={isStaff ? 'Mon Planning' : 'Staff Scheduling'}
+          subtitle="Erreur de chargement"
+          showActions={false}
+        />
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
           <p className="font-medium">Erreur lors du chargement des données</p>
-          {employeesError && <p className="text-sm">Employés: {employeesError}</p>}
+          {employeesError && (
+            <p className="text-sm">Employés: {employeesError}</p>
+          )}
           {shiftsError && <p className="text-sm">Créneaux: {shiftsError}</p>}
         </div>
       </div>
@@ -210,11 +237,11 @@ export default function SchedulePage() {
     return (
       <div className="container space-y-6 p-2">
         {/* Page Header */}
-        <HeaderSchedule
+        {/* <HeaderSchedule
           title="Mon Planning"
           subtitle="Consultez vos créneaux de travail"
           showActions={false}
-        />
+        /> */}
 
         {/* Planning uniquement pour le staff */}
         <EmployeeScheduling
@@ -248,14 +275,6 @@ export default function SchedulePage() {
       {/* Page Header */}
       <HeaderSchedule />
 
-      {/* Statistics Cards */}
-      <StatisticsCardsSchedule
-        activeEmployees={activeEmployees}
-        shiftsThisWeek={shiftsThisWeek}
-        totalHoursThisWeek={totalHoursThisWeek}
-        coveragePercentage={coveragePercentage}
-      />
-
       {/* Main Content Tabs */}
       <MainContentTabsSchedule
         employees={employees}
@@ -268,6 +287,14 @@ export default function SchedulePage() {
         handleAddEmployee={handleAddEmployee}
         canManageEmployees={canManageEmployees}
         userRole={userRole}
+      />
+
+      {/* Statistics Cards */}
+      <StatisticsCardsSchedule
+        activeEmployees={activeEmployees}
+        shiftsThisWeek={shiftsThisWeek}
+        totalHoursThisWeek={totalHoursThisWeek}
+        coveragePercentage={coveragePercentage}
       />
 
       {/* Shift Assignment Modal */}
@@ -298,48 +325,73 @@ export default function SchedulePage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              {clickedDate?.toLocaleDateString('fr-FR', { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long' 
+              {clickedDate?.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
               })}
             </DialogTitle>
           </DialogHeader>
 
           <div className="py-4">
-            <p className="text-sm text-gray-600 mb-4">
-              Cette date contient déjà {selectedDateShifts.length} créneau{selectedDateShifts.length > 1 ? 'x' : ''}. 
-              Que souhaitez-vous faire ?
+            <p className="mb-4 text-sm text-gray-600">
+              Cette date contient déjà {selectedDateShifts.length} créneau
+              {selectedDateShifts.length > 1 ? 'x' : ''}. Que souhaitez-vous
+              faire ?
             </p>
-            
+
             <div className="space-y-3">
               {selectedDateShifts.slice(0, 3).map((shift) => {
-                const employee = employees.find(emp => emp.id === shift.employeeId)
+                const employee = employees.find(
+                  (emp) => emp.id === shift.employeeId
+                )
                 return (
-                  <div key={shift.id} className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                  <div
+                    key={shift.id}
+                    className="flex items-center gap-2 rounded bg-gray-50 p-2 text-sm text-gray-700"
+                  >
                     <Avatar className="h-6 w-6">
-                      <div className={`h-full w-full ${employee?.color} flex items-center justify-center text-xs font-semibold text-white`}>
-                        {employee?.firstName?.charAt(0)}{employee?.lastName?.charAt(0)}
+                      <div
+                        className={`h-full w-full ${employee?.color} flex items-center justify-center text-xs font-semibold text-white`}
+                      >
+                        {employee?.firstName?.charAt(0)}
+                        {employee?.lastName?.charAt(0)}
                       </div>
                     </Avatar>
-                    <span>{employee?.firstName} {employee?.lastName}</span>
-                    <Badge variant="secondary" className="text-xs">{shift.type}</Badge>
-                    <span className="text-xs text-gray-500">{shift.startTime} - {shift.endTime}</span>
+                    <span>
+                      {employee?.firstName} {employee?.lastName}
+                    </span>
+                    <Badge variant="secondary" className="text-xs">
+                      {shift.type}
+                    </Badge>
+                    <span className="text-xs text-gray-500">
+                      {shift.startTime} - {shift.endTime}
+                    </span>
                   </div>
                 )
               })}
               {selectedDateShifts.length > 3 && (
-                <p className="text-xs text-gray-500">... et {selectedDateShifts.length - 3} autre{selectedDateShifts.length - 3 > 1 ? 's' : ''}</p>
+                <p className="text-xs text-gray-500">
+                  ... et {selectedDateShifts.length - 3} autre
+                  {selectedDateShifts.length - 3 > 1 ? 's' : ''}
+                </p>
               )}
             </div>
           </div>
 
           <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={handleAddNewShift} className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleAddNewShift}
+              className="flex items-center gap-2"
+            >
               <Plus className="h-4 w-4" />
               Ajouter
             </Button>
-            <Button onClick={handleViewDayShifts} className="flex items-center gap-2">
+            <Button
+              onClick={handleViewDayShifts}
+              className="flex items-center gap-2"
+            >
               <Edit2 className="h-4 w-4" />
               Modifier
             </Button>
@@ -349,34 +401,44 @@ export default function SchedulePage() {
 
       {/* Day Shifts Management Modal */}
       <Dialog open={showDayShiftsModal} onOpenChange={setShowDayShiftsModal}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Gérer les créneaux - {clickedDate?.toLocaleDateString('fr-FR', { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long' 
+              Gérer les créneaux -{' '}
+              {clickedDate?.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
               })}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="py-4 space-y-4">
+          <div className="space-y-4 py-4">
             {selectedDateShifts.map((shift) => {
-              const employee = employees.find(emp => emp.id === shift.employeeId)
+              const employee = employees.find(
+                (emp) => emp.id === shift.employeeId
+              )
               return (
                 <Card key={shift.id} className="border border-gray-200">
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <div className={`h-full w-full ${employee?.color} flex items-center justify-center text-sm font-semibold text-white`}>
-                            {employee?.firstName?.charAt(0)}{employee?.lastName?.charAt(0)}
+                          <div
+                            className={`h-full w-full ${employee?.color} flex items-center justify-center text-sm font-semibold text-white`}
+                          >
+                            {employee?.firstName?.charAt(0)}
+                            {employee?.lastName?.charAt(0)}
                           </div>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{employee?.firstName} {employee?.lastName}</div>
-                          <div className="text-sm text-gray-500">{employee?.role}</div>
+                          <div className="font-medium">
+                            {employee?.firstName} {employee?.lastName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {employee?.role}
+                          </div>
                         </div>
                         <Badge variant="secondary">{shift.type}</Badge>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -384,10 +446,12 @@ export default function SchedulePage() {
                           {shift.startTime} - {shift.endTime}
                         </div>
                         {shift.location && (
-                          <span className="text-xs text-gray-500">📍 {shift.location}</span>
+                          <span className="text-xs text-gray-500">
+                            📍 {shift.location}
+                          </span>
                         )}
                       </div>
-                      
+
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -417,13 +481,19 @@ export default function SchedulePage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDayShiftsModal(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowDayShiftsModal(false)}
+            >
               Fermer
             </Button>
-            <Button onClick={() => {
-              setShowDayShiftsModal(false)
-              handleAddNewShift()
-            }} className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                setShowDayShiftsModal(false)
+                handleAddNewShift()
+              }}
+              className="flex items-center gap-2"
+            >
               <Plus className="h-4 w-4" />
               Ajouter un créneau
             </Button>

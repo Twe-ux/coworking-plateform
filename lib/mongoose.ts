@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 if (!process.env.MONGODB_URI) {
-  throw new Error('Variable d\'environnement MONGODB_URI manquante')
+  throw new Error("Variable d'environnement MONGODB_URI manquante")
 }
 
 const MONGODB_URI = process.env.MONGODB_URI
@@ -55,7 +55,7 @@ export async function connectMongoose(): Promise<mongoose.Mongoose> {
 
   // Attendre la connexion et la mettre en cache
   cached.conn = await cached.promise
-  
+
   // Log uniquement en développement
   if (process.env.NODE_ENV === 'development') {
     console.log('🍃 Mongoose connecté à MongoDB')
@@ -72,7 +72,7 @@ export async function disconnectMongoose(): Promise<void> {
     await mongoose.connection.close()
     cached.conn = null
     cached.promise = null
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log('🍃 Mongoose déconnecté')
     }

@@ -122,12 +122,14 @@ export default function ShiftAssignment({
   className = '',
 }: ShiftAssignmentProps) {
   // État pour l'employé sélectionné de façon persistante
-  const [persistentEmployeeId, setPersistentEmployeeId] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('lastSelectedEmployeeId') || ''
+  const [persistentEmployeeId, setPersistentEmployeeId] = useState<string>(
+    () => {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('lastSelectedEmployeeId') || ''
+      }
+      return ''
     }
-    return ''
-  })
+  )
 
   const [formData, setFormData] = useState({
     employeeId: existingShift?.employeeId || persistentEmployeeId || '',
@@ -140,7 +142,8 @@ export default function ShiftAssignment({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [shiftTypes, setShiftTypes] = useState<Record<string, ShiftTypeConfig>>(DEFAULT_SHIFT_TYPES)
+  const [shiftTypes, setShiftTypes] =
+    useState<Record<string, ShiftTypeConfig>>(DEFAULT_SHIFT_TYPES)
   const [editingShiftType, setEditingShiftType] = useState<string | null>(null)
   const [newShiftType, setNewShiftType] = useState<ShiftTypeConfig>({
     label: '',
@@ -156,8 +159,9 @@ export default function ShiftAssignment({
   React.useEffect(() => {
     if (open) {
       // Pour les nouveaux shifts, utiliser l'employé persistant ; pour l'édition, utiliser l'employé du shift existant
-      const defaultEmployeeId = existingShift?.employeeId || persistentEmployeeId || ''
-      
+      const defaultEmployeeId =
+        existingShift?.employeeId || persistentEmployeeId || ''
+
       setFormData({
         employeeId: defaultEmployeeId,
         date: normalizeDate(existingShift?.date || selectedDate),
@@ -211,9 +215,9 @@ export default function ShiftAssignment({
       startTime: shiftType.defaultStart,
       endTime: shiftType.defaultEnd,
     }
-    
+
     setFormData(newFormData)
-    
+
     // Auto-validation si un employé est sélectionné
     if (newFormData.employeeId && newFormData.employeeId.trim() !== '') {
       // Valider et soumettre avec les nouvelles données
@@ -254,7 +258,7 @@ export default function ShiftAssignment({
     }
 
     setErrors(newErrors)
-    
+
     if (Object.keys(newErrors).length > 0) {
       return
     }
@@ -360,7 +364,11 @@ export default function ShiftAssignment({
               <Label>Employee *</Label>
               {persistentEmployeeId && !existingShift && (
                 <span className="text-xs text-gray-500">
-                  {employees.find(emp => emp.id === persistentEmployeeId)?.firstName} pré-sélectionné
+                  {
+                    employees.find((emp) => emp.id === persistentEmployeeId)
+                      ?.firstName
+                  }{' '}
+                  pré-sélectionné
                 </span>
               )}
             </div>
@@ -372,15 +380,21 @@ export default function ShiftAssignment({
                   onClick={() => {
                     // Sauvegarder la sélection dans localStorage pour persistance
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('lastSelectedEmployeeId', employee.id)
+                      localStorage.setItem(
+                        'lastSelectedEmployeeId',
+                        employee.id
+                      )
                     }
                     setPersistentEmployeeId(employee.id)
-                    setFormData((prev) => ({ ...prev, employeeId: employee.id }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      employeeId: employee.id,
+                    }))
                   }}
                   className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all ${
                     formData.employeeId === employee.id
-                      ? `${employee.color} text-white border-blue-500 shadow-lg ring-2 ring-blue-200`
-                      : `${employee.color} text-white opacity-40 border-gray-300 hover:opacity-70 hover:border-gray-400`
+                      ? `${employee.color} border-blue-500 text-white shadow-lg ring-2 ring-blue-200`
+                      : `${employee.color} border-gray-300 text-white opacity-40 hover:border-gray-400 hover:opacity-70`
                   }`}
                 >
                   {employee.firstName}
@@ -415,12 +429,17 @@ export default function ShiftAssignment({
               <Card className="border-dashed border-gray-300 bg-gray-50">
                 <CardContent className="pt-4">
                   <div className="space-y-3">
-                    <h4 className="font-medium text-sm">Manage Shift Types</h4>
+                    <h4 className="text-sm font-medium">Manage Shift Types</h4>
                     {Object.entries(shiftTypes).map(([key, shiftType]) => (
-                      <div key={key} className="flex items-center justify-between p-2 bg-white rounded border">
+                      <div
+                        key={key}
+                        className="flex items-center justify-between rounded border bg-white p-2"
+                      >
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{shiftType.icon}</span>
-                          <span className="font-medium text-sm">{shiftType.label}</span>
+                          <span className="text-sm font-medium">
+                            {shiftType.label}
+                          </span>
                           <span className="text-xs text-gray-500">
                             {shiftType.defaultStart} - {shiftType.defaultEnd}
                           </span>
@@ -451,13 +470,13 @@ export default function ShiftAssignment({
                         </div>
                       </div>
                     ))}
-                    
+
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => setEditingShiftType('new')}
-                      className="w-full flex items-center gap-2"
+                      className="flex w-full items-center gap-2"
                     >
                       <Plus className="h-4 w-4" />
                       Add New Shift Type
@@ -592,7 +611,7 @@ export default function ShiftAssignment({
               </CardHeader>
               <CardContent className="pt-0">
                 <div
-                  className={`rounded-lg p-3 ${shiftTypes[formData.type]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}
+                  className={`rounded-lg p-3 ${shiftTypes[formData.type]?.color || 'border-gray-200 bg-gray-100 text-gray-800'}`}
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <Avatar className="h-8 w-8">
@@ -681,11 +700,16 @@ export default function ShiftAssignment({
       </DialogContent>
 
       {/* Shift Type Editor Dialog */}
-      <Dialog open={!!editingShiftType} onOpenChange={() => setEditingShiftType(null)}>
+      <Dialog
+        open={!!editingShiftType}
+        onOpenChange={() => setEditingShiftType(null)}
+      >
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>
-              {editingShiftType === 'new' ? 'Add New Shift Type' : 'Edit Shift Type'}
+              {editingShiftType === 'new'
+                ? 'Add New Shift Type'
+                : 'Edit Shift Type'}
             </DialogTitle>
           </DialogHeader>
 
@@ -693,14 +717,24 @@ export default function ShiftAssignment({
             <div className="space-y-2">
               <Label>Label</Label>
               <Input
-                value={editingShiftType === 'new' ? newShiftType.label : (shiftTypes[editingShiftType || '']?.label || '')}
+                value={
+                  editingShiftType === 'new'
+                    ? newShiftType.label
+                    : shiftTypes[editingShiftType || '']?.label || ''
+                }
                 onChange={(e) => {
                   if (editingShiftType === 'new') {
-                    setNewShiftType(prev => ({ ...prev, label: e.target.value }))
-                  } else if (editingShiftType) {
-                    setShiftTypes(prev => ({
+                    setNewShiftType((prev) => ({
                       ...prev,
-                      [editingShiftType]: { ...prev[editingShiftType], label: e.target.value }
+                      label: e.target.value,
+                    }))
+                  } else if (editingShiftType) {
+                    setShiftTypes((prev) => ({
+                      ...prev,
+                      [editingShiftType]: {
+                        ...prev[editingShiftType],
+                        label: e.target.value,
+                      },
                     }))
                   }
                 }}
@@ -713,14 +747,24 @@ export default function ShiftAssignment({
                 <Label>Start Time</Label>
                 <Input
                   type="time"
-                  value={editingShiftType === 'new' ? newShiftType.defaultStart : (shiftTypes[editingShiftType || '']?.defaultStart || '')}
+                  value={
+                    editingShiftType === 'new'
+                      ? newShiftType.defaultStart
+                      : shiftTypes[editingShiftType || '']?.defaultStart || ''
+                  }
                   onChange={(e) => {
                     if (editingShiftType === 'new') {
-                      setNewShiftType(prev => ({ ...prev, defaultStart: e.target.value }))
-                    } else if (editingShiftType) {
-                      setShiftTypes(prev => ({
+                      setNewShiftType((prev) => ({
                         ...prev,
-                        [editingShiftType]: { ...prev[editingShiftType], defaultStart: e.target.value }
+                        defaultStart: e.target.value,
+                      }))
+                    } else if (editingShiftType) {
+                      setShiftTypes((prev) => ({
+                        ...prev,
+                        [editingShiftType]: {
+                          ...prev[editingShiftType],
+                          defaultStart: e.target.value,
+                        },
                       }))
                     }
                   }}
@@ -731,14 +775,24 @@ export default function ShiftAssignment({
                 <Label>End Time</Label>
                 <Input
                   type="time"
-                  value={editingShiftType === 'new' ? newShiftType.defaultEnd : (shiftTypes[editingShiftType || '']?.defaultEnd || '')}
+                  value={
+                    editingShiftType === 'new'
+                      ? newShiftType.defaultEnd
+                      : shiftTypes[editingShiftType || '']?.defaultEnd || ''
+                  }
                   onChange={(e) => {
                     if (editingShiftType === 'new') {
-                      setNewShiftType(prev => ({ ...prev, defaultEnd: e.target.value }))
-                    } else if (editingShiftType) {
-                      setShiftTypes(prev => ({
+                      setNewShiftType((prev) => ({
                         ...prev,
-                        [editingShiftType]: { ...prev[editingShiftType], defaultEnd: e.target.value }
+                        defaultEnd: e.target.value,
+                      }))
+                    } else if (editingShiftType) {
+                      setShiftTypes((prev) => ({
+                        ...prev,
+                        [editingShiftType]: {
+                          ...prev[editingShiftType],
+                          defaultEnd: e.target.value,
+                        },
                       }))
                     }
                   }}
@@ -750,14 +804,24 @@ export default function ShiftAssignment({
               <Label>Icon</Label>
               <div className="flex gap-2">
                 <Input
-                  value={editingShiftType === 'new' ? newShiftType.icon : (shiftTypes[editingShiftType || '']?.icon || '')}
+                  value={
+                    editingShiftType === 'new'
+                      ? newShiftType.icon
+                      : shiftTypes[editingShiftType || '']?.icon || ''
+                  }
                   onChange={(e) => {
                     if (editingShiftType === 'new') {
-                      setNewShiftType(prev => ({ ...prev, icon: e.target.value }))
-                    } else if (editingShiftType) {
-                      setShiftTypes(prev => ({
+                      setNewShiftType((prev) => ({
                         ...prev,
-                        [editingShiftType]: { ...prev[editingShiftType], icon: e.target.value }
+                        icon: e.target.value,
+                      }))
+                    } else if (editingShiftType) {
+                      setShiftTypes((prev) => ({
+                        ...prev,
+                        [editingShiftType]: {
+                          ...prev[editingShiftType],
+                          icon: e.target.value,
+                        },
                       }))
                     }
                   }}
@@ -765,25 +829,33 @@ export default function ShiftAssignment({
                   className="flex-1"
                 />
                 <div className="flex gap-1">
-                  {['🌅', '☀️', '🌆', '🌙', '⚡', '💼', '🏢', '🔧'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      className="px-2 py-1 text-lg hover:bg-gray-100 rounded"
-                      onClick={() => {
-                        if (editingShiftType === 'new') {
-                          setNewShiftType(prev => ({ ...prev, icon: emoji }))
-                        } else if (editingShiftType) {
-                          setShiftTypes(prev => ({
-                            ...prev,
-                            [editingShiftType]: { ...prev[editingShiftType], icon: emoji }
-                          }))
-                        }
-                      }}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
+                  {['🌅', '☀️', '🌆', '🌙', '⚡', '💼', '🏢', '🔧'].map(
+                    (emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        className="rounded px-2 py-1 text-lg hover:bg-gray-100"
+                        onClick={() => {
+                          if (editingShiftType === 'new') {
+                            setNewShiftType((prev) => ({
+                              ...prev,
+                              icon: emoji,
+                            }))
+                          } else if (editingShiftType) {
+                            setShiftTypes((prev) => ({
+                              ...prev,
+                              [editingShiftType]: {
+                                ...prev[editingShiftType],
+                                icon: emoji,
+                              },
+                            }))
+                          }
+                        }}
+                      >
+                        {emoji}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -791,14 +863,21 @@ export default function ShiftAssignment({
             <div className="space-y-2">
               <Label>Color Theme</Label>
               <Select
-                value={editingShiftType === 'new' ? newShiftType.color : (shiftTypes[editingShiftType || '']?.color || '')}
+                value={
+                  editingShiftType === 'new'
+                    ? newShiftType.color
+                    : shiftTypes[editingShiftType || '']?.color || ''
+                }
                 onValueChange={(value) => {
                   if (editingShiftType === 'new') {
-                    setNewShiftType(prev => ({ ...prev, color: value }))
+                    setNewShiftType((prev) => ({ ...prev, color: value }))
                   } else if (editingShiftType) {
-                    setShiftTypes(prev => ({
+                    setShiftTypes((prev) => ({
                       ...prev,
-                      [editingShiftType]: { ...prev[editingShiftType], color: value }
+                      [editingShiftType]: {
+                        ...prev[editingShiftType],
+                        color: value,
+                      },
                     }))
                   }
                 }}
@@ -807,13 +886,27 @@ export default function ShiftAssignment({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bg-yellow-100 text-yellow-800 border-yellow-200">Yellow</SelectItem>
-                  <SelectItem value="bg-blue-100 text-blue-800 border-blue-200">Blue</SelectItem>
-                  <SelectItem value="bg-green-100 text-green-800 border-green-200">Green</SelectItem>
-                  <SelectItem value="bg-purple-100 text-purple-800 border-purple-200">Purple</SelectItem>
-                  <SelectItem value="bg-pink-100 text-pink-800 border-pink-200">Pink</SelectItem>
-                  <SelectItem value="bg-red-100 text-red-800 border-red-200">Red</SelectItem>
-                  <SelectItem value="bg-gray-100 text-gray-800 border-gray-200">Gray</SelectItem>
+                  <SelectItem value="bg-yellow-100 text-yellow-800 border-yellow-200">
+                    Yellow
+                  </SelectItem>
+                  <SelectItem value="bg-blue-100 text-blue-800 border-blue-200">
+                    Blue
+                  </SelectItem>
+                  <SelectItem value="bg-green-100 text-green-800 border-green-200">
+                    Green
+                  </SelectItem>
+                  <SelectItem value="bg-purple-100 text-purple-800 border-purple-200">
+                    Purple
+                  </SelectItem>
+                  <SelectItem value="bg-pink-100 text-pink-800 border-pink-200">
+                    Pink
+                  </SelectItem>
+                  <SelectItem value="bg-red-100 text-red-800 border-red-200">
+                    Red
+                  </SelectItem>
+                  <SelectItem value="bg-gray-100 text-gray-800 border-gray-200">
+                    Gray
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -827,10 +920,12 @@ export default function ShiftAssignment({
               onClick={() => {
                 if (editingShiftType === 'new') {
                   if (newShiftType.label) {
-                    const key = newShiftType.label.toLowerCase().replace(/\s+/g, '_')
-                    setShiftTypes(prev => ({
+                    const key = newShiftType.label
+                      .toLowerCase()
+                      .replace(/\s+/g, '_')
+                    setShiftTypes((prev) => ({
                       ...prev,
-                      [key]: newShiftType
+                      [key]: newShiftType,
                     }))
                     setNewShiftType({
                       label: '',

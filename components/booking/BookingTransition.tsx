@@ -70,7 +70,7 @@ const BookingTransition: React.FC<BookingTransitionProps> = ({
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Step transition animation */}
       {showStepAnimation && (
         <motion.div
@@ -82,16 +82,16 @@ const BookingTransition: React.FC<BookingTransitionProps> = ({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 rounded-full bg-coffee-primary/10 px-4 py-2"
+            className="bg-coffee-primary/10 inline-flex items-center gap-2 rounded-full px-4 py-2"
             animate={{
               scale: [1, 1.05, 1],
             }}
             transition={{
               duration: 0.5,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           >
-            <span className="text-sm font-medium text-coffee-primary">
+            <span className="text-coffee-primary text-sm font-medium">
               Étape {currentStep} sur {totalSteps}
             </span>
           </motion.div>
@@ -156,16 +156,16 @@ const BookingTransition: React.FC<BookingTransitionProps> = ({
             <motion.div
               key={step}
               className={cn(
-                "h-2 w-8 rounded-full transition-all duration-300",
+                'h-2 w-8 rounded-full transition-all duration-300',
                 {
-                  "bg-coffee-primary": step <= currentStep,
-                  "bg-gray-200": step > currentStep,
+                  'bg-coffee-primary': step <= currentStep,
+                  'bg-gray-200': step > currentStep,
                 }
               )}
               initial={{ scale: 0 }}
-              animate={{ 
+              animate={{
                 scale: 1,
-                backgroundColor: step <= currentStep ? "#8B4513" : "#E5E7EB"
+                backgroundColor: step <= currentStep ? '#8B4513' : '#E5E7EB',
               }}
               transition={{ delay: step * 0.1 }}
               whileHover={{ scale: 1.2 }}
@@ -183,10 +183,10 @@ const BookingTransition: React.FC<BookingTransitionProps> = ({
             onClick={onNext}
             disabled={!canGoNext || isLoading}
             className={cn(
-              "relative flex items-center gap-2 px-8 py-3 overflow-hidden",
+              'relative flex items-center gap-2 overflow-hidden px-8 py-3',
               {
-                "bg-green-600 hover:bg-green-700": isLastStep,
-                "bg-coffee-primary hover:bg-coffee-primary/90": !isLastStep,
+                'bg-green-600 hover:bg-green-700': isLastStep,
+                'bg-coffee-primary hover:bg-coffee-primary/90': !isLastStep,
               }
             )}
           >
@@ -245,22 +245,22 @@ const BookingTransition: React.FC<BookingTransitionProps> = ({
           className="text-center"
         >
           {currentStep === 1 && (
-            <p className="text-sm text-coffee-primary/60">
+            <p className="text-coffee-primary/60 text-sm">
               Sélectionnez l'espace qui correspond à vos besoins
             </p>
           )}
           {currentStep === 2 && (
-            <p className="text-sm text-coffee-primary/60">
+            <p className="text-coffee-primary/60 text-sm">
               Choisissez votre créneau horaire
             </p>
           )}
           {currentStep === 3 && (
-            <p className="text-sm text-coffee-primary/60">
+            <p className="text-coffee-primary/60 text-sm">
               Sélectionnez votre méthode de paiement préférée
             </p>
           )}
           {currentStep === 4 && (
-            <p className="text-sm text-coffee-primary/60">
+            <p className="text-coffee-primary/60 text-sm">
               Vérifiez vos informations avant de confirmer
             </p>
           )}

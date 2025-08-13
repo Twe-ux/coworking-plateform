@@ -1,10 +1,12 @@
 # Contexte Actuel - Café Coworking Platform
 
 ## 📅 Sprint Actuel : Sprint 0 - Setup & Architecture
+
 **Dates**: Semaines 1-2  
 **Status**: 🟡 En cours
 
 ### Objectifs du Sprint
+
 - [x] Configuration environnement
 - [ ] Setup monorepo
 - [ ] Configuration CI/CD
@@ -12,6 +14,7 @@
 - [ ] Design System initial
 
 ### Tâches en Cours
+
 - **Aujourd'hui**: Setup Turborepo et structure des packages
 - **Bloqueurs**: Aucun
 - **Prochaine étape**: Configuration MongoDB et schémas
@@ -19,13 +22,16 @@
 ## 🏗️ État du Projet
 
 ### Modules Complétés
+
 - ✅ Aucun (projet en initialisation)
 
 ### Modules en Développement
+
 - 🔄 Configuration initiale
 - 🔄 Structure du projet
 
 ### Modules à Venir
+
 - ⏳ Authentification (Sprint 1)
 - ⏳ Site principal (Sprint 2)
 - ⏳ Dashboard Admin (Sprint 3)
@@ -33,6 +39,7 @@
 ## 👥 Équipe Virtuelle Active
 
 ### Agents Principaux ce Sprint
+
 - **Architect_Agent**: Lead sur la structure
 - **DevOps_Agent**: Configuration outils
 - **DB_Agent**: Modélisation données

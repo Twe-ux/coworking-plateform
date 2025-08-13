@@ -11,16 +11,13 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const bookingId = params.id
-    
+
     if (!isValidObjectId(bookingId)) {
       return NextResponse.json(
         { error: 'ID de réservation invalide' },
@@ -52,10 +49,7 @@ export async function PUT(
 
     // Check if user owns this booking
     if (booking.user.toString() !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
     }
 
     // Check if booking can be modified
@@ -74,7 +68,9 @@ export async function PUT(
 
     if (bookingDate.getTime() <= today.getTime()) {
       return NextResponse.json(
-        { error: 'Impossible de modifier pour une date passée ou le jour même' },
+        {
+          error: 'Impossible de modifier pour une date passée ou le jour même',
+        },
         { status: 400 }
       )
     }
@@ -92,15 +88,15 @@ export async function PUT(
         {
           $and: [
             { startTime: { $lt: endTime } },
-            { endTime: { $gt: startTime } }
-          ]
-        }
-      ]
+            { endTime: { $gt: startTime } },
+          ],
+        },
+      ],
     })
 
     if (conflictingBookings.length > 0) {
       return NextResponse.json(
-        { error: 'Ce créneau n\'est pas disponible' },
+        { error: "Ce créneau n'est pas disponible" },
         { status: 409 }
       )
     }
@@ -117,24 +113,21 @@ export async function PUT(
 
     if (durationInMinutes <= 0) {
       return NextResponse.json(
-        { error: 'L\'heure de fin doit être après l\'heure de début' },
+        { error: "L'heure de fin doit être après l'heure de début" },
         { status: 400 }
       )
     }
 
     const durationInHours = durationInMinutes / 60
     const space = await Space.findById(booking.space._id)
-    
+
     if (!space) {
-      return NextResponse.json(
-        { error: 'Espace non trouvé' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Espace non trouvé' }, { status: 404 })
     }
 
     // Calculate new price based on duration
     let newTotalPrice = booking.totalPrice // Keep same price for now, but could recalculate
-    
+
     // If duration changed significantly, recalculate
     const oldDurationInHours = booking.duration
     if (Math.abs(durationInHours - oldDurationInHours) > 0.5) {
@@ -154,7 +147,7 @@ export async function PUT(
     booking.durationType = durationInHours >= 24 ? 'day' : 'hour'
     booking.totalPrice = newTotalPrice
     booking.updatedAt = new Date()
-    
+
     await booking.save()
 
     return NextResponse.json({
@@ -167,10 +160,9 @@ export async function PUT(
         duration: booking.duration,
         durationType: booking.durationType,
         totalPrice: booking.totalPrice,
-        updatedAt: booking.updatedAt
-      }
+        updatedAt: booking.updatedAt,
+      },
     })
-
   } catch (error) {
     console.error('Erreur lors de la modification:', error)
     return NextResponse.json(

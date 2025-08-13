@@ -130,7 +130,7 @@ claude "
 [CONTEXT: Sprint 4 - Système de réservation]
 [TASK: Collaborer pour créer :
 1. Schéma DB pour réservations (DB_Agent)
-2. API CRUD avec validation (Backend_Agent)  
+2. API CRUD avec validation (Backend_Agent)
 3. Interface calendrier mobile-first (Frontend_Agent)]
 "
 ```

@@ -33,17 +33,17 @@ export class PushNotificationClient {
         granted: false,
         denied: true,
         default: false,
-        supported: false
+        supported: false,
       }
     }
 
     const permission = await Notification.permission
-    
+
     return {
       granted: permission === 'granted',
       denied: permission === 'denied',
       default: permission === 'default',
-      supported: true
+      supported: true,
     }
   }
 
@@ -74,12 +74,16 @@ export class PushNotificationClient {
     }
 
     try {
-      this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js')
-      console.log('Service Worker enregistré:', this.serviceWorkerRegistration.scope)
-      
+      this.serviceWorkerRegistration =
+        await navigator.serviceWorker.register('/sw.js')
+      console.log(
+        'Service Worker enregistré:',
+        this.serviceWorkerRegistration.scope
+      )
+
       // Attendre que le service worker soit actif
       await navigator.serviceWorker.ready
-      
+
       return true
     } catch (error) {
       console.error('Erreur enregistrement service worker:', error)
@@ -94,12 +98,12 @@ export class PushNotificationClient {
     try {
       const response = await fetch('/api/push-notifications')
       const data = await response.json()
-      
+
       if (data.success && data.vapidPublicKey) {
         this.vapidPublicKey = data.vapidPublicKey
         return this.vapidPublicKey
       }
-      
+
       return null
     } catch (error) {
       console.error('Erreur récupération clé VAPID:', error)
@@ -118,24 +122,28 @@ export class PushNotificationClient {
 
     try {
       // Vérifier si l'utilisateur a déjà une souscription
-      const existingSubscription = await this.serviceWorkerRegistration.pushManager.getSubscription()
+      const existingSubscription =
+        await this.serviceWorkerRegistration.pushManager.getSubscription()
       if (existingSubscription) {
         console.log('Souscription existante trouvée')
         return existingSubscription
       }
 
-      // Créer une nouvelle souscription  
-      const applicationServerKey = this.urlBase64ToUint8Array(this.vapidPublicKey)
-      const subscription = await this.serviceWorkerRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: applicationServerKey.buffer as ArrayBuffer
-      })
+      // Créer une nouvelle souscription
+      const applicationServerKey = this.urlBase64ToUint8Array(
+        this.vapidPublicKey
+      )
+      const subscription =
+        await this.serviceWorkerRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
+        })
 
       console.log('Nouvelle souscription push créée:', subscription)
 
       // Envoyer la souscription au serveur
       await this.sendSubscriptionToServer(subscription)
-      
+
       return subscription
     } catch (error) {
       console.error('Erreur souscription push:', error)
@@ -152,18 +160,19 @@ export class PushNotificationClient {
     }
 
     try {
-      const subscription = await this.serviceWorkerRegistration.pushManager.getSubscription()
-      
+      const subscription =
+        await this.serviceWorkerRegistration.pushManager.getSubscription()
+
       if (subscription) {
         await subscription.unsubscribe()
-        
+
         // Informer le serveur du désabonnement
         await this.sendUnsubscriptionToServer()
-        
+
         console.log('Désabonnement push effectué')
         return true
       }
-      
+
       return true // Pas de souscription à désactiver
     } catch (error) {
       console.error('Erreur désabonnement push:', error)
@@ -181,8 +190,9 @@ export class PushNotificationClient {
     }
 
     try {
-      const subscription = await this.serviceWorkerRegistration.pushManager.getSubscription()
-      
+      const subscription =
+        await this.serviceWorkerRegistration.pushManager.getSubscription()
+
       if (!subscription) {
         console.error('Aucune souscription push active')
         return false
@@ -191,7 +201,7 @@ export class PushNotificationClient {
       const response = await fetch('/api/push-notifications', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           action: 'test',
@@ -199,10 +209,10 @@ export class PushNotificationClient {
             endpoint: subscription.endpoint,
             keys: {
               auth: this.arrayBufferToBase64(subscription.getKey('auth')),
-              p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh'))
-            }
-          }
-        })
+              p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')),
+            },
+          },
+        }),
       })
 
       const result = await response.json()
@@ -227,7 +237,7 @@ export class PushNotificationClient {
       // 2. Initialiser le service worker
       const swInitialized = await this.initializeServiceWorker()
       if (!swInitialized) {
-        console.error('Impossible d\'initialiser le service worker')
+        console.error("Impossible d'initialiser le service worker")
         return false
       }
 
@@ -249,12 +259,14 @@ export class PushNotificationClient {
   /**
    * Envoie la souscription au serveur
    */
-  private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
+  private async sendSubscriptionToServer(
+    subscription: PushSubscription
+  ): Promise<void> {
     try {
       const response = await fetch('/api/push-notifications', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           action: 'subscribe',
@@ -262,10 +274,10 @@ export class PushNotificationClient {
             endpoint: subscription.endpoint,
             keys: {
               auth: this.arrayBufferToBase64(subscription.getKey('auth')),
-              p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh'))
-            }
-          }
-        })
+              p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')),
+            },
+          },
+        }),
       })
 
       if (!response.ok) {
@@ -285,11 +297,11 @@ export class PushNotificationClient {
       await fetch('/api/push-notifications', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'unsubscribe'
-        })
+          action: 'unsubscribe',
+        }),
       })
     } catch (error) {
       console.error('Erreur envoi désabonnement:', error)
@@ -300,7 +312,7 @@ export class PushNotificationClient {
    * Convertit une clé VAPID base64 en Uint8Array
    */
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4)
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
     const base64 = (base64String + padding)
       .replace(/-/g, '+')
       .replace(/_/g, '/')
@@ -311,7 +323,7 @@ export class PushNotificationClient {
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i)
     }
-    
+
     return new Uint8Array(outputArray)
   }
 
@@ -320,14 +332,14 @@ export class PushNotificationClient {
    */
   private arrayBufferToBase64(buffer: ArrayBuffer | null): string {
     if (!buffer) return ''
-    
+
     const bytes = new Uint8Array(buffer)
     let binary = ''
-    
+
     for (let i = 0; i < bytes.byteLength; i++) {
       binary += String.fromCharCode(bytes[i])
     }
-    
+
     return window.btoa(binary)
   }
 }

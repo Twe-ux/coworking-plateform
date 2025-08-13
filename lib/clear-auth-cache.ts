@@ -13,16 +13,17 @@ export function clearAuthCache(): void {
       const keysToRemove = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key && (
-          key.includes('nextauth') ||
-          key.includes('auth') ||
-          key.includes('session') ||
-          key.includes('token')
-        )) {
+        if (
+          key &&
+          (key.includes('nextauth') ||
+            key.includes('auth') ||
+            key.includes('session') ||
+            key.includes('token'))
+        ) {
           keysToRemove.push(key)
         }
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key))
+      keysToRemove.forEach((key) => localStorage.removeItem(key))
     }
 
     // Nettoyer sessionStorage
@@ -30,16 +31,17 @@ export function clearAuthCache(): void {
       const keysToRemove = []
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i)
-        if (key && (
-          key.includes('nextauth') ||
-          key.includes('auth') ||
-          key.includes('session') ||
-          key.includes('token')
-        )) {
+        if (
+          key &&
+          (key.includes('nextauth') ||
+            key.includes('auth') ||
+            key.includes('session') ||
+            key.includes('token'))
+        ) {
           keysToRemove.push(key)
         }
       }
-      keysToRemove.forEach(key => sessionStorage.removeItem(key))
+      keysToRemove.forEach((key) => sessionStorage.removeItem(key))
     }
 
     console.log('Cache authentification nettoyé côté client')
@@ -65,7 +67,10 @@ export async function clearCompleteAuthCache(): Promise<void> {
     })
 
     if (!response.ok) {
-      console.warn('Impossible de nettoyer le cache serveur:', response.statusText)
+      console.warn(
+        'Impossible de nettoyer le cache serveur:',
+        response.statusText
+      )
     } else {
       console.log('Cache serveur nettoyé avec succès')
     }
@@ -95,7 +100,7 @@ export async function clearCompleteAuthCache(): Promise<void> {
 export function fixPortInUrls(): void {
   if (typeof window !== 'undefined') {
     const currentUrl = window.location.href
-    
+
     // Si nous sommes sur le port 3001, rediriger vers 3000
     if (currentUrl.includes(':3001')) {
       const newUrl = currentUrl.replace(':3001', ':3000')
@@ -110,14 +115,14 @@ export function fixPortInUrls(): void {
  */
 export async function resolveNetworkConfigIssues(): Promise<void> {
   console.log('Résolution des problèmes de configuration réseau...')
-  
+
   try {
     // 1. Vérifier et corriger les URLs
     fixPortInUrls()
-    
+
     // 2. Nettoyer le cache complet
     await clearCompleteAuthCache()
-    
+
     console.log('Problèmes de configuration réseau résolus')
   } catch (error) {
     console.error('Erreur lors de la résolution:', error)

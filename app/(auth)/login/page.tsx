@@ -45,7 +45,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Récupérer le callbackUrl depuis les paramètres de l'URL
   // Par défaut, rester sur la page d'accueil
   const callbackUrl = searchParams.get('callbackUrl') || '/'

@@ -17,7 +17,12 @@ export interface IBooking extends Document {
   guests: number
   totalPrice: number
   paymentMethod: 'onsite' | 'card' | 'paypal'
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'payment_pending'
+  status:
+    | 'pending'
+    | 'confirmed'
+    | 'cancelled'
+    | 'completed'
+    | 'payment_pending'
   paymentId?: string
   stripePaymentIntentId?: string
   paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
@@ -32,13 +37,13 @@ const bookingSchema = new Schema<IBooking>(
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'L\'ID utilisateur est obligatoire'],
+      required: [true, "L'ID utilisateur est obligatoire"],
       index: true,
     },
     spaceId: {
       type: Schema.Types.ObjectId,
       ref: 'Space',
-      required: [true, 'L\'ID de l\'espace est obligatoire'],
+      required: [true, "L'ID de l'espace est obligatoire"],
       index: true,
     },
     date: {
@@ -54,18 +59,18 @@ const bookingSchema = new Schema<IBooking>(
     },
     startTime: {
       type: String,
-      required: [true, 'L\'heure de début est obligatoire'],
+      required: [true, "L'heure de début est obligatoire"],
       validate: {
         validator: function (value: string) {
           // Format HH:mm (24h)
           return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)
         },
-        message: 'Format d\'heure invalide (attendu: HH:mm)',
+        message: "Format d'heure invalide (attendu: HH:mm)",
       },
     },
     endTime: {
       type: String,
-      required: [true, 'L\'heure de fin est obligatoire'],
+      required: [true, "L'heure de fin est obligatoire"],
       validate: {
         validator: function (this: IBooking, value: string) {
           // Format HH:mm (24h)
@@ -77,13 +82,13 @@ const bookingSchema = new Schema<IBooking>(
           const endMinutes = timeToMinutes(value)
           return endMinutes > startMinutes
         },
-        message: 'L\'heure de fin doit être après l\'heure de début',
+        message: "L'heure de fin doit être après l'heure de début",
       },
     },
     duration: {
       type: Number,
       required: [true, 'La durée est obligatoire'],
-      min: [1, 'La durée doit être d\'au moins 1 unité'],
+      min: [1, "La durée doit être d'au moins 1 unité"],
       validate: {
         validator: function (this: IBooking, value: number) {
           // Validation selon le type de durée
@@ -113,7 +118,7 @@ const bookingSchema = new Schema<IBooking>(
     },
     guests: {
       type: Number,
-      required: [true, 'Le nombre d\'invités est obligatoire'],
+      required: [true, "Le nombre d'invités est obligatoire"],
       min: [1, 'Au moins 1 invité est requis'],
       max: [20, 'Maximum 20 invités autorisés'],
     },
@@ -141,7 +146,13 @@ const bookingSchema = new Schema<IBooking>(
     status: {
       type: String,
       enum: {
-        values: ['pending', 'confirmed', 'cancelled', 'completed', 'payment_pending'],
+        values: [
+          'pending',
+          'confirmed',
+          'cancelled',
+          'completed',
+          'payment_pending',
+        ],
         message: 'Statut invalide',
       },
       default: 'pending',
@@ -315,9 +326,7 @@ bookingSchema.statics.findUserBookings = function (
     query.status = { $in: status }
   }
 
-  return this.find(query)
-    .populate('spaceId')
-    .sort({ date: -1, startTime: -1 })
+  return this.find(query).populate('spaceId').sort({ date: -1, startTime: -1 })
 }
 
 // Fonction utilitaire pour convertir l'heure en minutes
@@ -340,7 +349,8 @@ function endOfDay(date: Date): Date {
 }
 
 // Exporter le modèle
-export const Booking = models.Booking || model<IBooking>('Booking', bookingSchema)
+export const Booking =
+  models.Booking || model<IBooking>('Booking', bookingSchema)
 
 // Export par défaut
 export default Booking

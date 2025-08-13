@@ -174,7 +174,7 @@ export async function secureFetch<T = any>(
             keysToDelete.push(key)
           }
         })
-        keysToDelete.forEach(key => fetchCache.delete(key))
+        keysToDelete.forEach((key) => fetchCache.delete(key))
       }
     }
 

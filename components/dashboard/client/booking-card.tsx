@@ -21,7 +21,12 @@ interface BookingCardProps {
     durationType: 'hour' | 'day'
     guests: number
     totalPrice: number
-    status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'payment_pending'
+    status:
+      | 'pending'
+      | 'confirmed'
+      | 'cancelled'
+      | 'completed'
+      | 'payment_pending'
   }
   onAction?: (bookingId: string, action: 'cancel' | 'modify') => void
 }
@@ -32,7 +37,7 @@ export function BookingCard({ booking, onAction }: BookingCardProps) {
     confirmed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
     completed: 'bg-gray-100 text-gray-800',
-    payment_pending: 'bg-orange-100 text-orange-800'
+    payment_pending: 'bg-orange-100 text-orange-800',
   }
 
   const statusLabels = {
@@ -40,20 +45,22 @@ export function BookingCard({ booking, onAction }: BookingCardProps) {
     confirmed: 'Confirmée',
     cancelled: 'Annulée',
     completed: 'Terminée',
-    payment_pending: 'Paiement en attente'
+    payment_pending: 'Paiement en attente',
   }
 
   return (
     <motion.div
-      className="bg-white border border-gray-200 rounded-lg p-6"
+      className="rounded-lg border border-gray-200 bg-white p-6"
       whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div>
-          <h3 className="font-semibold text-lg text-gray-900">{booking.space.name}</h3>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            <MapPin className="h-4 w-4 mr-1" />
+          <h3 className="text-lg font-semibold text-gray-900">
+            {booking.space.name}
+          </h3>
+          <div className="mt-1 flex items-center text-sm text-gray-500">
+            <MapPin className="mr-1 h-4 w-4" />
             {booking.space.location}
           </div>
         </div>
@@ -62,23 +69,23 @@ export function BookingCard({ booking, onAction }: BookingCardProps) {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="mb-4 grid grid-cols-2 gap-4">
         <div className="flex items-center text-sm text-gray-600">
-          <Calendar className="h-4 w-4 mr-2" />
+          <Calendar className="mr-2 h-4 w-4" />
           {format(parseISO(booking.date), 'EEEE d MMMM', { locale: fr })}
         </div>
         <div className="flex items-center text-sm text-gray-600">
-          <Clock className="h-4 w-4 mr-2" />
+          <Clock className="mr-2 h-4 w-4" />
           {booking.startTime} - {booking.endTime}
         </div>
         <div className="flex items-center text-sm text-gray-600">
-          <Users className="h-4 w-4 mr-2" />
+          <Users className="mr-2 h-4 w-4" />
           {booking.guests} {booking.guests > 1 ? 'personnes' : 'personne'}
         </div>
         <div className="text-sm font-semibold text-orange-600">
           {new Intl.NumberFormat('fr-FR', {
             style: 'currency',
-            currency: 'EUR'
+            currency: 'EUR',
           }).format(booking.totalPrice)}
         </div>
       </div>

@@ -10,7 +10,7 @@ import User from '@/lib/models/user'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
     }
 
     await connectToDatabase()
-    
+
     const user = await User.findById(session.user.id).select('-password')
-    
+
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Utilisateur non trouvé' },
@@ -41,10 +41,9 @@ export async function GET(request: NextRequest) {
         lastName: user.lastName,
         phone: user.phone,
         bio: user.bio,
-        createdAt: user.createdAt
-      }
+        createdAt: user.createdAt,
+      },
     })
-
   } catch (error) {
     console.error('Erreur API GET profile:', error)
     return NextResponse.json(
@@ -60,7 +59,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -68,14 +67,8 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const {
-      name,
-      firstName,
-      lastName,
-      phone,
-      bio,
-      image
-    } = await request.json()
+    const { name, firstName, lastName, phone, bio, image } =
+      await request.json()
 
     // Validation des données
     if (!name || name.trim().length === 0) {
@@ -86,7 +79,7 @@ export async function PUT(request: NextRequest) {
     }
 
     await connectToDatabase()
-    
+
     // Préparer les données à mettre à jour
     const updateData: any = {
       name: name.trim(),
@@ -94,7 +87,7 @@ export async function PUT(request: NextRequest) {
       lastName: lastName?.trim() || '',
       phone: phone?.trim() || '',
       bio: bio?.trim() || '',
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }
 
     // Ajouter l'image seulement si elle est fournie
@@ -127,10 +120,9 @@ export async function PUT(request: NextRequest) {
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
         phone: updatedUser.phone,
-        bio: updatedUser.bio
-      }
+        bio: updatedUser.bio,
+      },
     })
-
   } catch (error) {
     console.error('Erreur API PUT profile:', error)
     return NextResponse.json(

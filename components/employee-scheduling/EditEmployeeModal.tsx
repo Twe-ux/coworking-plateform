@@ -1,23 +1,23 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
-  DialogFooter 
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -32,11 +32,31 @@ interface EditEmployeeModalProps {
 }
 
 const EMPLOYEE_ROLES = [
-  { value: 'Manager', label: 'Manager', description: 'Gestion d\'équipe et supervision' },
-  { value: 'Reception', label: 'Réception', description: 'Accueil et service client' },
-  { value: 'Security', label: 'Sécurité', description: 'Surveillance et sécurité' },
-  { value: 'Maintenance', label: 'Maintenance', description: 'Entretien et réparations' },
-  { value: 'Cleaning', label: 'Nettoyage', description: 'Nettoyage et hygiène' },
+  {
+    value: 'Manager',
+    label: 'Manager',
+    description: "Gestion d'équipe et supervision",
+  },
+  {
+    value: 'Reception',
+    label: 'Réception',
+    description: 'Accueil et service client',
+  },
+  {
+    value: 'Security',
+    label: 'Sécurité',
+    description: 'Surveillance et sécurité',
+  },
+  {
+    value: 'Maintenance',
+    label: 'Maintenance',
+    description: 'Entretien et réparations',
+  },
+  {
+    value: 'Cleaning',
+    label: 'Nettoyage',
+    description: 'Nettoyage et hygiène',
+  },
   { value: 'Staff', label: 'Personnel', description: 'Personnel polyvalent' },
 ]
 
@@ -53,11 +73,11 @@ const EMPLOYEE_COLORS = [
   { value: 'bg-slate-500', label: 'Gris', color: '#64748B' },
 ]
 
-export default function EditEmployeeModal({ 
+export default function EditEmployeeModal({
   employee,
-  isOpen, 
-  onClose, 
-  onSuccess 
+  isOpen,
+  onClose,
+  onSuccess,
 }: EditEmployeeModalProps) {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -81,7 +101,9 @@ export default function EditEmployeeModal({
         phone: employee.phone || '',
         role: employee.role || '',
         color: employee.color || 'bg-blue-500',
-        startDate: employee.startDate ? new Date(employee.startDate).toISOString().split('T')[0] : '',
+        startDate: employee.startDate
+          ? new Date(employee.startDate).toISOString().split('T')[0]
+          : '',
       })
       setErrors({})
     }
@@ -99,10 +121,13 @@ export default function EditEmployeeModal({
     }
 
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Format d\'email invalide'
+      newErrors.email = "Format d'email invalide"
     }
 
-    if (formData.phone && !/^(\+33|0)[1-9](\d{8})$/.test(formData.phone.replace(/\s/g, ''))) {
+    if (
+      formData.phone &&
+      !/^(\+33|0)[1-9](\d{8})$/.test(formData.phone.replace(/\s/g, ''))
+    ) {
       newErrors.phone = 'Format de téléphone invalide (ex: 01 23 45 67 89)'
     }
 
@@ -120,7 +145,7 @@ export default function EditEmployeeModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm() || !employee) return
 
     setIsLoading(true)
@@ -155,7 +180,12 @@ export default function EditEmployeeModal({
       onClose()
     } catch (error) {
       console.error('Erreur lors de la modification:', error)
-      setErrors({ submit: error instanceof Error ? error.message : 'Erreur lors de la modification' })
+      setErrors({
+        submit:
+          error instanceof Error
+            ? error.message
+            : 'Erreur lors de la modification',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -175,14 +205,18 @@ export default function EditEmployeeModal({
     onClose()
   }
 
-  const selectedRole = EMPLOYEE_ROLES.find(role => role.value === formData.role)
-  const selectedColor = EMPLOYEE_COLORS.find(color => color.value === formData.color)
+  const selectedRole = EMPLOYEE_ROLES.find(
+    (role) => role.value === formData.role
+  )
+  const selectedColor = EMPLOYEE_COLORS.find(
+    (color) => color.value === formData.color
+  )
 
   if (!employee) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -197,8 +231,10 @@ export default function EditEmployeeModal({
           {/* Informations personnelles */}
           <Card>
             <CardContent className="pt-4">
-              <h3 className="font-medium text-gray-900 mb-4">Informations personnelles</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="mb-4 font-medium text-gray-900">
+                Informations personnelles
+              </h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">
                     Prénom <span className="text-red-500">*</span>
@@ -206,7 +242,12 @@ export default function EditEmployeeModal({
                   <Input
                     id="firstName"
                     value={formData.firstName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        firstName: e.target.value,
+                      }))
+                    }
                     placeholder="Jean"
                     error={!!errors.firstName}
                   />
@@ -222,7 +263,12 @@ export default function EditEmployeeModal({
                   <Input
                     id="lastName"
                     value={formData.lastName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        lastName: e.target.value,
+                      }))
+                    }
                     placeholder="Dupont"
                     error={!!errors.lastName}
                   />
@@ -237,8 +283,8 @@ export default function EditEmployeeModal({
           {/* Contact */}
           <Card>
             <CardContent className="pt-4">
-              <h3 className="font-medium text-gray-900 mb-4">Contact</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="mb-4 font-medium text-gray-900">Contact</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
@@ -248,7 +294,12 @@ export default function EditEmployeeModal({
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     placeholder="jean.dupont@example.com"
                     error={!!errors.email}
                   />
@@ -265,7 +316,12 @@ export default function EditEmployeeModal({
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
                     placeholder="01 23 45 67 89"
                     error={!!errors.phone}
                   />
@@ -280,13 +336,20 @@ export default function EditEmployeeModal({
           {/* Rôle et apparence */}
           <Card>
             <CardContent className="pt-4">
-              <h3 className="font-medium text-gray-900 mb-4">Rôle et apparence</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="mb-4 font-medium text-gray-900">
+                Rôle et apparence
+              </h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>
                     Rôle <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, role: value }))
+                    }
+                  >
                     <SelectTrigger error={!!errors.role}>
                       <SelectValue placeholder="Sélectionnez un rôle" />
                     </SelectTrigger>
@@ -295,7 +358,9 @@ export default function EditEmployeeModal({
                         <SelectItem key={role.value} value={role.value}>
                           <div>
                             <div className="font-medium">{role.label}</div>
-                            <div className="text-sm text-gray-500">{role.description}</div>
+                            <div className="text-sm text-gray-500">
+                              {role.description}
+                            </div>
                           </div>
                         </SelectItem>
                       ))}
@@ -316,13 +381,18 @@ export default function EditEmployeeModal({
                     <Palette className="h-4 w-4" />
                     Couleur
                   </Label>
-                  <Select value={formData.color} onValueChange={(value) => setFormData(prev => ({ ...prev, color: value }))}>
+                  <Select
+                    value={formData.color}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, color: value }))
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue>
                         {selectedColor && (
                           <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded-full" 
+                            <div
+                              className="h-4 w-4 rounded-full"
                               style={{ backgroundColor: selectedColor.color }}
                             />
                             {selectedColor.label}
@@ -334,8 +404,8 @@ export default function EditEmployeeModal({
                       {EMPLOYEE_COLORS.map((color) => (
                         <SelectItem key={color.value} value={color.value}>
                           <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded-full" 
+                            <div
+                              className="h-4 w-4 rounded-full"
                               style={{ backgroundColor: color.color }}
                             />
                             {color.label}
@@ -361,7 +431,12 @@ export default function EditEmployeeModal({
                   id="startDate"
                   type="date"
                   value={formData.startDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      startDate: e.target.value,
+                    }))
+                  }
                   error={!!errors.startDate}
                   max={new Date().toISOString().split('T')[0]}
                 />
@@ -373,22 +448,22 @@ export default function EditEmployeeModal({
           </Card>
 
           {errors.submit && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
               <p className="text-sm">{errors.submit}</p>
             </div>
           )}
 
           <DialogFooter className="gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={handleClose}
               disabled={isLoading}
             >
               Annuler
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading}
               className="bg-coffee-primary hover:bg-coffee-primary/90"
             >
@@ -398,7 +473,7 @@ export default function EditEmployeeModal({
                   Modification...
                 </>
               ) : (
-                'Modifier l\'employé'
+                "Modifier l'employé"
               )}
             </Button>
           </DialogFooter>

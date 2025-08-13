@@ -1,6 +1,14 @@
 'use client'
 
-import { Home, Calendar, Users, TrendingUp, Settings, LogOut, Building } from 'lucide-react'
+import {
+  Home,
+  Calendar,
+  Users,
+  TrendingUp,
+  Settings,
+  LogOut,
+  Building,
+} from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
@@ -52,18 +60,18 @@ export default function AdminSidebar() {
   ]
 
   const handleSignOut = async () => {
-    await signOut({ 
+    await signOut({
       callbackUrl: '/auth/signin',
-      redirect: true 
+      redirect: true,
     })
   }
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="border-b border-gray-200 p-6">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 bg-coffee-primary rounded-lg flex items-center justify-center">
+          <div className="bg-coffee-primary flex h-10 w-10 items-center justify-center rounded-lg">
             <Building className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -74,16 +82,16 @@ export default function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 space-y-2 p-4">
         {menuItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
-          
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
                 isActive
                   ? 'bg-coffee-primary text-white'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -97,10 +105,10 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Actions du bas */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="border-t border-gray-200 p-4">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-4 py-3 w-full text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100"
         >
           <LogOut className="h-5 w-5" />
           <span className="font-medium">Déconnexion</span>

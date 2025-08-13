@@ -273,7 +273,10 @@ export const authOptions: NextAuthOptions = {
 
           return {
             id: user._id.toString(),
-            name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+            name:
+              user.name ||
+              `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+              'User',
             email: user.email,
             firstName: user.firstName || user.name?.split(' ')[0] || '',
             lastName: user.lastName || user.name?.split(' ')[1] || '',
@@ -374,19 +377,19 @@ export const authOptions: NextAuthOptions = {
             '/dashboard/admin',
             '/dashboard/manager',
             '/dashboard/staff',
-            '/dashboard/client'
+            '/dashboard/client',
           ]
-          
+
           // Si l'URL relative est dans la liste autorisée ou commence par /dashboard
           if (allowedPaths.includes(url) || url.startsWith('/dashboard/')) {
             return `${correctBaseUrl}${url}`
           }
-          
+
           // Pour les autres pages protégées, vérifier qu'elles sont sûres
           if (url.startsWith('/reservation') || url.match(/^\/[\w-]+$/)) {
             return `${correctBaseUrl}${url}`
           }
-          
+
           // Fallback sécurisé
           return `${correctBaseUrl}/dashboard`
         }

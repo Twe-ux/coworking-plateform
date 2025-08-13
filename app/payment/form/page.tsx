@@ -34,13 +34,13 @@ function PaymentFormContent() {
       spaceName,
       date,
       startTime,
-      endTime
+      endTime,
     }
 
     setBookingData({
       bookingId,
       amount,
-      bookingDetails: details
+      bookingDetails: details,
     })
     setIsLoading(false)
   }, [bookingId, amount, spaceName, date, startTime, endTime])
@@ -48,7 +48,9 @@ function PaymentFormContent() {
   const handlePaymentSuccess = (paymentResult: any) => {
     console.log('Paiement réussi:', paymentResult)
     // Rediriger vers la page de succès
-    router.push(`/payment/success?booking_id=${bookingId}&payment_method=card&payment_intent=${paymentResult.paymentIntent?.id}`)
+    router.push(
+      `/payment/success?booking_id=${bookingId}&payment_method=card&payment_intent=${paymentResult.paymentIntent?.id}`
+    )
   }
 
   const handlePaymentError = (error: string) => {
@@ -62,9 +64,9 @@ function PaymentFormContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-600 mx-auto mb-4" />
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-amber-600" />
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
@@ -73,16 +75,18 @@ function PaymentFormContent() {
 
   if (error || !bookingData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="bg-red-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
-            <Coffee className="h-8 w-8 text-red-600 mx-auto" />
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+        <div className="mx-auto max-w-md px-4 text-center">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-red-100 p-4">
+            <Coffee className="mx-auto h-8 w-8 text-red-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Erreur</h1>
-          <p className="text-gray-600 mb-6">{error || 'Informations de paiement invalides'}</p>
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">Erreur</h1>
+          <p className="mb-6 text-gray-600">
+            {error || 'Informations de paiement invalides'}
+          </p>
           <button
             onClick={goBack}
-            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            className="rounded-lg bg-amber-600 px-6 py-2 font-medium text-white transition-colors hover:bg-amber-700"
           >
             Retour
           </button>
@@ -95,25 +99,25 @@ function PaymentFormContent() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="mb-8 text-center"
         >
           <button
             onClick={goBack}
-            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-amber-600 transition-colors"
+            className="mb-6 flex items-center gap-2 text-gray-600 transition-colors hover:text-amber-600"
           >
             <ArrowLeft className="h-4 w-4" />
             Retour
           </button>
-          
-          <div className="flex justify-center mb-4">
-            <div className="bg-amber-600 rounded-full p-4">
+
+          <div className="mb-4 flex justify-center">
+            <div className="rounded-full bg-amber-600 p-4">
               <Coffee className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
             Finaliser votre paiement
           </h1>
           <p className="text-gray-600">
@@ -122,19 +126,19 @@ function PaymentFormContent() {
         </motion.div>
 
         {/* Payment Form */}
-        <div className="max-w-2xl mx-auto">
+        <div className="mx-auto max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
+            className="rounded-2xl bg-white p-8 shadow-xl"
           >
             {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800 text-sm">{error}</p>
+              <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+                <p className="text-sm text-red-800">{error}</p>
               </div>
             )}
-            
+
             <PaymentHandler
               paymentMethod="card"
               amount={bookingData.amount}
@@ -151,12 +155,15 @@ function PaymentFormContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="max-w-2xl mx-auto mt-8 text-center"
+          className="mx-auto mt-8 max-w-2xl text-center"
         >
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <h3 className="font-semibold text-blue-800 mb-2">Paiement sécurisé</h3>
+          <div className="rounded border-l-4 border-blue-400 bg-blue-50 p-4">
+            <h3 className="mb-2 font-semibold text-blue-800">
+              Paiement sécurisé
+            </h3>
             <p className="text-sm text-blue-700">
-              Vos informations de paiement sont protégées par Stripe et ne sont jamais stockées sur nos serveurs.
+              Vos informations de paiement sont protégées par Stripe et ne sont
+              jamais stockées sur nos serveurs.
             </p>
           </div>
         </motion.div>
@@ -167,14 +174,16 @@ function PaymentFormContent() {
 
 export default function PaymentFormPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-600 mx-auto mb-4" />
-          <p className="text-gray-600">Chargement...</p>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-amber-600" />
+            <p className="text-gray-600">Chargement...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <PaymentFormContent />
     </Suspense>
   )

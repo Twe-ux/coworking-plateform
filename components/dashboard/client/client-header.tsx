@@ -22,26 +22,29 @@ export function ClientHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/dashboard/client" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded bg-orange-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CK</span>
+            <Link
+              href="/dashboard/client"
+              className="flex items-center space-x-2"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded bg-orange-500">
+                <span className="text-sm font-bold text-white">CK</span>
               </div>
               <span className="font-semibold text-gray-900">Cow or King</span>
             </Link>
           </div>
 
           {/* Search (desktop) */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="mx-8 hidden max-w-md flex-1 md:flex">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Rechercher..."
-                className="pl-9 border-gray-300 focus:border-orange-500"
+                className="border-gray-300 pl-9 focus:border-orange-500"
               />
             </div>
           </div>
@@ -53,7 +56,7 @@ export function ClientHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="relative">
                   <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 text-xs bg-orange-500">
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 bg-orange-500 text-xs">
                     2
                   </Badge>
                 </Button>
@@ -62,12 +65,18 @@ export function ClientHeader() {
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="flex flex-col items-start space-y-1">
-                  <span className="font-medium text-sm">Réservation confirmée</span>
-                  <span className="text-xs text-gray-500">Espace Focus - Demain 14h</span>
+                  <span className="text-sm font-medium">
+                    Réservation confirmée
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Espace Focus - Demain 14h
+                  </span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="flex flex-col items-start space-y-1">
-                  <span className="font-medium text-sm">Nouveau message</span>
-                  <span className="text-xs text-gray-500">De l&apos;équipe support</span>
+                  <span className="text-sm font-medium">Nouveau message</span>
+                  <span className="text-xs text-gray-500">
+                    De l&apos;équipe support
+                  </span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -75,11 +84,17 @@ export function ClientHeader() {
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={session?.user?.image || undefined} />
                     <AvatarFallback className="bg-orange-100 text-orange-600">
-                      {session?.user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                      {session?.user?.name
+                        ?.split(' ')
+                        .map((n) => n[0])
+                        .join('') || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -87,8 +102,12 @@ export function ClientHeader() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{session?.user?.name || 'Utilisateur'}</p>
-                    <p className="text-xs text-gray-500">{session?.user?.email}</p>
+                    <p className="text-sm font-medium">
+                      {session?.user?.name || 'Utilisateur'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {session?.user?.email}
+                    </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -96,7 +115,9 @@ export function ClientHeader() {
                   <Link href="/dashboard/client/profile">Mon profil</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/client/notifications">Notifications</Link>
+                  <Link href="/dashboard/client/notifications">
+                    Notifications
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/client/settings">Paramètres</Link>
@@ -122,12 +143,12 @@ export function ClientHeader() {
 
         {/* Mobile search */}
         {isMenuOpen && (
-          <div className="md:hidden pb-4">
+          <div className="pb-4 md:hidden">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Rechercher..."
-                className="pl-9 border-gray-300"
+                className="border-gray-300 pl-9"
               />
             </div>
           </div>

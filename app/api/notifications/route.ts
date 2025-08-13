@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Vérifier la configuration email
     const emailConfigured = checkEmailConfiguration()
-    
+
     // Obtenir les statistiques du scheduler
     const stats = notificationScheduler.getStats()
 
@@ -41,16 +41,16 @@ export async function GET(request: NextRequest) {
         emailConfigured,
         schedulerRunning: true, // Le scheduler est toujours actif en production
         statistics: stats,
-        lastCheck: new Date().toISOString()
-      }
+        lastCheck: new Date().toISOString(),
+      },
     })
-
   } catch (error) {
     console.error('Erreur API notifications GET:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   try {
     // Vérifier l'authentification et les permissions admin
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -91,14 +91,14 @@ export async function POST(request: NextRequest) {
         notificationScheduler.start()
         return NextResponse.json({
           success: true,
-          message: 'Service de notifications démarré'
+          message: 'Service de notifications démarré',
         })
 
       case 'stop':
         notificationScheduler.stop()
         return NextResponse.json({
           success: true,
-          message: 'Service de notifications arrêté'
+          message: 'Service de notifications arrêté',
         })
 
       case 'test_reminder':
@@ -109,12 +109,13 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        const result = await notificationScheduler.sendImmediateReminder(bookingId)
-        
+        const result =
+          await notificationScheduler.sendImmediateReminder(bookingId)
+
         if (result.success) {
           return NextResponse.json({
             success: true,
-            message: 'Rappel de test envoyé avec succès'
+            message: 'Rappel de test envoyé avec succès',
           })
         } else {
           return NextResponse.json(
@@ -129,13 +130,13 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
     }
-
   } catch (error) {
     console.error('Erreur API notifications POST:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )

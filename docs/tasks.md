@@ -3,6 +3,7 @@
 ## 🏗️ Setup & Infrastructure
 
 ### Environment Setup
+
 - [x] Initialize Next.js 14 project with TypeScript
 - [x] Configure Turborepo for monorepo structure
 - [x] Setup ESLint with custom rules
@@ -11,6 +12,7 @@
 - [x] Configure commitlint for conventional commits
 
 ### Database & Services
+
 - [x] Create MongoDB Atlas cluster
 - [x] Design database schemas
 - [x] Setup Mongoose models
@@ -19,6 +21,7 @@
 - [ ] Configure SendGrid/Resend for emails
 
 ### CI/CD Pipeline
+
 - [ ] Setup GitHub Actions workflows
 - [ ] Configure automated testing
 - [ ] Setup deployment to Vercel
@@ -30,6 +33,7 @@
 ## 🔐 Authentication System
 
 ### NextAuth Configuration
+
 - [x] Install and configure NextAuth.js
 - [x] Setup JWT strategy
 - [x] Create auth providers (credentials, Google, etc.)
@@ -37,6 +41,7 @@
 - [x] Create auth middleware
 
 ### User Management
+
 - [ ] User registration flow
 - [ ] Email verification system
 - [ ] Password reset functionality
@@ -45,6 +50,7 @@
 - [ ] Account settings page
 
 ### Security
+
 - [x] Implement rate limiting
 - [x] Setup CSRF protection
 - [x] Configure secure headers
@@ -56,6 +62,7 @@
 ## 🏠 Main Website
 
 ### Homepage
+
 - [ ] Hero section with CTA
 - [ ] Features showcase
 - [ ] Testimonials carousel
@@ -64,6 +71,7 @@
 - [ ] Footer with links
 
 ### Static Pages
+
 - [ ] About Us page
 - [ ] Services detailed page
 - [ ] Contact page with form
@@ -72,6 +80,7 @@
 - [ ] FAQ page
 
 ### Spaces Showcase
+
 - [ ] Spaces listing page
 - [ ] Individual space details
 - [ ] Photo galleries
@@ -84,6 +93,7 @@
 ## 📅 Booking System
 
 ### Calendar Component
+
 - [x] Monthly/Weekly/Daily views (vue mensuelle implémentée)
 - [x] Available slots display (avec filtrage intelligent)
 - [ ] Drag-and-drop booking
@@ -92,6 +102,7 @@
 - [x] Mobile-optimized calendar (mobile-first design)
 
 ### Booking Flow
+
 - [x] Space/desk selection (avec espace populaire)
 - [x] Date/time picker (avec validation même jour)
 - [x] Duration selection (minimum 1h obligatoire)
@@ -100,6 +111,7 @@
 - [x] Booking confirmation
 
 ### Booking Management
+
 - [ ] Booking CRUD operations
 - [ ] Conflict detection
 - [ ] Cancellation policy
@@ -108,6 +120,7 @@
 - [ ] QR code generation
 
 ### Notifications
+
 - [ ] Email confirmations
 - [ ] SMS reminders
 - [ ] Calendar invites
@@ -119,6 +132,7 @@
 ## 🛍️ E-commerce Module
 
 ### Product Management
+
 - [ ] Product CRUD
 - [ ] Category management
 - [ ] Inventory tracking
@@ -127,6 +141,7 @@
 - [ ] Pricing tiers
 
 ### Shopping Cart
+
 - [ ] Add to cart functionality
 - [ ] Cart persistence
 - [ ] Quantity updates
@@ -135,6 +150,7 @@
 - [ ] Tax calculation
 
 ### Checkout Process
+
 - [ ] Stripe Elements integration
 - [ ] Billing information
 - [ ] Shipping/pickup options
@@ -143,6 +159,7 @@
 - [ ] Order confirmation
 
 ### Order Management
+
 - [ ] Order history
 - [ ] Order status tracking
 - [ ] Invoice generation
@@ -155,6 +172,7 @@
 ## 📝 Blog System
 
 ### Content Management
+
 - [ ] Article CRUD
 - [ ] Rich text editor (MDX)
 - [ ] Image upload/management
@@ -163,6 +181,7 @@
 - [ ] Version history
 
 ### Blog Features
+
 - [ ] Categories & tags
 - [ ] Author profiles
 - [ ] Comment system
@@ -171,6 +190,7 @@
 - [ ] Search functionality
 
 ### SEO Optimization
+
 - [ ] Meta tags management
 - [ ] Sitemap generation
 - [ ] RSS feed
@@ -183,6 +203,7 @@
 ## 💬 Internal Messaging
 
 ### Chat Infrastructure
+
 - [ ] WebSocket setup
 - [ ] Message persistence
 - [ ] Real-time delivery
@@ -191,6 +212,7 @@
 - [ ] File attachment support
 
 ### Chat Features
+
 - [ ] Direct messages
 - [ ] Group channels
 - [ ] Message search
@@ -199,6 +221,7 @@
 - [ ] Delete messages
 
 ### Community Features
+
 - [ ] User presence
 - [ ] Typing indicators
 - [ ] Read receipts
@@ -211,6 +234,7 @@
 ## 📊 Dashboard System
 
 ### Admin Dashboard
+
 - [ ] User management table
 - [ ] Role assignment
 - [ ] System settings
@@ -219,6 +243,7 @@
 - [ ] Export functionality
 
 ### Manager Dashboard
+
 - [ ] Occupancy reports
 - [ ] Revenue tracking
 - [ ] Member analytics
@@ -227,6 +252,7 @@
 - [ ] Staff scheduling
 
 ### Staff Dashboard
+
 - [ ] Daily bookings view
 - [ ] Check-in system
 - [ ] Order processing
@@ -235,6 +261,7 @@
 - [ ] Issue reporting
 
 ### Client Dashboard
+
 - [ ] Booking overview
 - [ ] Payment history
 - [ ] Profile management
@@ -247,6 +274,7 @@
 ## 📱 Mobile Optimization
 
 ### Responsive Design
+
 - [ ] Mobile navigation menu
 - [ ] Touch-friendly interfaces
 - [ ] Gesture support
@@ -255,6 +283,7 @@
 - [ ] Image optimization
 
 ### PWA Features
+
 - [ ] Service worker setup
 - [ ] Offline functionality
 - [ ] App manifest
@@ -263,6 +292,7 @@
 - [ ] Background sync
 
 ### Performance
+
 - [ ] Code splitting
 - [ ] Lazy loading
 - [ ] Image optimization
@@ -275,6 +305,7 @@
 ## 🧪 Testing
 
 ### Unit Tests
+
 - [ ] Component tests
 - [ ] API route tests
 - [ ] Utility function tests
@@ -283,6 +314,7 @@
 - [ ] Model tests
 
 ### Integration Tests
+
 - [ ] Auth flow tests
 - [ ] Booking flow tests
 - [ ] Payment flow tests
@@ -291,6 +323,7 @@
 - [ ] Third-party service tests
 
 ### E2E Tests
+
 - [ ] Critical user journeys
 - [ ] Cross-browser testing
 - [ ] Mobile testing
@@ -303,6 +336,7 @@
 ## 🚀 Deployment & DevOps
 
 ### Production Setup
+
 - [ ] Vercel configuration
 - [ ] Domain setup
 - [ ] SSL certificates
@@ -311,6 +345,7 @@
 - [ ] Backup strategy
 
 ### Monitoring
+
 - [ ] Error tracking (Sentry)
 - [ ] Performance monitoring
 - [ ] Uptime monitoring
@@ -319,6 +354,7 @@
 - [ ] Analytics setup
 
 ### Documentation
+
 - [ ] API documentation
 - [ ] Developer guide
 - [ ] User manual
@@ -331,6 +367,7 @@
 ## 🎯 Priority Matrix
 
 ### Critical (P0)
+
 - Authentication system
 - Booking functionality
 - Payment processing
@@ -338,6 +375,7 @@
 - Mobile responsiveness
 
 ### High (P1)
+
 - E-commerce
 - Email notifications
 - User profiles
@@ -345,6 +383,7 @@
 - Security features
 
 ### Medium (P2)
+
 - Blog system
 - Internal messaging
 - Advanced analytics
@@ -352,6 +391,7 @@
 - Multiple languages
 
 ### Low (P3)
+
 - Social features
 - Advanced reporting
 - Third-party integrations

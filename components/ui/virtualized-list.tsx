@@ -63,10 +63,10 @@ export function VirtualizedList<T>({
 }
 
 // Composant de mémorisation pour éviter les re-renders inutiles
-export const MemoizedItem = React.memo(function MemoizedItem({ 
-  children 
-}: { 
-  children: React.ReactNode 
+export const MemoizedItem = React.memo(function MemoizedItem({
+  children,
+}: {
+  children: React.ReactNode
 }) {
   return <>{children}</>
 })

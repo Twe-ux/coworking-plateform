@@ -1,23 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from '@/components/ui/use-toast'
-import { 
-  Bell, 
-  Mail, 
-  Settings, 
-  Play, 
-  Square, 
-  TestTube, 
+import {
+  Bell,
+  Mail,
+  Settings,
+  Play,
+  Square,
+  TestTube,
   Activity,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
@@ -59,9 +65,9 @@ export function NotificationsManagement() {
     } catch (error) {
       console.error('Erreur chargement status:', error)
       toast({
-        title: "Erreur",
-        description: "Impossible de charger le statut du système",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Impossible de charger le statut du système',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -71,21 +77,21 @@ export function NotificationsManagement() {
   const handleAction = async (action: string, bookingId?: string) => {
     try {
       setActionLoading(action)
-      
+
       const response = await fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, bookingId })
+        body: JSON.stringify({ action, bookingId }),
       })
 
       const data = await response.json()
 
       if (data.success) {
         toast({
-          title: "Action réussie",
-          description: data.message
+          title: 'Action réussie',
+          description: data.message,
         })
-        
+
         // Recharger le statut après l'action
         if (action !== 'test_reminder') {
           await loadSystemStatus()
@@ -96,9 +102,9 @@ export function NotificationsManagement() {
     } catch (error) {
       console.error('Erreur action:', error)
       toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Action échouée",
-        variant: "destructive"
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Action échouée',
+        variant: 'destructive',
       })
     } finally {
       setActionLoading(null)
@@ -108,9 +114,9 @@ export function NotificationsManagement() {
   const handleTestReminder = () => {
     if (!testBookingId.trim()) {
       toast({
-        title: "Erreur",
-        description: "Veuillez saisir un ID de réservation",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Veuillez saisir un ID de réservation',
+        variant: 'destructive',
       })
       return
     }
@@ -120,7 +126,7 @@ export function NotificationsManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     )
   }
@@ -140,8 +146,8 @@ export function NotificationsManagement() {
                 </CardDescription>
               </div>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={loadSystemStatus}
               disabled={loading}
@@ -152,24 +158,32 @@ export function NotificationsManagement() {
         </CardHeader>
         <CardContent>
           {systemStatus && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
                 <div className="flex items-center space-x-2">
                   <Mail className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium">Service Email</span>
                 </div>
-                <Badge variant={systemStatus.emailConfigured ? "default" : "destructive"}>
-                  {systemStatus.emailConfigured ? "Configuré" : "Non configuré"}
+                <Badge
+                  variant={
+                    systemStatus.emailConfigured ? 'default' : 'destructive'
+                  }
+                >
+                  {systemStatus.emailConfigured ? 'Configuré' : 'Non configuré'}
                 </Badge>
               </div>
-              
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+
+              <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4 text-green-600" />
                   <span className="text-sm font-medium">Scheduler</span>
                 </div>
-                <Badge variant={systemStatus.schedulerRunning ? "default" : "destructive"}>
-                  {systemStatus.schedulerRunning ? "Actif" : "Arrêté"}
+                <Badge
+                  variant={
+                    systemStatus.schedulerRunning ? 'default' : 'destructive'
+                  }
+                >
+                  {systemStatus.schedulerRunning ? 'Actif' : 'Arrêté'}
                 </Badge>
               </div>
             </div>
@@ -192,38 +206,39 @@ export function NotificationsManagement() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="rounded-lg bg-blue-50 p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {systemStatus.statistics.totalNotifications}
                 </div>
                 <div className="text-xs text-gray-600">Total</div>
               </div>
-              
-              <div className="text-center p-4 bg-green-50 rounded-lg">
+
+              <div className="rounded-lg bg-green-50 p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {systemStatus.statistics.sentNotifications}
                 </div>
                 <div className="text-xs text-gray-600">Envoyées</div>
               </div>
-              
-              <div className="text-center p-4 bg-red-50 rounded-lg">
+
+              <div className="rounded-lg bg-red-50 p-4 text-center">
                 <div className="text-2xl font-bold text-red-600">
                   {systemStatus.statistics.failedNotifications}
                 </div>
                 <div className="text-xs text-gray-600">Échouées</div>
               </div>
-              
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
+
+              <div className="rounded-lg bg-gray-50 p-4 text-center">
                 <div className="text-2xl font-bold text-gray-600">
                   {systemStatus.statistics.cacheSize}
                 </div>
                 <div className="text-xs text-gray-600">En cache</div>
               </div>
             </div>
-            
+
             <div className="mt-4 text-xs text-gray-500">
-              Dernière vérification : {new Date(systemStatus.lastCheck).toLocaleString('fr-FR')}
+              Dernière vérification :{' '}
+              {new Date(systemStatus.lastCheck).toLocaleString('fr-FR')}
             </div>
           </CardContent>
         </Card>
@@ -236,14 +251,12 @@ export function NotificationsManagement() {
             <Settings className="h-5 w-5 text-gray-600" />
             <div>
               <CardTitle>Contrôles système</CardTitle>
-              <CardDescription>
-                Actions de maintenance et tests
-              </CardDescription>
+              <CardDescription>Actions de maintenance et tests</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Button
               variant="outline"
               className="flex items-center space-x-2"
@@ -251,9 +264,13 @@ export function NotificationsManagement() {
               disabled={actionLoading === 'start'}
             >
               <Play className="h-4 w-4" />
-              <span>{actionLoading === 'start' ? 'Démarrage...' : 'Démarrer scheduler'}</span>
+              <span>
+                {actionLoading === 'start'
+                  ? 'Démarrage...'
+                  : 'Démarrer scheduler'}
+              </span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="flex items-center space-x-2"
@@ -261,35 +278,45 @@ export function NotificationsManagement() {
               disabled={actionLoading === 'stop'}
             >
               <Square className="h-4 w-4" />
-              <span>{actionLoading === 'stop' ? 'Arrêt...' : 'Arrêter scheduler'}</span>
+              <span>
+                {actionLoading === 'stop' ? 'Arrêt...' : 'Arrêter scheduler'}
+              </span>
             </Button>
           </div>
-          
+
           <div className="border-t pt-4">
-            <h4 className="text-sm font-medium mb-3">Test de rappel de réservation</h4>
+            <h4 className="mb-3 text-sm font-medium">
+              Test de rappel de réservation
+            </h4>
             <div className="flex space-x-2">
               <div className="flex-1">
-                <Label htmlFor="booking-id" className="text-xs">ID de réservation</Label>
+                <Label htmlFor="booking-id" className="text-xs">
+                  ID de réservation
+                </Label>
                 <Input
                   id="booking-id"
                   value={testBookingId}
                   onChange={(e) => setTestBookingId(e.target.value)}
-                  placeholder="Saisir l&apos;ID d&apos;une réservation..."
+                  placeholder="Saisir l'ID d'une réservation..."
                   className="mt-1"
                 />
               </div>
               <div className="flex items-end">
                 <Button
                   onClick={handleTestReminder}
-                  disabled={actionLoading === 'test_reminder' || !testBookingId.trim()}
+                  disabled={
+                    actionLoading === 'test_reminder' || !testBookingId.trim()
+                  }
                   className="flex items-center space-x-2"
                 >
                   <TestTube className="h-4 w-4" />
-                  <span>{actionLoading === 'test_reminder' ? 'Envoi...' : 'Tester'}</span>
+                  <span>
+                    {actionLoading === 'test_reminder' ? 'Envoi...' : 'Tester'}
+                  </span>
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="mt-2 text-xs text-gray-500">
               Envoie un rappel immédiat pour tester le système d&apos;email
             </p>
           </div>
@@ -301,8 +328,9 @@ export function NotificationsManagement() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Le service email n&apos;est pas configuré. Les notifications ne seront pas envoyées.
-            Vérifiez la variable d&apos;environnement RESEND_API_KEY.
+            Le service email n&apos;est pas configuré. Les notifications ne
+            seront pas envoyées. Vérifiez la variable d&apos;environnement
+            RESEND_API_KEY.
           </AlertDescription>
         </Alert>
       )}
@@ -311,8 +339,8 @@ export function NotificationsManagement() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {systemStatus.statistics.failedNotifications} notifications ont échoué. 
-            Vérifiez les logs du serveur pour plus de détails.
+            {systemStatus.statistics.failedNotifications} notifications ont
+            échoué. Vérifiez les logs du serveur pour plus de détails.
           </AlertDescription>
         </Alert>
       )}

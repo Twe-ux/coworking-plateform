@@ -11,17 +11,17 @@ import { sendBookingConfirmationEmail } from '@/lib/email'
 
 // Initialiser Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil'
+  apiVersion: '2025-07-30.basil',
 })
 
 // Schema de validation pour créer un paiement
 const createPaymentSchema = z.object({
   bookingId: z.string().min(1, 'ID de réservation requis'),
   paymentMethod: z.enum(['card', 'paypal'], {
-    errorMap: () => ({ message: 'Méthode de paiement invalide' })
+    errorMap: () => ({ message: 'Méthode de paiement invalide' }),
   }),
   amount: z.number().min(0.5, 'Montant minimum 0.50€'),
-  currency: z.string().default('eur')
+  currency: z.string().default('eur'),
 })
 
 /**
@@ -32,16 +32,21 @@ async function sendPaymentConfirmationEmail(booking: any) {
     // Récupérer les données utilisateur et espace
     const [user, space] = await Promise.all([
       User.findById(booking.userId),
-      Space.findById(booking.spaceId)
+      Space.findById(booking.spaceId),
     ])
 
     if (!user || !space) {
-      console.error(`❌ Données manquantes pour l'email de confirmation: user=${!!user}, space=${!!space}`)
+      console.error(
+        `❌ Données manquantes pour l'email de confirmation: user=${!!user}, space=${!!space}`
+      )
       return
     }
 
     const emailResult = await sendBookingConfirmationEmail({
-      email: process.env.NODE_ENV === 'development' ? 'milone.thierry@gmail.com' : user.email, // Forcé en dev
+      email:
+        process.env.NODE_ENV === 'development'
+          ? 'milone.thierry@gmail.com'
+          : user.email, // Forcé en dev
       firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
       lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
       bookingId: booking._id.toString(),
@@ -53,16 +58,21 @@ async function sendPaymentConfirmationEmail(booking: any) {
       durationType: booking.durationType,
       guests: booking.guests,
       totalPrice: booking.totalPrice,
-      paymentMethod: booking.paymentMethod
+      paymentMethod: booking.paymentMethod,
     })
 
     if (emailResult.success) {
-      console.log(`✅ Email de confirmation post-paiement envoyé pour la réservation ${booking._id}`)
+      console.log(
+        `✅ Email de confirmation post-paiement envoyé pour la réservation ${booking._id}`
+      )
     } else {
-      console.error(`❌ Échec envoi email post-paiement pour ${booking._id}:`, emailResult.error)
+      console.error(
+        `❌ Échec envoi email post-paiement pour ${booking._id}:`,
+        emailResult.error
+      )
     }
   } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi de l\'email post-paiement:', error)
+    console.error("❌ Erreur lors de l'envoi de l'email post-paiement:", error)
   }
 }
 
@@ -83,13 +93,13 @@ export async function POST(request: NextRequest) {
     // Valider les données
     const body = await request.json()
     const validationResult = createPaymentSchema.safeParse(body)
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: 'Données invalides', 
+        {
+          error: 'Données invalides',
           code: 'VALIDATION_ERROR',
-          details: validationResult.error.errors
+          details: validationResult.error.errors,
         },
         { status: 400 }
       )
@@ -103,7 +113,7 @@ export async function POST(request: NextRequest) {
     // Vérifier que la réservation existe et appartient à l'utilisateur
     const booking = await Booking.findOne({
       _id: bookingId,
-      userId: session.user.id
+      userId: session.user.id,
     })
 
     if (!booking) {
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
       customer_email: session.user.email || undefined,
       metadata: {
         bookingId: bookingId,
-        userId: session.user.id
+        userId: session.user.id,
       },
       line_items: [
         {
@@ -138,7 +148,7 @@ export async function POST(request: NextRequest) {
             currency: currency,
             product_data: {
               name: `Réservation ${booking.spaceName || 'Espace'}`,
-              description: `${format(booking.date, 'dd/MM/yyyy', { locale: fr })} de ${booking.startTime} à ${booking.endTime}`
+              description: `${format(booking.date, 'dd/MM/yyyy', { locale: fr })} de ${booking.startTime} à ${booking.endTime}`,
             },
             unit_amount: Math.round(amount * 100), // Stripe utilise les centimes
           },
@@ -161,13 +171,15 @@ export async function POST(request: NextRequest) {
       currency,
       bookingId,
       status: 'pending',
-      message: 'Session de paiement Stripe créée avec succès'
+      message: 'Session de paiement Stripe créée avec succès',
     })
-
   } catch (error) {
     console.error('[POST /api/payments] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la création du paiement', code: 'PAYMENT_ERROR' },
+      {
+        error: 'Erreur lors de la création du paiement',
+        code: 'PAYMENT_ERROR',
+      },
       { status: 500 }
     )
   }
@@ -190,21 +202,29 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('session_id') // Stripe Checkout
     const paymentIntentId = searchParams.get('payment_intent') // Stripe Elements
     const bookingId = searchParams.get('booking_id')
-    
-    console.log('🔍 [GET /api/payments] Paramètres reçus:', { sessionId, paymentIntentId, bookingId })
-    
+
+    console.log('🔍 [GET /api/payments] Paramètres reçus:', {
+      sessionId,
+      paymentIntentId,
+      bookingId,
+    })
+
     // Connexion à la base de données
     await connectMongoose()
 
     if (paymentIntentId) {
       // Nouveau système Stripe Elements : vérifier avec payment_intent
       console.log('🎯 Vérification PaymentIntent:', paymentIntentId)
-      
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-      
+
+      const paymentIntent =
+        await stripe.paymentIntents.retrieve(paymentIntentId)
+
       if (!paymentIntent) {
         return NextResponse.json(
-          { error: 'Payment Intent non trouvé', code: 'PAYMENT_INTENT_NOT_FOUND' },
+          {
+            error: 'Payment Intent non trouvé',
+            code: 'PAYMENT_INTENT_NOT_FOUND',
+          },
           { status: 404 }
         )
       }
@@ -220,8 +240,13 @@ export async function GET(request: NextRequest) {
             booking.paymentStatus = 'paid'
             booking.status = 'confirmed'
             await booking.save()
-            console.log('✅ Réservation mise à jour:', booking._id, '- statut:', booking.paymentStatus)
-            
+            console.log(
+              '✅ Réservation mise à jour:',
+              booking._id,
+              '- statut:',
+              booking.paymentStatus
+            )
+
             // Envoyer l'email de confirmation de manière asynchrone
             setImmediate(() => {
               sendPaymentConfirmationEmail(booking)
@@ -233,21 +258,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         sessionId: `pi_${paymentIntentId}`, // Compatibilité d'affichage
-        paymentStatus: paymentIntent.status === 'succeeded' ? 'paid' : paymentIntent.status,
+        paymentStatus:
+          paymentIntent.status === 'succeeded' ? 'paid' : paymentIntent.status,
         paymentIntent: paymentIntent.id,
         customerEmail: session.user.email || 'Non disponible',
         amountTotal: paymentIntent.amount,
         currency: paymentIntent.currency,
         bookingId: bookingId,
-        status: paymentIntent.status
+        status: paymentIntent.status,
       })
-    } 
-    else if (sessionId) {
+    } else if (sessionId) {
       // Ancien système Stripe Checkout : vérifier avec session_id
       console.log('🔄 Vérification Session Checkout:', sessionId)
-      
+
       const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId)
-      
+
       if (!checkoutSession) {
         return NextResponse.json(
           { error: 'Session non trouvée', code: 'SESSION_NOT_FOUND' },
@@ -266,7 +291,7 @@ export async function GET(request: NextRequest) {
             booking.paymentStatus = 'paid'
             booking.status = 'confirmed'
             await booking.save()
-            
+
             // Envoyer l'email de confirmation de manière asynchrone
             setImmediate(() => {
               sendPaymentConfirmationEmail(booking)
@@ -284,20 +309,24 @@ export async function GET(request: NextRequest) {
         amountTotal: checkoutSession.amount_total,
         currency: checkoutSession.currency,
         bookingId: checkoutSession.metadata?.bookingId,
-        status: checkoutSession.status
+        status: checkoutSession.status,
       })
-    }
-    else {
+    } else {
       return NextResponse.json(
-        { error: 'ID de session ou payment intent requis', code: 'MISSING_PAYMENT_IDENTIFIER' },
+        {
+          error: 'ID de session ou payment intent requis',
+          code: 'MISSING_PAYMENT_IDENTIFIER',
+        },
         { status: 400 }
       )
     }
-
   } catch (error) {
     console.error('[GET /api/payments] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la vérification du paiement', code: 'PAYMENT_CHECK_ERROR' },
+      {
+        error: 'Erreur lors de la vérification du paiement',
+        code: 'PAYMENT_CHECK_ERROR',
+      },
       { status: 500 }
     )
   }

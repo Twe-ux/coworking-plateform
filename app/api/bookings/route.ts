@@ -4,15 +4,15 @@ import { z } from 'zod'
 import { ObjectId } from 'mongodb'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
-import { 
+import {
   User,
-  Booking, 
+  Booking,
   Space,
   type IBooking,
   type CreateBookingData,
   checkBookingConflicts,
   validateBookingData,
-  calculateBookingPrice
+  calculateBookingPrice,
 } from '@/lib/models'
 import { sendBookingConfirmationEmail } from '@/lib/email'
 import { format } from 'date-fns'
@@ -20,28 +20,55 @@ import { fr } from 'date-fns/locale'
 
 // Schema de validation pour la création de réservation
 const createBookingSchema = z.object({
-  spaceId: z.string().min(1, 'L\'ID de l\'espace est requis'),
+  spaceId: z.string().min(1, "L'ID de l'espace est requis"),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date invalide'),
-  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:mm)'),
-  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:mm)'),
-  duration: z.number().min(1, 'La durée doit être d\'au moins 1'),
+  startTime: z
+    .string()
+    .regex(
+      /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      "Format d'heure invalide (HH:mm)"
+    ),
+  endTime: z
+    .string()
+    .regex(
+      /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      "Format d'heure invalide (HH:mm)"
+    ),
+  duration: z.number().min(1, "La durée doit être d'au moins 1"),
   durationType: z.enum(['hour', 'day', 'week', 'month'], {
-    errorMap: () => ({ message: 'Type de durée invalide' })
+    errorMap: () => ({ message: 'Type de durée invalide' }),
   }),
-  guests: z.number().min(1, 'Au moins 1 invité requis').max(20, 'Maximum 20 invités'),
+  guests: z
+    .number()
+    .min(1, 'Au moins 1 invité requis')
+    .max(20, 'Maximum 20 invités'),
   paymentMethod: z.enum(['onsite', 'card', 'paypal'], {
-    errorMap: () => ({ message: 'Méthode de paiement invalide' })
+    errorMap: () => ({ message: 'Méthode de paiement invalide' }),
   }),
-  notes: z.string().max(500, 'Notes trop longues (max 500 caractères)').optional()
+  notes: z
+    .string()
+    .max(500, 'Notes trop longues (max 500 caractères)')
+    .optional(),
 })
 
 // Schema pour les query parameters de GET
 const getBookingsQuerySchema = z.object({
   status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional(),
-  date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date invalide').optional(),
+  date: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), 'Date invalide')
+    .optional(),
   spaceId: z.string().optional(),
-  limit: z.string().transform(val => parseInt(val) || 10).refine(val => val <= 100, 'Limite trop élevée').optional(),
-  offset: z.string().transform(val => parseInt(val) || 0).refine(val => val >= 0, 'Offset invalide').optional()
+  limit: z
+    .string()
+    .transform((val) => parseInt(val) || 10)
+    .refine((val) => val <= 100, 'Limite trop élevée')
+    .optional(),
+  offset: z
+    .string()
+    .transform((val) => parseInt(val) || 0)
+    .refine((val) => val >= 0, 'Offset invalide')
+    .optional(),
 })
 
 /**
@@ -50,7 +77,10 @@ const getBookingsQuerySchema = z.object({
 async function sendBookingConfirmation(booking: any, user: any, space: any) {
   try {
     const emailResult = await sendBookingConfirmationEmail({
-      email: process.env.NODE_ENV === 'development' ? 'milone.thierry@gmail.com' : user.email, // Forcé en dev
+      email:
+        process.env.NODE_ENV === 'development'
+          ? 'milone.thierry@gmail.com'
+          : user.email, // Forcé en dev
       firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
       lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
       bookingId: booking._id.toString(),
@@ -62,16 +92,24 @@ async function sendBookingConfirmation(booking: any, user: any, space: any) {
       durationType: booking.durationType,
       guests: booking.guests,
       totalPrice: booking.totalPrice,
-      paymentMethod: booking.paymentMethod
+      paymentMethod: booking.paymentMethod,
     })
 
     if (emailResult.success) {
-      console.log(`✅ Email de confirmation envoyé pour la réservation ${booking._id}`)
+      console.log(
+        `✅ Email de confirmation envoyé pour la réservation ${booking._id}`
+      )
     } else {
-      console.error(`❌ Échec envoi email confirmation pour ${booking._id}:`, emailResult.error)
+      console.error(
+        `❌ Échec envoi email confirmation pour ${booking._id}:`,
+        emailResult.error
+      )
     }
   } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi de l\'email de confirmation:', error)
+    console.error(
+      "❌ Erreur lors de l'envoi de l'email de confirmation:",
+      error
+    )
   }
 }
 
@@ -93,13 +131,13 @@ export async function POST(request: NextRequest) {
     // Parser et valider les données de la requête
     const body = await request.json()
     const validationResult = createBookingSchema.safeParse(body)
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: 'Données invalides', 
+        {
+          error: 'Données invalides',
           code: 'VALIDATION_ERROR',
-          details: validationResult.error.errors
+          details: validationResult.error.errors,
         },
         { status: 400 }
       )
@@ -115,9 +153,13 @@ export async function POST(request: NextRequest) {
     // Vérifier que l'espace existe et est disponible
     const space = await Space.findOne({
       $or: [
-        { _id: ObjectId.isValid(data.spaceId) ? new ObjectId(data.spaceId) : null },
-        { id: data.spaceId }
-      ]
+        {
+          _id: ObjectId.isValid(data.spaceId)
+            ? new ObjectId(data.spaceId)
+            : null,
+        },
+        { id: data.spaceId },
+      ],
     })
 
     if (!space) {
@@ -144,7 +186,7 @@ export async function POST(request: NextRequest) {
       startTime: data.startTime,
       endTime: data.endTime,
       guests: data.guests,
-      durationType: data.durationType
+      durationType: data.durationType,
     })
 
     if (!validation.isValid) {
@@ -156,14 +198,14 @@ export async function POST(request: NextRequest) {
           startTime: data.startTime,
           endTime: data.endTime,
           guests: data.guests,
-          durationType: data.durationType
-        }
+          durationType: data.durationType,
+        },
       })
       return NextResponse.json(
-        { 
-          error: 'Données de réservation invalides', 
+        {
+          error: 'Données de réservation invalides',
           code: 'BOOKING_VALIDATION_ERROR',
-          details: validation.errors
+          details: validation.errors,
         },
         { status: 400 }
       )
@@ -179,17 +221,21 @@ export async function POST(request: NextRequest) {
 
     if (conflicts.length > 0) {
       return NextResponse.json(
-        { 
-          error: 'Créneau déjà réservé', 
+        {
+          error: 'Créneau déjà réservé',
           code: 'TIME_SLOT_CONFLICT',
-          details: conflicts.map(c => c.reason)
+          details: conflicts.map((c) => c.reason),
         },
         { status: 409 }
       )
     }
 
     // Calculer le prix total
-    const totalPrice = calculateBookingPrice(space, data.duration, data.durationType)
+    const totalPrice = calculateBookingPrice(
+      space,
+      data.duration,
+      data.durationType
+    )
 
     // Créer les données de réservation
     const bookingData: CreateBookingData = {
@@ -203,7 +249,7 @@ export async function POST(request: NextRequest) {
       guests: data.guests,
       totalPrice,
       paymentMethod: data.paymentMethod,
-      notes: data.notes
+      notes: data.notes,
     }
 
     // Gérer le paiement selon la méthode choisie
@@ -213,17 +259,22 @@ export async function POST(request: NextRequest) {
         ...bookingData,
         userId: new ObjectId(session.user.id),
         spaceId: space._id,
-        status: 'pending' // Sera confirmée lors du paiement sur place
+        status: 'pending', // Sera confirmée lors du paiement sur place
       })
 
       await booking.save()
 
       // Populer les données pour la réponse
       await booking.populate([
-        { path: 'spaceId', select: 'id name location capacity specialty image' }
+        {
+          path: 'spaceId',
+          select: 'id name location capacity specialty image',
+        },
       ])
 
-      console.log(`[BOOKING_CREATED] User ${session.user.id} created onsite booking ${booking._id} for space ${space.id}`)
+      console.log(
+        `[BOOKING_CREATED] User ${session.user.id} created onsite booking ${booking._id} for space ${space.id}`
+      )
 
       // Récupérer les données utilisateur pour l'email
       const user = await User.findById(session.user.id)
@@ -235,7 +286,7 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json(
-        { 
+        {
           message: 'Réservation créée avec succès',
           booking: {
             id: booking._id.toString(),
@@ -252,8 +303,8 @@ export async function POST(request: NextRequest) {
             paymentStatus: booking.paymentStatus,
             notes: booking.notes,
             createdAt: booking.createdAt.toISOString(),
-            updatedAt: booking.updatedAt.toISOString()
-          }
+            updatedAt: booking.updatedAt.toISOString(),
+          },
         },
         { status: 201 }
       )
@@ -264,15 +315,17 @@ export async function POST(request: NextRequest) {
         userId: new ObjectId(session.user.id),
         spaceId: space._id,
         status: 'payment_pending', // En attente du paiement Stripe Elements
-        paymentStatus: 'pending'
+        paymentStatus: 'pending',
       })
 
       await booking.save()
 
-      console.log(`[BOOKING_CREATED] User ${session.user.id} created booking ${booking._id} with payment_pending status for card payment`)
+      console.log(
+        `[BOOKING_CREATED] User ${session.user.id} created booking ${booking._id} with payment_pending status for card payment`
+      )
 
       return NextResponse.json(
-        { 
+        {
           message: 'Réservation créée, paiement en attente',
           booking: {
             id: booking._id.toString(),
@@ -290,21 +343,21 @@ export async function POST(request: NextRequest) {
             paymentMethod: booking.paymentMethod,
             notes: booking.notes,
             createdAt: booking.createdAt.toISOString(),
-            updatedAt: booking.updatedAt.toISOString()
-          }
+            updatedAt: booking.updatedAt.toISOString(),
+          },
         },
         { status: 201 }
       )
     } else {
       // Autres méthodes de paiement (PayPal) : utiliser l'ancien système Stripe Checkout
       const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-      
+
       const booking = new Booking({
         ...bookingData,
         userId: new ObjectId(session.user.id),
         spaceId: space._id,
         status: 'payment_pending', // En attente du paiement Stripe
-        paymentStatus: 'pending'
+        paymentStatus: 'pending',
       })
 
       await booking.save()
@@ -335,27 +388,31 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      console.log(`[STRIPE_SESSION_CREATED] User ${session.user.id} created payment session for booking ${booking._id}`)
+      console.log(
+        `[STRIPE_SESSION_CREATED] User ${session.user.id} created payment session for booking ${booking._id}`
+      )
 
       return NextResponse.json(
-        { 
+        {
           message: 'Session de paiement créée',
           paymentUrl: stripeSession.url,
           bookingId: booking._id.toString(),
-          sessionId: stripeSession.id
+          sessionId: stripeSession.id,
         },
         { status: 201 }
       )
     }
-
   } catch (error) {
     console.error('[POST /api/bookings] Error:', error)
-    
+
     // Gestion des erreurs spécifiques de MongoDB
     if (error instanceof Error) {
       if (error.message.includes('validation')) {
         return NextResponse.json(
-          { error: 'Erreur de validation des données', code: 'VALIDATION_ERROR' },
+          {
+            error: 'Erreur de validation des données',
+            code: 'VALIDATION_ERROR',
+          },
           { status: 400 }
         )
       }
@@ -365,14 +422,14 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         )
       }
-      
+
       // En développement, retourner plus de détails
       if (process.env.NODE_ENV === 'development') {
         return NextResponse.json(
-          { 
-            error: error.message || 'Erreur interne du serveur', 
+          {
+            error: error.message || 'Erreur interne du serveur',
             code: 'INTERNAL_ERROR',
-            debug: error.stack
+            debug: error.stack,
           },
           { status: 500 }
         )
@@ -407,21 +464,27 @@ export async function GET(request: NextRequest) {
       date: searchParams.get('date'),
       spaceId: searchParams.get('spaceId'),
       limit: searchParams.get('limit'),
-      offset: searchParams.get('offset')
+      offset: searchParams.get('offset'),
     })
 
     if (!queryValidation.success) {
       return NextResponse.json(
-        { 
-          error: 'Paramètres de requête invalides', 
+        {
+          error: 'Paramètres de requête invalides',
           code: 'QUERY_VALIDATION_ERROR',
-          details: queryValidation.error.errors
+          details: queryValidation.error.errors,
         },
         { status: 400 }
       )
     }
 
-    const { status, date, spaceId, limit = 10, offset = 0 } = queryValidation.data
+    const {
+      status,
+      date,
+      spaceId,
+      limit = 10,
+      offset = 0,
+    } = queryValidation.data
 
     // Connexion à la base de données
     await connectMongoose()
@@ -436,8 +499,16 @@ export async function GET(request: NextRequest) {
     if (date) {
       const targetDate = new Date(date)
       query.date = {
-        $gte: new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()),
-        $lt: new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1)
+        $gte: new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate()
+        ),
+        $lt: new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate() + 1
+        ),
       }
     }
 
@@ -454,7 +525,7 @@ export async function GET(request: NextRequest) {
           // Si l'espace n'existe pas, retourner un tableau vide
           return NextResponse.json({
             bookings: [],
-            pagination: { total: 0, limit, offset, hasMore: false }
+            pagination: { total: 0, limit, offset, hasMore: false },
           })
         }
       }
@@ -465,7 +536,10 @@ export async function GET(request: NextRequest) {
 
     // Récupérer les réservations avec pagination
     const bookings = await Booking.find(query)
-      .populate('spaceId', 'id name location capacity specialty image features rating')
+      .populate(
+        'spaceId',
+        'id name location capacity specialty image features rating'
+      )
       .sort({ date: -1, startTime: -1 }) // Trier par date décroissante puis heure
       .skip(offset)
       .limit(limit)
@@ -475,16 +549,18 @@ export async function GET(request: NextRequest) {
     const formattedBookings = bookings.map((booking: any) => ({
       id: booking._id.toString(),
       userId: booking.userId.toString(),
-      space: booking.spaceId ? {
-        id: booking.spaceId.id,
-        name: booking.spaceId.name,
-        location: booking.spaceId.location,
-        capacity: booking.spaceId.capacity,
-        specialty: booking.spaceId.specialty,
-        image: booking.spaceId.image,
-        features: booking.spaceId.features,
-        rating: booking.spaceId.rating
-      } : null,
+      space: booking.spaceId
+        ? {
+            id: booking.spaceId.id,
+            name: booking.spaceId.name,
+            location: booking.spaceId.location,
+            capacity: booking.spaceId.capacity,
+            specialty: booking.spaceId.specialty,
+            image: booking.spaceId.image,
+            features: booking.spaceId.features,
+            rating: booking.spaceId.rating,
+          }
+        : null,
       date: booking.date.toISOString(),
       startTime: booking.startTime,
       endTime: booking.endTime,
@@ -499,8 +575,9 @@ export async function GET(request: NextRequest) {
       createdAt: booking.createdAt.toISOString(),
       updatedAt: booking.updatedAt.toISOString(),
       // Propriétés calculées
-      canBeCancelled: booking.status === 'pending' || booking.status === 'confirmed',
-      canBeModified: booking.status === 'pending'
+      canBeCancelled:
+        booking.status === 'pending' || booking.status === 'confirmed',
+      canBeModified: booking.status === 'pending',
     }))
 
     return NextResponse.json({
@@ -509,14 +586,16 @@ export async function GET(request: NextRequest) {
         total,
         limit,
         offset,
-        hasMore: offset + limit < total
-      }
+        hasMore: offset + limit < total,
+      },
     })
-
   } catch (error) {
     console.error('[GET /api/bookings] Error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des réservations', code: 'INTERNAL_ERROR' },
+      {
+        error: 'Erreur lors de la récupération des réservations',
+        code: 'INTERNAL_ERROR',
+      },
       { status: 500 }
     )
   }

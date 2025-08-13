@@ -82,7 +82,7 @@ interface BookingCancellationEmailParams {
 export async function sendPasswordResetEmail({
   email,
   resetToken,
-  firstName = 'Utilisateur'
+  firstName = 'Utilisateur',
 }: PasswordResetEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
     if (!resend) {
@@ -90,7 +90,7 @@ export async function sendPasswordResetEmail({
       return { success: false, error: 'Service email non configuré' }
     }
     const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`
-    
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -189,9 +189,9 @@ L'équipe ${APP_NAME}
     return { success: true }
   } catch (error) {
     console.error('Erreur envoi email:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     }
   }
 }
@@ -202,7 +202,7 @@ L'équipe ${APP_NAME}
 export async function sendWelcomeEmail({
   email,
   firstName,
-  lastName
+  lastName,
 }: WelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
     if (!resend) {
@@ -210,7 +210,7 @@ export async function sendWelcomeEmail({
       return { success: false, error: 'Service email non configuré' }
     }
     const loginUrl = `${APP_URL}/login`
-    
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -313,9 +313,9 @@ L'équipe ${APP_NAME}
     return { success: true }
   } catch (error) {
     console.error('Erreur envoi email:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     }
   }
 }
@@ -336,8 +336,11 @@ export async function sendBookingConfirmationEmail({
   durationType,
   guests,
   totalPrice,
-  paymentMethod
-}: BookingConfirmationEmailParams): Promise<{ success: boolean; error?: string }> {
+  paymentMethod,
+}: BookingConfirmationEmailParams): Promise<{
+  success: boolean
+  error?: string
+}> {
   try {
     if (!resend) {
       console.warn('⚠️  Resend non configuré - email non envoyé')
@@ -347,7 +350,7 @@ export async function sendBookingConfirmationEmail({
     const dashboardUrl = `${APP_URL}/dashboard/client/bookings`
     const durationText = getDurationText(duration, durationType)
     const paymentText = getPaymentMethodText(paymentMethod)
-    
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -502,9 +505,9 @@ L'équipe ${APP_NAME}
     return { success: true }
   } catch (error) {
     console.error('Erreur envoi email:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     }
   }
 }
@@ -521,7 +524,7 @@ export async function sendBookingReminderEmail({
   date,
   startTime,
   endTime,
-  hoursUntilBooking
+  hoursUntilBooking,
 }: BookingReminderEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
     if (!resend) {
@@ -530,8 +533,9 @@ export async function sendBookingReminderEmail({
     }
 
     const dashboardUrl = `${APP_URL}/dashboard/client/bookings`
-    const timeUntilText = hoursUntilBooking === 24 ? 'demain' : `dans ${hoursUntilBooking}h`
-    
+    const timeUntilText =
+      hoursUntilBooking === 24 ? 'demain' : `dans ${hoursUntilBooking}h`
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -659,9 +663,9 @@ L'équipe ${APP_NAME}
     return { success: true }
   } catch (error) {
     console.error('Erreur envoi email:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     }
   }
 }
@@ -678,8 +682,11 @@ export async function sendBookingCancellationEmail({
   date,
   startTime,
   endTime,
-  refundAmount
-}: BookingCancellationEmailParams): Promise<{ success: boolean; error?: string }> {
+  refundAmount,
+}: BookingCancellationEmailParams): Promise<{
+  success: boolean
+  error?: string
+}> {
   try {
     if (!resend) {
       console.warn('⚠️  Resend non configuré - email non envoyé')
@@ -688,7 +695,7 @@ export async function sendBookingCancellationEmail({
 
     const dashboardUrl = `${APP_URL}/dashboard/client/bookings`
     const bookUrl = `${APP_URL}/reservation`
-    
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -731,13 +738,17 @@ export async function sendBookingCancellationEmail({
               <p><strong>📍 Réservation :</strong> #${bookingId.slice(-8)}</p>
             </div>
             
-            ${refundAmount ? `
+            ${
+              refundAmount
+                ? `
             <div class="refund-info">
               <h3 style="margin-top: 0; color: #155724;">💰 Informations de remboursement</h3>
               <p><strong>Montant remboursé :</strong> ${refundAmount.toFixed(2)}€</p>
               <p>Le remboursement sera traité sous 3-5 jours ouvrés et apparaîtra sur votre méthode de paiement originale.</p>
             </div>
-            ` : ''}
+            `
+                : ''
+            }
             
             <p><strong>😊 Pas de souci !</strong><br>
             Nous comprenons que les plans peuvent changer. Votre place est maintenant disponible pour d'autres membres de notre communauté.</p>
@@ -777,11 +788,15 @@ Date : ${date}
 Horaires : ${startTime} - ${endTime}
 Réservation : #${bookingId.slice(-8)}
 
-${refundAmount ? `
+${
+  refundAmount
+    ? `
 INFORMATIONS DE REMBOURSEMENT
 Montant remboursé : ${refundAmount.toFixed(2)}€
 Le remboursement sera traité sous 3-5 jours ouvrés et apparaîtra sur votre méthode de paiement originale.
-` : ''}
+`
+    : ''
+}
 
 PAS DE SOUCI !
 Nous comprenons que les plans peuvent changer. Votre place est maintenant disponible pour d'autres membres de notre communauté.
@@ -808,15 +823,15 @@ L'équipe ${APP_NAME}
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Email d\'annulation réservation envoyé:', data?.id)
+      console.log("✅ Email d'annulation réservation envoyé:", data?.id)
     }
 
     return { success: true }
   } catch (error) {
     console.error('Erreur envoi email:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erreur inconnue' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     }
   }
 }
@@ -829,9 +844,9 @@ function getDurationText(duration: number, durationType: string): string {
     hour: duration === 1 ? 'heure' : 'heures',
     day: duration === 1 ? 'jour' : 'jours',
     week: duration === 1 ? 'semaine' : 'semaines',
-    month: duration === 1 ? 'mois' : 'mois'
+    month: duration === 1 ? 'mois' : 'mois',
   }
-  
+
   return `${duration} ${typeMap[durationType as keyof typeof typeMap] || durationType}`
 }
 
@@ -839,9 +854,9 @@ function getPaymentMethodText(paymentMethod: string): string {
   const methodMap = {
     onsite: 'Sur place',
     card: 'Carte bancaire',
-    paypal: 'PayPal'
+    paypal: 'PayPal',
   }
-  
+
   return methodMap[paymentMethod as keyof typeof methodMap] || paymentMethod
 }
 
@@ -851,7 +866,7 @@ function getPaymentMethodText(paymentMethod: string): string {
 export function checkEmailConfiguration(): boolean {
   const hasApiKey = !!process.env.RESEND_API_KEY
   const hasFromEmail = !!process.env.FROM_EMAIL
-  
+
   if (!hasApiKey || !hasFromEmail) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('⚠️  Configuration email incomplète (développement):', {
@@ -861,6 +876,6 @@ export function checkEmailConfiguration(): boolean {
     }
     return false
   }
-  
+
   return true
 }

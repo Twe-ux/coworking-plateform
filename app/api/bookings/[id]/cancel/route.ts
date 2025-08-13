@@ -11,16 +11,13 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const bookingId = params.id
-    
+
     if (!isValidObjectId(bookingId)) {
       return NextResponse.json(
         { error: 'ID de réservation invalide' },
@@ -42,10 +39,7 @@ export async function POST(
 
     // Check if user owns this booking
     if (booking.user.toString() !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
     }
 
     // Check if booking can be cancelled
@@ -58,7 +52,7 @@ export async function POST(
 
     if (booking.status === 'completed') {
       return NextResponse.json(
-        { error: 'Impossible d\'annuler une réservation terminée' },
+        { error: "Impossible d'annuler une réservation terminée" },
         { status: 400 }
       )
     }
@@ -71,7 +65,7 @@ export async function POST(
 
     if (bookingDate.getTime() === today.getTime()) {
       return NextResponse.json(
-        { error: 'Impossible d\'annuler une réservation le jour même' },
+        { error: "Impossible d'annuler une réservation le jour même" },
         { status: 400 }
       )
     }
@@ -79,7 +73,7 @@ export async function POST(
     // Update booking status
     booking.status = 'cancelled'
     booking.updatedAt = new Date()
-    
+
     await booking.save()
 
     return NextResponse.json({
@@ -87,12 +81,11 @@ export async function POST(
       booking: {
         id: booking._id.toString(),
         status: booking.status,
-        updatedAt: booking.updatedAt
-      }
+        updatedAt: booking.updatedAt,
+      },
     })
-
   } catch (error) {
-    console.error('Erreur lors de l\'annulation:', error)
+    console.error("Erreur lors de l'annulation:", error)
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

@@ -4,7 +4,16 @@ import { authOptions } from '@/lib/auth'
 import connectMongoose from '@/lib/mongoose'
 import { Booking } from '@/lib/models/booking'
 import { Space } from '@/lib/models/space'
-import { subDays, format, eachWeekOfInterval, startOfWeek, endOfWeek, eachHourOfInterval, setHours, startOfDay } from 'date-fns'
+import {
+  subDays,
+  format,
+  eachWeekOfInterval,
+  startOfWeek,
+  endOfWeek,
+  eachHourOfInterval,
+  setHours,
+  startOfDay,
+} from 'date-fns'
 
 /**
  * GET /api/dashboard/admin/analytics/occupancy - Analytics d'occupation des espaces
@@ -12,7 +21,7 @@ import { subDays, format, eachWeekOfInterval, startOfWeek, endOfWeek, eachHourOf
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -62,10 +71,13 @@ export async function GET(request: NextRequest) {
 
     // Récupérer tous les espaces
     const allSpaces = await Space.find({}).lean()
-    const spaceMap = new Map(allSpaces.map((space: any) => [space._id.toString(), space]))
+    const spaceMap = new Map(
+      allSpaces.map((space: any) => [space._id.toString(), space])
+    )
 
     // Filtre d'espace
-    const spaceFilterQuery = spaceFilter !== 'all' ? { spaceId: spaceFilter } : {}
+    const spaceFilterQuery =
+      spaceFilter !== 'all' ? { spaceId: spaceFilter } : {}
 
     // Analytics par espace
     const spaceAnalytics = await Booking.aggregate([
@@ -73,19 +85,19 @@ export async function GET(request: NextRequest) {
         $match: {
           date: { $gte: startDate, $lte: endDate },
           status: { $in: ['confirmed', 'completed'] },
-          ...spaceFilterQuery
-        }
+          ...spaceFilterQuery,
+        },
       },
       {
         $lookup: {
           from: 'spaces',
           localField: 'spaceId',
           foreignField: '_id',
-          as: 'space'
-        }
+          as: 'space',
+        },
       },
       {
-        $unwind: '$space'
+        $unwind: '$space',
       },
       {
         $addFields: {
@@ -98,32 +110,42 @@ export async function GET(request: NextRequest) {
                     $dateFromString: {
                       dateString: {
                         $concat: [
-                          { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                          {
+                            $dateToString: {
+                              format: '%Y-%m-%d',
+                              date: '$date',
+                            },
+                          },
                           'T',
                           '$endTime',
-                          ':00'
-                        ]
-                      }
-                    }
+                          ':00',
+                        ],
+                      },
+                    },
                   },
                   {
                     $dateFromString: {
                       dateString: {
                         $concat: [
-                          { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                          {
+                            $dateToString: {
+                              format: '%Y-%m-%d',
+                              date: '$date',
+                            },
+                          },
                           'T',
                           '$startTime',
-                          ':00'
-                        ]
-                      }
-                    }
-                  }
-                ]
+                          ':00',
+                        ],
+                      },
+                    },
+                  },
+                ],
               },
-              3600000 // millisecondes vers heures
-            ]
-          }
-        }
+              3600000, // millisecondes vers heures
+            ],
+          },
+        },
       },
       {
         $group: {
@@ -143,14 +165,14 @@ export async function GET(request: NextRequest) {
                       { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
                       'T',
                       '$startTime',
-                      ':00'
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
+                      ':00',
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       {
         $addFields: {
@@ -166,23 +188,36 @@ export async function GET(request: NextRequest) {
                       // Heures d'ouverture par jour (supposons 12h: 8h-20h)
                       12,
                       // Nombre de jours dans la période
-                      { $divide: [{ $subtract: [endDate, startDate] }, 86400000] }
-                    ]
-                  }
-                ]
+                      {
+                        $divide: [
+                          { $subtract: [endDate, startDate] },
+                          86400000,
+                        ],
+                      },
+                    ],
+                  },
+                ],
               },
-              100
-            ]
-          }
-        }
+              100,
+            ],
+          },
+        },
       },
       {
-        $sort: { occupancyRate: -1 }
-      }
+        $sort: { occupancyRate: -1 },
+      },
     ])
 
     // Ajouter couleurs et traiter les heures de pointe
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
+    const colors = [
+      '#3b82f6',
+      '#10b981',
+      '#f59e0b',
+      '#ef4444',
+      '#8b5cf6',
+      '#06b6d4',
+      '#84cc16',
+    ]
     const processedSpaces = spaceAnalytics.map((space, index) => {
       // Analyser les heures de pointe
       const hourCounts = space.bookingHours.reduce((acc: any, hour: number) => {
@@ -191,7 +226,7 @@ export async function GET(request: NextRequest) {
       }, {})
 
       const sortedHours = Object.entries(hourCounts)
-        .sort(([,a]: any, [,b]: any) => b - a)
+        .sort(([, a]: any, [, b]: any) => b - a)
         .slice(0, 3)
         .map(([hour]: any) => `${hour}h`)
 
@@ -205,7 +240,7 @@ export async function GET(request: NextRequest) {
         avgDuration: space.avgDuration || 0,
         peakHours: sortedHours,
         weeklyTrend: [], // À implémenter si nécessaire
-        color: colors[index] || '#6b7280'
+        color: colors[index] || '#6b7280',
       }
     })
 
@@ -215,8 +250,8 @@ export async function GET(request: NextRequest) {
         $match: {
           date: { $gte: startDate, $lte: endDate },
           status: { $in: ['confirmed', 'completed'] },
-          ...spaceFilterQuery
-        }
+          ...spaceFilterQuery,
+        },
       },
       {
         $addFields: {
@@ -228,34 +263,34 @@ export async function GET(request: NextRequest) {
                     { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
                     'T',
                     '$startTime',
-                    ':00'
-                  ]
-                }
-              }
-            }
-          }
-        }
+                    ':00',
+                  ],
+                },
+              },
+            },
+          },
+        },
       },
       {
         $group: {
           _id: '$startHour',
-          totalBookings: { $sum: 1 }
-        }
+          totalBookings: { $sum: 1 },
+        },
       },
       {
-        $sort: { _id: 1 }
-      }
+        $sort: { _id: 1 },
+      },
     ])
 
     // Compléter toutes les heures (8h à 20h)
     const completeHourlyUsage = []
     for (let hour = 8; hour <= 20; hour++) {
-      const existing = hourlyUsage.find(h => h._id === hour)
+      const existing = hourlyUsage.find((h) => h._id === hour)
       completeHourlyUsage.push({
         hour: `${hour}h`,
         totalBookings: existing?.totalBookings || 0,
         occupancyRate: 0, // Peut être calculé si nécessaire
-        spaces: [] // Détail par espace si nécessaire
+        spaces: [], // Détail par espace si nécessaire
       })
     }
 
@@ -268,14 +303,14 @@ export async function GET(request: NextRequest) {
     const weeklyComparison = await Promise.all(
       weeks.map(async (weekStart) => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 })
-        
+
         const weekStats = await Booking.aggregate([
           {
             $match: {
               date: { $gte: weekStart, $lte: weekEnd },
               status: { $in: ['confirmed', 'completed'] },
-              ...spaceFilterQuery
-            }
+              ...spaceFilterQuery,
+            },
           },
           {
             $group: {
@@ -290,42 +325,55 @@ export async function GET(request: NextRequest) {
                           $dateFromString: {
                             dateString: {
                               $concat: [
-                                { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                                {
+                                  $dateToString: {
+                                    format: '%Y-%m-%d',
+                                    date: '$date',
+                                  },
+                                },
                                 'T',
                                 '$endTime',
-                                ':00'
-                              ]
-                            }
-                          }
+                                ':00',
+                              ],
+                            },
+                          },
                         },
                         {
                           $dateFromString: {
                             dateString: {
                               $concat: [
-                                { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+                                {
+                                  $dateToString: {
+                                    format: '%Y-%m-%d',
+                                    date: '$date',
+                                  },
+                                },
                                 'T',
                                 '$startTime',
-                                ':00'
-                              ]
-                            }
-                          }
-                        }
-                      ]
+                                ':00',
+                              ],
+                            },
+                          },
+                        },
+                      ],
                     },
-                    3600000
-                  ]
-                }
-              }
-            }
-          }
+                    3600000,
+                  ],
+                },
+              },
+            },
+          },
         ])
 
         const stats = weekStats[0] || { totalBookings: 0, totalHours: 0 }
-        
+
         return {
           week: format(weekStart, 'dd/MM'),
           bookings: stats.totalBookings,
-          occupancyRate: Math.min((stats.totalHours / (7 * 12 * allSpaces.length)) * 100 || 0, 100)
+          occupancyRate: Math.min(
+            (stats.totalHours / (7 * 12 * allSpaces.length)) * 100 || 0,
+            100
+          ),
         }
       })
     )
@@ -335,25 +383,40 @@ export async function GET(request: NextRequest) {
       spaceName: space.spaceName,
       capacity: space.capacity,
       avgGuests: spaceAnalytics[index]?.avgGuests || 0,
-      utilizationRate: spaceAnalytics[index]?.avgGuests 
-        ? Math.min((spaceAnalytics[index].avgGuests / space.capacity) * 100, 100)
+      utilizationRate: spaceAnalytics[index]?.avgGuests
+        ? Math.min(
+            (spaceAnalytics[index].avgGuests / space.capacity) * 100,
+            100
+          )
         : 0,
-      color: space.color
+      color: space.color,
     }))
 
     // Calculs des KPIs généraux
-    const averageOccupancyRate = processedSpaces.length > 0
-      ? processedSpaces.reduce((acc, space) => acc + space.occupancyRate, 0) / processedSpaces.length
-      : 0
+    const averageOccupancyRate =
+      processedSpaces.length > 0
+        ? processedSpaces.reduce((acc, space) => acc + space.occupancyRate, 0) /
+          processedSpaces.length
+        : 0
 
-    const totalCapacityHours = allSpaces.length * 12 * Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-    const totalBookedHours = processedSpaces.reduce((acc, space) => acc + space.totalHours, 0)
-    
-    const mostPopularSpace = processedSpaces.length > 0 ? processedSpaces[0].spaceName : null
-    
+    const totalCapacityHours =
+      allSpaces.length *
+      12 *
+      Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+    const totalBookedHours = processedSpaces.reduce(
+      (acc, space) => acc + space.totalHours,
+      0
+    )
+
+    const mostPopularSpace =
+      processedSpaces.length > 0 ? processedSpaces[0].spaceName : null
+
     // Trouver l'heure de pointe
-    const peakHourData = completeHourlyUsage.reduce((max, current) => 
-      current.totalBookings > max.totalBookings ? current : max,
+    const peakHourData = completeHourlyUsage.reduce(
+      (max, current) =>
+        current.totalBookings > max.totalBookings ? current : max,
       { hour: 'N/A', totalBookings: 0 }
     )
 
@@ -366,20 +429,20 @@ export async function GET(request: NextRequest) {
       spaces: processedSpaces,
       hourlyUsage: completeHourlyUsage,
       weeklyComparison,
-      capacityUtilization
+      capacityUtilization,
     }
 
     return NextResponse.json({
       success: true,
-      data: analytics
+      data: analytics,
     })
-
   } catch (error) {
     console.error('Erreur API analytics occupation:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )

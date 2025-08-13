@@ -3,7 +3,13 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { LucideIcon } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
@@ -18,31 +24,30 @@ interface ClientCardProps {
   onClick?: () => void
 }
 
-export function ClientCard({ 
-  title, 
-  description, 
-  children, 
-  className, 
+export function ClientCard({
+  title,
+  description,
+  children,
+  className,
   gradient,
   icon: Icon,
   badge,
-  onClick 
+  onClick,
 }: ClientCardProps) {
   return (
     <motion.div
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={cn(
-        "transition-all duration-200",
-        onClick && "cursor-pointer"
-      )}
+      className={cn('transition-all duration-200', onClick && 'cursor-pointer')}
       onClick={onClick}
     >
-      <Card className={cn(
-        "relative overflow-hidden border-orange-200/50 bg-white/70 shadow-lg backdrop-blur-sm hover:shadow-xl",
-        gradient && `bg-gradient-to-br ${gradient}`,
-        className
-      )}>
+      <Card
+        className={cn(
+          'relative overflow-hidden border-orange-200/50 bg-white/70 shadow-lg backdrop-blur-sm hover:shadow-xl',
+          gradient && `bg-gradient-to-br ${gradient}`,
+          className
+        )}
+      >
         {badge && (
           <div className="absolute top-3 right-3">
             <Badge variant="secondary" className="bg-white/80 text-xs">
@@ -50,7 +55,7 @@ export function ClientCard({
             </Badge>
           </div>
         )}
-        
+
         <CardHeader className="pb-4">
           <div className="flex items-center space-x-3">
             {Icon && (
@@ -70,11 +75,9 @@ export function ClientCard({
             </div>
           </div>
         </CardHeader>
-        
-        <CardContent>
-          {children}
-        </CardContent>
-        
+
+        <CardContent>{children}</CardContent>
+
         {/* Floating decoration */}
         <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-white/10 blur-xl" />
         <div className="absolute -bottom-4 -left-4 h-16 w-16 rounded-full bg-white/20 blur-lg" />
@@ -93,19 +96,19 @@ interface StatsCardProps {
   className?: string
 }
 
-export function StatsCard({ 
-  title, 
-  value, 
-  change, 
+export function StatsCard({
+  title,
+  value,
+  change,
   changeType = 'neutral',
   icon: Icon,
   gradient = 'from-blue-50 to-cyan-50',
-  className 
+  className,
 }: StatsCardProps) {
   const changeColors = {
     positive: 'text-green-600 bg-green-100',
     negative: 'text-red-600 bg-red-100',
-    neutral: 'text-gray-600 bg-gray-100'
+    neutral: 'text-gray-600 bg-gray-100',
   }
 
   return (
@@ -119,14 +122,10 @@ export function StatsCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="mb-1 text-sm font-medium text-gray-600">
-            {title}
-          </p>
-          <div className="mb-2 text-3xl font-bold text-gray-900">
-            {value}
-          </div>
+          <p className="mb-1 text-sm font-medium text-gray-600">{title}</p>
+          <div className="mb-2 text-3xl font-bold text-gray-900">{value}</div>
           {change && (
-            <Badge className={cn("text-xs", changeColors[changeType])}>
+            <Badge className={cn('text-xs', changeColors[changeType])}>
               {change}
             </Badge>
           )}
@@ -137,7 +136,7 @@ export function StatsCard({
           </div>
         )}
       </div>
-      
+
       {/* Floating Elements */}
       <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-white/10 blur-xl" />
       <div className="absolute -bottom-4 -left-4 h-16 w-16 rounded-full bg-white/20 blur-lg" />
@@ -155,14 +154,14 @@ interface QuickActionCardProps {
   className?: string
 }
 
-export function QuickActionCard({ 
-  title, 
-  description, 
-  icon: Icon, 
+export function QuickActionCard({
+  title,
+  description,
+  icon: Icon,
   gradient,
   href,
   onClick,
-  className 
+  className,
 }: QuickActionCardProps) {
   const CardComponent = motion.div
 
@@ -171,7 +170,7 @@ export function QuickActionCard({
       whileHover={{ y: -8, scale: 1.02 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        `relative bg-gradient-to-br ${gradient} group cursor-pointer overflow-hidden rounded-2xl text-white shadow-lg p-6`,
+        `relative bg-gradient-to-br ${gradient} group cursor-pointer overflow-hidden rounded-2xl p-6 text-white shadow-lg`,
         className
       )}
       onClick={onClick}
@@ -181,10 +180,10 @@ export function QuickActionCard({
         <h3 className="mb-1 font-semibold">{title}</h3>
         <p className="text-sm opacity-90">{description}</p>
       </div>
-      
+
       {/* Hover Effect */}
       <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-500 group-hover:translate-y-0" />
-      
+
       {/* Floating Elements */}
       <div className="absolute -top-4 -right-4 h-20 w-20 rounded-full bg-white/20 blur-xl" />
     </CardComponent>

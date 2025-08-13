@@ -153,7 +153,7 @@ export function MobileCalendar({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-coffee-primary"></div>
+        <div className="border-coffee-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
       </div>
     )
   }
@@ -186,12 +186,12 @@ export function MobileCalendar({
       </Card>
 
       {/* Sélecteur de vue */}
-      <div className="flex space-x-1 p-1 bg-muted rounded-lg">
+      <div className="bg-muted flex space-x-1 rounded-lg p-1">
         <Button
           variant={viewMode === 'month' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setViewMode('month')}
-          className="flex-1 h-8"
+          className="h-8 flex-1"
         >
           Calendrier
         </Button>
@@ -199,7 +199,7 @@ export function MobileCalendar({
           variant={viewMode === 'list' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setViewMode('list')}
-          className="flex-1 h-8"
+          className="h-8 flex-1"
         >
           Liste
         </Button>
@@ -239,7 +239,7 @@ export function MobileCalendar({
               {weekDays.map((day) => (
                 <div
                   key={day}
-                  className="p-2 text-center text-xs font-medium text-muted-foreground"
+                  className="text-muted-foreground p-2 text-center text-xs font-medium"
                 >
                   {day}
                 </div>
@@ -251,18 +251,18 @@ export function MobileCalendar({
               {generateCalendarDays.map((day, index) => (
                 <div
                   key={index}
-                  className={`min-h-12 p-1 border-r border-b text-xs ${
+                  className={`min-h-12 border-r border-b p-1 text-xs ${
                     day.isCurrentMonth ? 'bg-background' : 'bg-muted/30'
                   } ${index % 7 === 6 ? 'border-r-0' : ''}`}
                 >
                   <div
-                    className={`text-center mb-1 ${
+                    className={`mb-1 text-center ${
                       day.isCurrentMonth
                         ? 'text-foreground'
                         : 'text-muted-foreground'
                     } ${
                       isSameDay(day.date, new Date())
-                        ? 'font-bold text-coffee-primary'
+                        ? 'text-coffee-primary font-bold'
                         : ''
                     }`}
                   >
@@ -275,21 +275,21 @@ export function MobileCalendar({
                         <button className="w-full">
                           <div className="flex justify-center">
                             <div
-                              className={`w-1.5 h-1.5 rounded-full ${
+                              className={`h-1.5 w-1.5 rounded-full ${
                                 day.bookings.some(
                                   (b) => b.status === 'confirmed'
                                 )
                                   ? 'bg-green-500'
                                   : day.bookings.some(
-                                      (b) => b.status === 'pending'
-                                    )
-                                  ? 'bg-yellow-500'
-                                  : 'bg-gray-400'
+                                        (b) => b.status === 'pending'
+                                      )
+                                    ? 'bg-yellow-500'
+                                    : 'bg-gray-400'
                               }`}
                             />
                           </div>
                           {day.bookings.length > 1 && (
-                            <div className="text-xs text-coffee-primary font-medium mt-0.5">
+                            <div className="text-coffee-primary mt-0.5 text-xs font-medium">
                               +{day.bookings.length - 1}
                             </div>
                           )}
@@ -301,7 +301,7 @@ export function MobileCalendar({
                             {format(day.date, 'dd MMMM yyyy', { locale: fr })}
                           </DrawerTitle>
                         </DrawerHeader>
-                        <div className="px-4 pb-4 space-y-2">
+                        <div className="space-y-2 px-4 pb-4">
                           {day.bookings.map((booking) => (
                             <BookingCard
                               key={booking._id}
@@ -330,7 +330,7 @@ export function MobileCalendar({
             ))
           ) : (
             <Card>
-              <CardContent className="p-4 text-center text-muted-foreground">
+              <CardContent className="text-muted-foreground p-4 text-center">
                 Aucune réservation à venir
               </CardContent>
             </Card>
@@ -340,7 +340,10 @@ export function MobileCalendar({
 
       {/* Détails réservation */}
       {selectedBooking && (
-        <Sheet open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
+        <Sheet
+          open={!!selectedBooking}
+          onOpenChange={() => setSelectedBooking(null)}
+        >
           <SheetContent side="bottom" className="h-auto max-h-[80vh]">
             <SheetHeader>
               <SheetTitle>Détails de la réservation</SheetTitle>
@@ -362,27 +365,27 @@ function BookingCard({
   onClick: () => void
 }) {
   return (
-    <Card className="p-3 cursor-pointer hover:bg-muted/50" onClick={onClick}>
+    <Card className="hover:bg-muted/50 cursor-pointer p-3" onClick={onClick}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
+          <div className="mb-1 flex items-center space-x-2">
             <Badge
-              className={`text-xs px-2 py-0.5 ${statusColors[booking.status]}`}
+              className={`px-2 py-0.5 text-xs ${statusColors[booking.status]}`}
             >
               {statusLabels[booking.status]}
             </Badge>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {booking.startTime}
             </span>
           </div>
-          <div className="font-medium text-sm">{booking.spaceId.name}</div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-sm font-medium">{booking.spaceId.name}</div>
+          <div className="text-muted-foreground text-xs">
             {booking.userId.firstName} {booking.userId.lastName}
           </div>
         </div>
         <div className="text-right">
-          <div className="font-medium text-sm">{booking.totalPrice}€</div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-sm font-medium">{booking.totalPrice}€</div>
+          <div className="text-muted-foreground text-xs">
             {booking.guests} pers.
           </div>
         </div>
@@ -397,25 +400,25 @@ function BookingDetails({ booking }: { booking: Booking }) {
     <div className="space-y-4 pt-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
             Client
           </h4>
           <div>
             <div className="font-medium">
               {booking.userId.firstName} {booking.userId.lastName}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-muted-foreground text-sm">
               {booking.userId.email}
             </div>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
             Espace
           </h4>
           <div className="flex items-center space-x-1">
-            <MapPin className="h-3 w-3 text-muted-foreground" />
+            <MapPin className="text-muted-foreground h-3 w-3" />
             <span className="text-sm">{booking.spaceId.name}</span>
           </div>
         </div>
@@ -423,18 +426,18 @@ function BookingDetails({ booking }: { booking: Booking }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
             Date & Horaires
           </h4>
           <div className="space-y-1">
             <div className="flex items-center space-x-1">
-              <CalendarIcon className="h-3 w-3 text-muted-foreground" />
+              <CalendarIcon className="text-muted-foreground h-3 w-3" />
               <span className="text-sm">
                 {format(parseISO(booking.date), 'dd MMM yyyy', { locale: fr })}
               </span>
             </div>
             <div className="flex items-center space-x-1">
-              <Clock className="h-3 w-3 text-muted-foreground" />
+              <Clock className="text-muted-foreground h-3 w-3" />
               <span className="text-sm">
                 {booking.startTime} - {booking.endTime}
               </span>
@@ -443,18 +446,18 @@ function BookingDetails({ booking }: { booking: Booking }) {
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
             Détails
           </h4>
           <div className="space-y-1">
             <div className="flex items-center space-x-1">
-              <Users className="h-3 w-3 text-muted-foreground" />
+              <Users className="text-muted-foreground h-3 w-3" />
               <span className="text-sm">
                 {booking.guests} personne{booking.guests > 1 ? 's' : ''}
               </span>
             </div>
             <div className="flex items-center space-x-1">
-              <Euro className="h-3 w-3 text-muted-foreground" />
+              <Euro className="text-muted-foreground h-3 w-3" />
               <span className="text-sm">{booking.totalPrice.toFixed(2)}€</span>
             </div>
           </div>
@@ -462,7 +465,7 @@ function BookingDetails({ booking }: { booking: Booking }) {
       </div>
 
       <div>
-        <h4 className="text-sm font-medium text-muted-foreground mb-1">
+        <h4 className="text-muted-foreground mb-1 text-sm font-medium">
           Statut
         </h4>
         <Badge className={statusColors[booking.status]}>

@@ -20,7 +20,9 @@ export interface ToastContextType {
   dismiss: (id: string) => void
 }
 
-const ToastContext = React.createContext<ToastContextType | undefined>(undefined)
+const ToastContext = React.createContext<ToastContextType | undefined>(
+  undefined
+)
 
 export function useToast() {
   const context = React.useContext(ToastContext)
@@ -32,10 +34,11 @@ export function useToast() {
 
 const toastVariants = {
   default: 'border bg-background text-foreground',
-  destructive: 'destructive border-destructive bg-destructive text-destructive-foreground',
+  destructive:
+    'destructive border-destructive bg-destructive text-destructive-foreground',
   success: 'border-green-200 bg-green-50 text-green-800',
   warning: 'border-yellow-200 bg-yellow-50 text-yellow-800',
-  info: 'border-blue-200 bg-blue-50 text-blue-800'
+  info: 'border-blue-200 bg-blue-50 text-blue-800',
 }
 
 const toastIcons = {
@@ -43,10 +46,16 @@ const toastIcons = {
   destructive: AlertCircle,
   success: CheckCircle,
   warning: AlertTriangle,
-  info: Info
+  info: Info,
 }
 
-function Toast({ id, title, description, variant = 'default', onClose }: ToastProps) {
+function Toast({
+  id,
+  title,
+  description,
+  variant = 'default',
+  onClose,
+}: ToastProps) {
   const Icon = toastIcons[variant]
 
   return (
@@ -60,11 +69,9 @@ function Toast({ id, title, description, variant = 'default', onClose }: ToastPr
       )}
     >
       <div className="flex items-start space-x-2">
-        <Icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+        <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
         <div className="grid gap-1">
-          {title && (
-            <div className="text-sm font-semibold">{title}</div>
-          )}
+          {title && <div className="text-sm font-semibold">{title}</div>}
           {description && (
             <div className="text-sm opacity-90">{description}</div>
           )}
@@ -73,7 +80,7 @@ function Toast({ id, title, description, variant = 'default', onClose }: ToastPr
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute right-1 top-1 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100"
+          className="text-foreground/50 hover:text-foreground absolute top-1 right-1 rounded-md p-1 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus:ring-1 focus:outline-none"
         >
           <X className="h-3 w-3" />
         </button>
@@ -85,23 +92,20 @@ function Toast({ id, title, description, variant = 'default', onClose }: ToastPr
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastProps[]>([])
 
-  const toast = React.useCallback(
-    (newToast: Omit<ToastProps, 'id'>) => {
-      const id = Math.random().toString(36).substring(7)
-      const toastWithId = { ...newToast, id }
-      
-      setToasts((prevToasts) => [...prevToasts, toastWithId])
+  const toast = React.useCallback((newToast: Omit<ToastProps, 'id'>) => {
+    const id = Math.random().toString(36).substring(7)
+    const toastWithId = { ...newToast, id }
 
-      // Auto dismiss after duration (default 5 seconds)
-      const duration = newToast.duration ?? 5000
-      if (duration > 0) {
-        setTimeout(() => {
-          dismiss(id)
-        }, duration)
-      }
-    },
-    []
-  )
+    setToasts((prevToasts) => [...prevToasts, toastWithId])
+
+    // Auto dismiss after duration (default 5 seconds)
+    const duration = newToast.duration ?? 5000
+    if (duration > 0) {
+      setTimeout(() => {
+        dismiss(id)
+      }, duration)
+    }
+  }, [])
 
   const dismiss = React.useCallback((id: string) => {
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id))
@@ -110,18 +114,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toasts, toast, dismiss }}>
       {children}
-      <div className="fixed bottom-0 right-0 z-50 flex max-w-[420px] flex-col-reverse p-4 sm:bottom-4 sm:right-4">
+      <div className="fixed right-0 bottom-0 z-50 flex max-w-[420px] flex-col-reverse p-4 sm:right-4 sm:bottom-4">
         <AnimatePresence mode="popLayout">
           {toasts.map((toast) => (
-            <motion.div
-              key={toast.id}
-              layout
-              className="mb-2"
-            >
-              <Toast
-                {...toast}
-                onClose={() => dismiss(toast.id)}
-              />
+            <motion.div key={toast.id} layout className="mb-2">
+              <Toast {...toast} onClose={() => dismiss(toast.id)} />
             </motion.div>
           ))}
         </AnimatePresence>

@@ -1,25 +1,19 @@
 {
   "allowedTools": [
     "Bash(*)",
-    "Read(*)", 
+    "Read(*)",
     "Write(*)",
     "Edit(*)",
     "MultiEdit(*)",
     "Grep(*)",
-    "Glob(*)", 
+    "Glob(*)",
     "LS(*)",
     "Task(*)",
     "WebSearch(*)",
     "WebFetch(*)",
     "TodoWrite(*)"
   ],
-  "autoAcceptTools": [
-    "Read",
-    "Grep", 
-    "Glob",
-    "LS",
-    "TodoWrite"
-  ],
+  "autoAcceptTools": ["Read", "Grep", "Glob", "LS", "TodoWrite"],
   "projectSettings": {
     "workingDirectory": "/Users/twe/Developer/coworking-platform",
     "testCommand": "npm test",

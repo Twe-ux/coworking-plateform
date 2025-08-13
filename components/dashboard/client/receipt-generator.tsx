@@ -29,84 +29,109 @@ interface UserData {
 
 export const generateReceiptPDF = (booking: BookingData, user: UserData) => {
   const doc = new jsPDF()
-  
+
   // Company header
   doc.setFontSize(20)
   doc.setTextColor(200, 100, 0) // Orange color
   doc.text('Cow or King Café', 20, 30)
-  
+
   doc.setFontSize(10)
   doc.setTextColor(100, 100, 100)
   doc.text('Coworking & Coffee Space', 20, 40)
   doc.text('123 Rue de la République, 75001 Paris', 20, 45)
   doc.text('contact@coworking-cafe.fr | 01 23 45 67 89', 20, 50)
-  
+
   // Title
   doc.setFontSize(16)
   doc.setTextColor(0, 0, 0)
   doc.text('REÇU DE RÉSERVATION', 20, 70)
-  
+
   // Booking ID and date
   doc.setFontSize(10)
   doc.setTextColor(100, 100, 100)
   doc.text(`Réservation #${booking.id.slice(-8).toUpperCase()}`, 20, 80)
-  doc.text(`Émis le ${format(parseISO(booking.createdAt), 'd MMMM yyyy à HH:mm', { locale: fr })}`, 20, 85)
-  
+  doc.text(
+    `Émis le ${format(parseISO(booking.createdAt), 'd MMMM yyyy à HH:mm', { locale: fr })}`,
+    20,
+    85
+  )
+
   // Customer info
   doc.setFontSize(12)
   doc.setTextColor(0, 0, 0)
   doc.text('INFORMATIONS CLIENT', 20, 100)
-  
+
   doc.setFontSize(10)
   doc.text(`Nom: ${user.name}`, 20, 110)
   doc.text(`Email: ${user.email}`, 20, 115)
-  
+
   // Booking details
   doc.setFontSize(12)
   doc.text('DÉTAILS DE LA RÉSERVATION', 20, 135)
-  
+
   doc.setFontSize(10)
   doc.text(`Espace: ${booking.space.name}`, 20, 145)
   doc.text(`Lieu: ${booking.space.location}`, 20, 150)
-  doc.text(`Date: ${format(parseISO(booking.date), 'EEEE d MMMM yyyy', { locale: fr })}`, 20, 155)
+  doc.text(
+    `Date: ${format(parseISO(booking.date), 'EEEE d MMMM yyyy', { locale: fr })}`,
+    20,
+    155
+  )
   doc.text(`Horaires: ${booking.startTime} - ${booking.endTime}`, 20, 160)
-  doc.text(`Durée: ${booking.duration} ${booking.durationType === 'hour' ? 'heure(s)' : 'jour(s)'}`, 20, 165)
+  doc.text(
+    `Durée: ${booking.duration} ${booking.durationType === 'hour' ? 'heure(s)' : 'jour(s)'}`,
+    20,
+    165
+  )
   doc.text(`Nombre de personnes: ${booking.guests}`, 20, 170)
-  
+
   // Payment info
   doc.setFontSize(12)
   doc.text('INFORMATIONS DE PAIEMENT', 20, 190)
-  
+
   doc.setFontSize(10)
-  const paymentMethodText = booking.paymentMethod === 'onsite' ? 'Paiement sur place' :
-                           booking.paymentMethod === 'stripe_card' ? 'Carte bancaire (Stripe)' : 'PayPal (Stripe)'
+  const paymentMethodText =
+    booking.paymentMethod === 'onsite'
+      ? 'Paiement sur place'
+      : booking.paymentMethod === 'stripe_card'
+        ? 'Carte bancaire (Stripe)'
+        : 'PayPal (Stripe)'
   doc.text(`Méthode de paiement: ${paymentMethodText}`, 20, 200)
-  
-  const statusText = booking.status === 'confirmed' ? 'Confirmée' :
-                     booking.status === 'pending' ? 'En attente' :
-                     booking.status === 'cancelled' ? 'Annulée' : 'Terminée'
+
+  const statusText =
+    booking.status === 'confirmed'
+      ? 'Confirmée'
+      : booking.status === 'pending'
+        ? 'En attente'
+        : booking.status === 'cancelled'
+          ? 'Annulée'
+          : 'Terminée'
   doc.text(`Statut: ${statusText}`, 20, 205)
-  
+
   // Price breakdown
   doc.setFontSize(12)
   doc.text('TARIFICATION', 20, 225)
-  
+
   // Table-like structure for pricing
   doc.setFontSize(10)
   doc.text('Description', 20, 235)
   doc.text('Quantité', 100, 235)
   doc.text('Prix unitaire', 130, 235)
   doc.text('Total', 170, 235)
-  
+
   // Line
   doc.line(20, 238, 190, 238)
-  
+
   const unitPrice = booking.totalPrice / booking.duration
-  doc.text(`${booking.space.name} (${booking.durationType === 'hour' ? 'heure' : 'jour'})`, 20, 248)
+  doc.text(
+    `${booking.space.name} (${booking.durationType === 'hour' ? 'heure' : 'jour'})`,
+    20,
+    248
+  )
   doc.text(`${booking.duration}`, 100, 248)
   doc.text(`${unitPrice.toFixed(2)} €`, 130, 248)
   doc.text(`${booking.totalPrice.toFixed(2)} €`, 170, 248)
-  
+
   // Total
   doc.line(20, 252, 190, 252)
   doc.setFontSize(12)
@@ -114,19 +139,26 @@ export const generateReceiptPDF = (booking: BookingData, user: UserData) => {
   doc.setFontSize(14)
   doc.setTextColor(200, 100, 0)
   doc.text(`${booking.totalPrice.toFixed(2)} €`, 170, 262)
-  
+
   // Footer
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
   doc.text('Merci de votre confiance !', 20, 280)
-  doc.text('Pour toute question, contactez-nous à contact@coworking-cafe.fr', 20, 285)
-  
+  doc.text(
+    'Pour toute question, contactez-nous à contact@coworking-cafe.fr',
+    20,
+    285
+  )
+
   // Save the PDF
   const filename = `recuCowOrKing-${booking.id.slice(-8).toUpperCase()}-${format(parseISO(booking.date), 'yyyy-MM-dd')}.pdf`
   doc.save(filename)
 }
 
-export const generateReceiptHTML = (booking: BookingData, user: UserData): string => {
+export const generateReceiptHTML = (
+  booking: BookingData,
+  user: UserData
+): string => {
   return `
     <!DOCTYPE html>
     <html>
@@ -180,11 +212,22 @@ export const generateReceiptHTML = (booking: BookingData, user: UserData): strin
       <div class="section">
         <div class="section-title">Paiement</div>
         <div class="info-grid">
-          <div>Méthode:</div><div>${booking.paymentMethod === 'onsite' ? 'Paiement sur place' :
-                                     booking.paymentMethod === 'stripe_card' ? 'Carte bancaire' : 'PayPal'}</div>
-          <div>Statut:</div><div>${booking.status === 'confirmed' ? 'Confirmée' :
-                                    booking.status === 'pending' ? 'En attente' :
-                                    booking.status === 'cancelled' ? 'Annulée' : 'Terminée'}</div>
+          <div>Méthode:</div><div>${
+            booking.paymentMethod === 'onsite'
+              ? 'Paiement sur place'
+              : booking.paymentMethod === 'stripe_card'
+                ? 'Carte bancaire'
+                : 'PayPal'
+          }</div>
+          <div>Statut:</div><div>${
+            booking.status === 'confirmed'
+              ? 'Confirmée'
+              : booking.status === 'pending'
+                ? 'En attente'
+                : booking.status === 'cancelled'
+                  ? 'Annulée'
+                  : 'Terminée'
+          }</div>
         </div>
       </div>
       

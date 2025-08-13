@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { Space, Booking } from '@/lib/models'
-import { checkBookingConflicts, getAvailableTimeSlots } from '@/lib/mongodb-utils'
+import {
+  checkBookingConflicts,
+  getAvailableTimeSlots,
+} from '@/lib/mongodb-utils'
 
 /**
  * API de test pour vérifier les modèles MongoDB
@@ -39,11 +42,11 @@ export async function GET(request: NextRequest) {
       try {
         const timeSlots = await getAvailableTimeSlots(testSpace._id, testDate)
         console.log(`⏰ Créneaux trouvés: ${timeSlots.length}`)
-        
+
         testResults = {
           ...testResults,
           timeSlotsCount: timeSlots.length,
-          sampleTimeSlots: timeSlots.slice(0, 3)
+          sampleTimeSlots: timeSlots.slice(0, 3),
         }
       } catch (error) {
         console.error('❌ Erreur test créneaux:', error)
@@ -58,10 +61,10 @@ export async function GET(request: NextRequest) {
           '10:00'
         )
         console.log(`⚡ Conflits détectés: ${conflicts.length}`)
-        
+
         testResults = {
           ...testResults,
-          conflictsCount: conflicts.length
+          conflictsCount: conflicts.length,
         }
       } catch (error) {
         console.error('❌ Erreur test conflits:', error)
@@ -75,25 +78,24 @@ export async function GET(request: NextRequest) {
         connection: 'OK',
         spacesCount,
         bookingsCount,
-        sampleSpaces: spaces.map(s => ({
+        sampleSpaces: spaces.map((s) => ({
           id: s.id,
           name: s.name,
           specialty: s.specialty,
           capacity: s.capacity,
-          available: s.available
+          available: s.available,
         })),
-        testResults
-      }
+        testResults,
+      },
     })
-
   } catch (error) {
     console.error('❌ Erreur lors des tests:', error)
-    
+
     return NextResponse.json(
       {
         success: false,
         message: 'Erreur lors des tests des modèles',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
       },
       { status: 500 }
     )

@@ -31,6 +31,7 @@ The Coworking Platform supports multiple deployment strategies:
 Each environment requires specific configuration:
 
 #### Development
+
 ```bash
 NODE_ENV=development
 DATABASE_URL=mongodb://localhost:27017/coworking-platform
@@ -41,6 +42,7 @@ LOG_LEVEL=debug
 ```
 
 #### Staging
+
 ```bash
 NODE_ENV=staging
 DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/coworking-staging
@@ -52,6 +54,7 @@ SENTRY_DSN=https://...@sentry.io/...
 ```
 
 #### Production
+
 ```bash
 NODE_ENV=production
 DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/coworking-production
@@ -65,6 +68,7 @@ SENTRY_DSN=https://...@sentry.io/...
 ### Security Configuration
 
 #### Required Secrets
+
 - `NEXTAUTH_SECRET`: Random 32+ character string
 - `API_SECRET_KEY`: Strong API authentication key
 - `DATABASE_URL`: MongoDB connection string with authentication
@@ -72,6 +76,7 @@ SENTRY_DSN=https://...@sentry.io/...
 - `CLOUDINARY_API_SECRET`: Media storage authentication
 
 #### Optional Secrets
+
 - `SENTRY_DSN`: Error tracking
 - `GOOGLE_CLIENT_SECRET`: OAuth authentication
 - `SMTP_PASSWORD`: Email service authentication
@@ -79,6 +84,7 @@ SENTRY_DSN=https://...@sentry.io/...
 ## Local Development
 
 ### Quick Start
+
 ```bash
 # Clone and setup
 git clone <repository-url>
@@ -98,6 +104,7 @@ pnpm dev       # Start all apps
 ```
 
 ### Docker Compose Development
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -117,13 +124,14 @@ docker system prune -af
 ```
 
 ### Manual Development Setup
+
 ```bash
 # Start databases
 docker-compose up -d mongodb redis
 
 # Start applications in separate terminals
 pnpm dev:web      # Terminal 1
-pnpm dev:dashboard # Terminal 2  
+pnpm dev:dashboard # Terminal 2
 pnpm dev:admin    # Terminal 3
 pnpm dev:api      # Terminal 4
 ```
@@ -133,11 +141,13 @@ pnpm dev:api      # Terminal 4
 ### Vercel Deployment (Frontend Apps)
 
 #### Setup
+
 1. Connect GitHub repository to Vercel
 2. Configure build settings for each app
 3. Set environment variables in Vercel dashboard
 
 #### Build Configuration
+
 ```json
 // vercel.json
 {
@@ -147,7 +157,7 @@ pnpm dev:api      # Terminal 4
       "use": "@vercel/next"
     },
     {
-      "src": "apps/dashboard/package.json", 
+      "src": "apps/dashboard/package.json",
       "use": "@vercel/next"
     },
     {
@@ -173,6 +183,7 @@ pnpm dev:api      # Terminal 4
 ```
 
 #### Environment Variables (Vercel)
+
 ```bash
 # Set in Vercel dashboard
 NEXTAUTH_URL=https://staging.coworking-platform.vercel.app
@@ -184,11 +195,13 @@ NEXTAUTH_SECRET=...
 ### Railway Deployment (API)
 
 #### Setup
+
 1. Connect GitHub repository to Railway
 2. Select `apps/api` as root directory
 3. Configure environment variables
 
 #### Railway Configuration
+
 ```json
 // railway.toml
 [build]
@@ -211,6 +224,7 @@ PORT = "3003"
 ### AWS Deployment
 
 #### Architecture
+
 - **Frontend**: Vercel or AWS CloudFront + S3
 - **API**: AWS ECS or Lambda
 - **Database**: MongoDB Atlas
@@ -219,53 +233,49 @@ PORT = "3003"
 - **Monitoring**: CloudWatch + Sentry
 
 #### ECS Deployment
+
 ```yaml
 # ecs-task-definition.json
 {
-  "family": "coworking-api",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "512",
-  "memory": "1024",
-  "executionRoleArn": "arn:aws:iam::account:role/ecsTaskExecutionRole",
-  "containerDefinitions": [
-    {
-      "name": "api",
-      "image": "your-account.dkr.ecr.region.amazonaws.com/coworking-api:latest",
-      "portMappings": [
-        {
-          "containerPort": 3003,
-          "protocol": "tcp"
-        }
-      ],
-      "environment": [
-        {
-          "name": "NODE_ENV",
-          "value": "production"
-        }
-      ],
-      "secrets": [
-        {
-          "name": "DATABASE_URL",
-          "valueFrom": "arn:aws:ssm:region:account:parameter/coworking/database-url"
-        }
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/coworking-api",
-          "awslogs-region": "us-east-1",
-          "awslogs-stream-prefix": "ecs"
-        }
-      }
-    }
-  ]
+  'family': 'coworking-api',
+  'networkMode': 'awsvpc',
+  'requiresCompatibilities': ['FARGATE'],
+  'cpu': '512',
+  'memory': '1024',
+  'executionRoleArn': 'arn:aws:iam::account:role/ecsTaskExecutionRole',
+  'containerDefinitions':
+    [
+      {
+        'name': 'api',
+        'image': 'your-account.dkr.ecr.region.amazonaws.com/coworking-api:latest',
+        'portMappings': [{ 'containerPort': 3003, 'protocol': 'tcp' }],
+        'environment': [{ 'name': 'NODE_ENV', 'value': 'production' }],
+        'secrets':
+          [
+            {
+              'name': 'DATABASE_URL',
+              'valueFrom': 'arn:aws:ssm:region:account:parameter/coworking/database-url',
+            },
+          ],
+        'logConfiguration':
+          {
+            'logDriver': 'awslogs',
+            'options':
+              {
+                'awslogs-group': '/ecs/coworking-api',
+                'awslogs-region': 'us-east-1',
+                'awslogs-stream-prefix': 'ecs',
+              },
+          },
+      },
+    ],
 }
 ```
 
 ### GCP Deployment
 
 #### Cloud Run
+
 ```yaml
 # cloudrun.yaml
 apiVersion: serving.knative.dev/v1
@@ -278,28 +288,28 @@ spec:
   template:
     metadata:
       annotations:
-        autoscaling.knative.dev/maxScale: "10"
-        run.googleapis.com/cpu-throttling: "false"
-        run.googleapis.com/memory: "1Gi"
-        run.googleapis.com/cpu: "1000m"
+        autoscaling.knative.dev/maxScale: '10'
+        run.googleapis.com/cpu-throttling: 'false'
+        run.googleapis.com/memory: '1Gi'
+        run.googleapis.com/cpu: '1000m'
     spec:
       containerConcurrency: 100
       containers:
-      - image: gcr.io/project-id/coworking-api:latest
-        ports:
-        - containerPort: 3003
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: database-url
-              key: url
-        resources:
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
+        - image: gcr.io/project-id/coworking-api:latest
+          ports:
+            - containerPort: 3003
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-url
+                  key: url
+          resources:
+            limits:
+              memory: '1Gi'
+              cpu: '1000m'
 ```
 
 ## Docker Deployment
@@ -307,6 +317,7 @@ spec:
 ### Production Docker Setup
 
 #### Multi-stage Dockerfile
+
 ```dockerfile
 # Build stage
 FROM node:18-alpine AS builder
@@ -329,6 +340,7 @@ CMD ["pnpm", "start"]
 ```
 
 #### Docker Compose Production
+
 ```yaml
 # docker-compose.prod.yml
 version: '3.8'
@@ -337,8 +349,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
@@ -410,6 +422,7 @@ volumes:
 ```
 
 ### SSL Configuration
+
 ```nginx
 # nginx.conf
 events {
@@ -420,15 +433,15 @@ http {
     upstream web {
         server web:3000;
     }
-    
+
     upstream dashboard {
         server dashboard:3001;
     }
-    
+
     upstream admin {
         server admin:3002;
     }
-    
+
     upstream api {
         server api:3003;
     }
@@ -442,28 +455,28 @@ http {
     server {
         listen 443 ssl http2;
         server_name coworking-platform.com;
-        
+
         ssl_certificate /etc/nginx/ssl/cert.pem;
         ssl_certificate_key /etc/nginx/ssl/key.pem;
-        
+
         location /api/ {
             proxy_pass http://api/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
         }
-        
+
         location /dashboard {
             proxy_pass http://dashboard;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
         }
-        
+
         location /admin {
             proxy_pass http://admin;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
         }
-        
+
         location / {
             proxy_pass http://web;
             proxy_set_header Host $host;
@@ -498,6 +511,7 @@ The CI/CD pipeline automatically:
 ### Manual Deployment
 
 #### Staging Deployment
+
 ```bash
 # Deploy to staging
 git checkout develop
@@ -507,6 +521,7 @@ pnpm deploy:staging
 ```
 
 #### Production Deployment
+
 ```bash
 # Deploy to production
 git checkout main
@@ -520,9 +535,10 @@ pnpm deploy:production
 ### Application Monitoring
 
 #### Sentry Setup
+
 ```typescript
 // sentry.config.ts
-import * as Sentry from "@sentry/nextjs"
+import * as Sentry from '@sentry/nextjs'
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -532,6 +548,7 @@ Sentry.init({
 ```
 
 #### Health Checks
+
 ```typescript
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -540,7 +557,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version,
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
   })
 })
 ```
@@ -548,6 +565,7 @@ app.get('/health', (req, res) => {
 ### Log Management
 
 #### Structured Logging
+
 ```typescript
 import { logger } from '@coworking/utils'
 
@@ -558,6 +576,7 @@ logger.warn('High API usage detected', { userId, requestCount })
 ```
 
 #### Log Aggregation
+
 - **Development**: Console with Pino Pretty
 - **Production**: JSON logs to CloudWatch/GCP Logging
 - **Monitoring**: Grafana + Loki stack
@@ -565,6 +584,7 @@ logger.warn('High API usage detected', { userId, requestCount })
 ## Rollback Procedures
 
 ### Vercel Rollback
+
 ```bash
 # List deployments
 vercel ls
@@ -574,6 +594,7 @@ vercel rollback <deployment-url>
 ```
 
 ### Docker Rollback
+
 ```bash
 # Tag previous working image
 docker tag coworking-api:latest coworking-api:rollback
@@ -583,6 +604,7 @@ docker-compose -f docker-compose.prod.yml up -d api
 ```
 
 ### Database Rollback
+
 ```bash
 # Create backup before deployment
 mongodump --uri="mongodb://..." --out=backup-$(date +%Y%m%d)
@@ -596,6 +618,7 @@ mongorestore --uri="mongodb://..." backup-20231201/
 ### Common Deployment Issues
 
 #### Build Failures
+
 ```bash
 # Check build logs
 pnpm build --verbose
@@ -607,6 +630,7 @@ pnpm build
 ```
 
 #### Environment Variable Issues
+
 ```bash
 # Verify environment variables
 printenv | grep -E "(DATABASE|REDIS|NEXTAUTH)"
@@ -616,6 +640,7 @@ mongosh "$DATABASE_URL" --eval "db.adminCommand('ping')"
 ```
 
 #### Docker Issues
+
 ```bash
 # Check container logs
 docker-compose logs -f api
@@ -630,6 +655,7 @@ docker stats
 ### Performance Issues
 
 #### Database Performance
+
 ```javascript
 // Enable slow query logging
 db.setProfilingLevel(2, { slowms: 100 })
@@ -639,6 +665,7 @@ db.system.profile.find().sort({ ts: -1 }).limit(5)
 ```
 
 #### Application Performance
+
 ```bash
 # Check memory usage
 node --max-old-space-size=4096 dist/index.js
@@ -650,6 +677,7 @@ node --prof dist/index.js
 ### Security Issues
 
 #### SSL Certificate Issues
+
 ```bash
 # Check certificate expiry
 openssl x509 -in cert.pem -text -noout | grep "Not After"
@@ -659,6 +687,7 @@ certbot renew --dry-run
 ```
 
 #### Environment Security
+
 ```bash
 # Scan for exposed secrets
 git secrets --scan
@@ -670,6 +699,7 @@ pnpm audit
 ## Maintenance
 
 ### Database Maintenance
+
 ```bash
 # Create regular backups
 mongodump --uri="$DATABASE_URL" --gzip --out=backup-$(date +%Y%m%d)
@@ -682,6 +712,7 @@ db.collection.createIndex({ field: 1 }, { background: true })
 ```
 
 ### Dependency Updates
+
 ```bash
 # Check for updates
 pnpm deps:outdated
@@ -694,6 +725,7 @@ pnpm audit fix
 ```
 
 ### Log Rotation
+
 ```bash
 # Setup logrotate
 sudo tee /etc/logrotate.d/coworking-platform << EOF

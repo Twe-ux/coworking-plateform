@@ -55,9 +55,11 @@ export class PushNotificationService {
 
   constructor() {
     this.isConfigured = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY)
-    
+
     if (!this.isConfigured) {
-      console.warn('⚠️  Push notifications non configurées - clés VAPID manquantes')
+      console.warn(
+        '⚠️  Push notifications non configurées - clés VAPID manquantes'
+      )
     }
   }
 
@@ -102,20 +104,20 @@ export class PushNotificationService {
         image: notificationData.image,
         data: {
           timestamp: Date.now(),
-          ...notificationData.data
+          ...notificationData.data,
         },
         actions: notificationData.actions || [],
         tag: notificationData.tag,
         requireInteraction: notificationData.requireInteraction || false,
-        vibrate: [200, 100, 200] // Pattern de vibration
+        vibrate: [200, 100, 200], // Pattern de vibration
       })
 
       await webpush.sendNotification(subscription, payload)
-      
+
       return { success: true }
     } catch (error) {
       console.error('Erreur envoi push notification:', error)
-      
+
       let errorMessage = 'Erreur inconnue'
       if (error instanceof Error) {
         errorMessage = error.message
@@ -142,30 +144,30 @@ export class PushNotificationService {
         success: false,
         results: [],
         successCount: 0,
-        errorCount: subscriptions.length
+        errorCount: subscriptions.length,
       }
     }
 
     const results = await Promise.allSettled(
-      subscriptions.map(subscription => 
+      subscriptions.map((subscription) =>
         this.sendNotification(subscription, notificationData)
       )
     )
 
-    const processedResults = results.map(result => 
-      result.status === 'fulfilled' 
-        ? result.value 
+    const processedResults = results.map((result) =>
+      result.status === 'fulfilled'
+        ? result.value
         : { success: false, error: result.reason?.message || 'Échec envoi' }
     )
 
-    const successCount = processedResults.filter(r => r.success).length
+    const successCount = processedResults.filter((r) => r.success).length
     const errorCount = processedResults.length - successCount
 
     return {
       success: successCount > 0,
       results: processedResults,
       successCount,
-      errorCount
+      errorCount,
     }
   }
 
@@ -187,21 +189,21 @@ export class PushNotificationService {
       data: {
         type: 'booking_confirmation',
         bookingId,
-        action: 'view_booking'
+        action: 'view_booking',
       },
       actions: [
         {
           action: 'view',
           title: 'Voir la réservation',
-          icon: '/icons/view-action.png'
+          icon: '/icons/view-action.png',
         },
         {
           action: 'calendar',
           title: 'Ajouter au calendrier',
-          icon: '/icons/calendar-action.png'
-        }
+          icon: '/icons/calendar-action.png',
+        },
       ],
-      requireInteraction: true
+      requireInteraction: true,
     }
   }
 
@@ -216,7 +218,7 @@ export class PushNotificationService {
     bookingId: string
   ): PushNotificationData {
     const timeText = hoursUntil === 24 ? 'demain' : `dans ${hoursUntil}h`
-    
+
     return {
       title: '🔔 Rappel de réservation',
       body: `Rendez-vous ${timeText} chez ${spaceName} à ${startTime}`,
@@ -227,21 +229,21 @@ export class PushNotificationService {
         type: 'booking_reminder',
         bookingId,
         hoursUntil,
-        action: 'view_booking'
+        action: 'view_booking',
       },
       actions: [
         {
           action: 'directions',
           title: 'Itinéraire',
-          icon: '/icons/directions-action.png'
+          icon: '/icons/directions-action.png',
         },
         {
           action: 'contact',
           title: 'Contact',
-          icon: '/icons/contact-action.png'
-        }
+          icon: '/icons/contact-action.png',
+        },
       ],
-      requireInteraction: true
+      requireInteraction: true,
     }
   }
 
@@ -263,15 +265,15 @@ export class PushNotificationService {
       data: {
         type: 'booking_cancellation',
         bookingId,
-        action: 'book_again'
+        action: 'book_again',
       },
       actions: [
         {
           action: 'book',
           title: 'Nouvelle réservation',
-          icon: '/icons/book-action.png'
-        }
-      ]
+          icon: '/icons/book-action.png',
+        },
+      ],
     }
   }
 
@@ -302,8 +304,8 @@ export class PushNotificationService {
       tag: 'test-notification',
       data: {
         type: 'test',
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     }
 
     return await this.sendNotification(subscription, testNotification)

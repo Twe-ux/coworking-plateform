@@ -366,18 +366,23 @@ export default function SpacesManagementPage() {
               >
                 {/* Image de l'espace */}
                 <div className="relative h-48 overflow-hidden">
-                  {space.image && space.image !== '/images/spaces/default.jpg' ? (
+                  {space.image &&
+                  space.image !== '/images/spaces/default.jpg' ? (
                     <img
                       src={space.image}
                       alt={space.name}
                       className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none'
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          'hidden'
+                        )
                       }}
                     />
                   ) : null}
-                  <div className={`from-coffee-primary/10 to-coffee-primary/5 absolute inset-0 flex items-center justify-center bg-gradient-to-br ${space.image && space.image !== '/images/spaces/default.jpg' ? 'hidden' : ''}`}>
+                  <div
+                    className={`from-coffee-primary/10 to-coffee-primary/5 absolute inset-0 flex items-center justify-center bg-gradient-to-br ${space.image && space.image !== '/images/spaces/default.jpg' ? 'hidden' : ''}`}
+                  >
                     <Building className="text-coffee-primary/30 h-16 w-16" />
                   </div>
                 </div>
@@ -524,18 +529,23 @@ export default function SpacesManagementPage() {
                     {/* Espace */}
                     <div className="col-span-3 flex items-center gap-3">
                       <div className="relative h-12 w-12 overflow-hidden rounded-lg">
-                        {space.image && space.image !== '/images/spaces/default.jpg' ? (
+                        {space.image &&
+                        space.image !== '/images/spaces/default.jpg' ? (
                           <img
                             src={space.image}
                             alt={space.name}
                             className="h-full w-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none'
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                              e.currentTarget.nextElementSibling?.classList.remove(
+                                'hidden'
+                              )
                             }}
                           />
                         ) : null}
-                        <div className={`from-coffee-primary/20 to-coffee-primary/10 absolute inset-0 flex items-center justify-center bg-gradient-to-br ${space.image && space.image !== '/images/spaces/default.jpg' ? 'hidden' : ''}`}>
+                        <div
+                          className={`from-coffee-primary/20 to-coffee-primary/10 absolute inset-0 flex items-center justify-center bg-gradient-to-br ${space.image && space.image !== '/images/spaces/default.jpg' ? 'hidden' : ''}`}
+                        >
                           <Building className="text-coffee-primary h-6 w-6" />
                         </div>
                       </div>

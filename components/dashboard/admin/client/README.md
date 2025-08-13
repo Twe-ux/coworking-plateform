@@ -1,4 +1,4 @@
-# Client Dashboard - Cow or King Café 
+# Client Dashboard - Cow or King Café
 
 ## Architecture complète implémentée
 
@@ -16,23 +16,26 @@ components/dashboard/client/
 ### 🎨 Thème café "Cow or King"
 
 **Couleurs principales :**
+
 - **Coffee Primary**: `#8B4513` (Marron café principal)
 - **Coffee Accent**: `#D2691E` (Orange chocolat)
 - **Cream Light**: `#F5F5DC` (Beige crème)
 
 **Variables CSS utilisées :**
+
 ```css
---color-coffee-primary: #8B4513;
---color-coffee-accent: #D2691E;
---color-coffee-secondary: #FFF8DC;
---color-client-bg: #FFFEF7;
---color-client-card: #FEFBF3;
---color-client-border: #E8DDD4;
+--color-coffee-primary: #8b4513;
+--color-coffee-accent: #d2691e;
+--color-coffee-secondary: #fff8dc;
+--color-client-bg: #fffef7;
+--color-client-card: #fefbf3;
+--color-client-border: #e8ddd4;
 ```
 
 ### 🎬 Animations Framer Motion
 
 **Animations implémentées :**
+
 - `cardVariants` - Animation d'entrée des cartes
 - `headerVariants` - Animation du header de bienvenue
 - `navItemVariants` - Animation des éléments de navigation
@@ -43,6 +46,7 @@ components/dashboard/client/
 ### 📱 Mobile-First Design
 
 **Breakpoints Tailwind :**
+
 - `sm` (640px) - Navigation mobile
 - `md` (768px) - Sidebar collapse/expand
 - `lg` (1024px) - Desktop full layout
@@ -51,6 +55,7 @@ components/dashboard/client/
 ### 🧩 Composants principaux
 
 #### `ClientLayout`
+
 ```tsx
 <ClientLayout>
   <YourPageContent />
@@ -58,6 +63,7 @@ components/dashboard/client/
 ```
 
 #### `ClientCard`
+
 ```tsx
 <ClientCard
   title="Mon titre"
@@ -71,17 +77,19 @@ components/dashboard/client/
 ```
 
 #### `StatsCard`
+
 ```tsx
 <StatsCard
   title="Réservations"
   value={12}
   description="Ce mois"
   icon={Calendar}
-  trend={{ value: "15%", isPositive: true }}
+  trend={{ value: '15%', isPositive: true }}
 />
 ```
 
 #### `QuickActionCard`
+
 ```tsx
 <QuickActionCard
   title="Réserver"
@@ -94,6 +102,7 @@ components/dashboard/client/
 ### 🚀 Fonctionnalités implémentées
 
 **Navigation client :**
+
 - Mon espace café (dashboard principal)
 - Mes réservations
 - Découvrir les espaces
@@ -106,6 +115,7 @@ components/dashboard/client/
 - Paramètres
 
 **Dashboard principal :**
+
 - Message de bienvenue contextualisé (heure du jour)
 - Statut du café en temps réel
 - Actions rapides animées
@@ -114,6 +124,7 @@ components/dashboard/client/
 - Animations fluides Framer Motion
 
 **UX Features :**
+
 - Loading states animés
 - Hover effects sur tous les éléments interactifs
 - Transitions fluides entre les états
@@ -127,17 +138,14 @@ components/dashboard/client/
 import { ClientLayout } from '@/components/dashboard/client'
 
 export default function ClientDashboard() {
-  return (
-    <ClientLayout>
-      {/* Votre contenu ici */}
-    </ClientLayout>
-  )
+  return <ClientLayout>{/* Votre contenu ici */}</ClientLayout>
 }
 ```
 
 ### 🎯 Performance
 
 **Optimisations implémentées :**
+
 - Lazy loading des animations
 - Stagger des animations pour éviter les saccades
 - Utilisation de `transform` pour les animations performantes

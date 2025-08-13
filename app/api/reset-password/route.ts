@@ -17,7 +17,7 @@ const resetPasswordSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     // Validation des données
     const validatedData = resetPasswordSchema.parse(body)
     const { token, password } = validatedData
@@ -34,8 +34,9 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { 
-          message: 'Token de réinitialisation invalide ou expiré. Veuillez demander un nouveau lien de réinitialisation.' 
+        {
+          message:
+            'Token de réinitialisation invalide ou expiré. Veuillez demander un nouveau lien de réinitialisation.',
         },
         { status: 400 }
       )
@@ -73,20 +74,21 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { 
-        message: 'Votre mot de passe a été réinitialisé avec succès ! Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.' 
+      {
+        message:
+          'Votre mot de passe a été réinitialisé avec succès ! Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
       },
       { status: 200 }
     )
   } catch (error) {
     console.error('Erreur reset-password:', error)
-    
+
     // Erreur de validation
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           message: 'Données invalides',
-          errors: error.errors.map(e => e.message)
+          errors: error.errors.map((e) => e.message),
         },
         { status: 400 }
       )

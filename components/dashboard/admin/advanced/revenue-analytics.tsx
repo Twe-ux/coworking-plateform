@@ -242,10 +242,10 @@ export function RevenueAnalytics() {
       {/* En-tête avec contrôles - Mobile optimisé */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 md:text-2xl">
             Analytics Revenus
           </h2>
-          <p className="text-sm md:text-base text-gray-600">
+          <p className="text-sm text-gray-600 md:text-base">
             Performance financière et tendances des réservations
           </p>
         </div>
@@ -260,7 +260,7 @@ export function RevenueAnalytics() {
                 size="sm"
                 variant={period === p ? 'default' : 'outline'}
                 onClick={() => setPeriod(p)}
-                className="text-xs touch-manipulation min-h-10"
+                className="min-h-10 touch-manipulation text-xs"
               >
                 {p === '7d'
                   ? '7j'
@@ -279,7 +279,7 @@ export function RevenueAnalytics() {
               variant="outline"
               size="sm"
               onClick={exportReport}
-              className="flex items-center space-x-1 touch-manipulation min-h-10"
+              className="flex min-h-10 touch-manipulation items-center space-x-1"
             >
               <Download className="h-4 w-4" />
               <span className="hidden sm:block">Export</span>
@@ -289,7 +289,7 @@ export function RevenueAnalytics() {
               variant="outline"
               size="sm"
               onClick={debugData}
-              className="flex items-center space-x-1 border-red-200 bg-red-50 touch-manipulation min-h-10"
+              className="flex min-h-10 touch-manipulation items-center space-x-1 border-red-200 bg-red-50"
             >
               <span>🐛</span>
               <span className="hidden sm:block">Debug</span>
@@ -300,9 +300,11 @@ export function RevenueAnalytics() {
               size="sm"
               onClick={loadAnalytics}
               disabled={loading}
-              className="flex items-center space-x-1 touch-manipulation min-h-10"
+              className="flex min-h-10 touch-manipulation items-center space-x-1"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              />
               <span className="hidden sm:block">Actualiser</span>
             </Button>
           </div>
@@ -315,18 +317,20 @@ export function RevenueAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">Revenus totaux</p>
-                <p className="text-lg md:text-2xl font-bold text-green-600 truncate">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
+                  Revenus totaux
+                </p>
+                <p className="truncate text-lg font-bold text-green-600 md:text-2xl">
                   {formatCurrency(analytics.totalRevenue)}
                 </p>
                 <div className="mt-1 flex items-center space-x-1">
                   {analytics.monthlyGrowth >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-500 flex-shrink-0" />
+                    <TrendingUp className="h-3 w-3 flex-shrink-0 text-green-500" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500 flex-shrink-0" />
+                    <TrendingDown className="h-3 w-3 flex-shrink-0 text-red-500" />
                   )}
                   <span
-                    className={`text-xs truncate ${
+                    className={`truncate text-xs ${
                       analytics.monthlyGrowth >= 0
                         ? 'text-green-600'
                         : 'text-red-600'
@@ -336,7 +340,7 @@ export function RevenueAnalytics() {
                   </span>
                 </div>
               </div>
-              <Euro className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <Euro className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -345,15 +349,17 @@ export function RevenueAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">Réservations</p>
-                <p className="text-lg md:text-2xl font-bold text-blue-600">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
+                  Réservations
+                </p>
+                <p className="text-lg font-bold text-blue-600 md:text-2xl">
                   {analytics.totalBookings}
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">
+                <p className="mt-1 truncate text-xs text-gray-500">
                   {period === '30d' ? 'Ce mois' : 'Période'}
                 </p>
               </div>
-              <Calendar className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <Calendar className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -362,13 +368,15 @@ export function RevenueAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">Panier moyen</p>
-                <p className="text-lg md:text-2xl font-bold text-purple-600 truncate">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
+                  Panier moyen
+                </p>
+                <p className="truncate text-lg font-bold text-purple-600 md:text-2xl">
                   {formatCurrency(analytics.averageBookingValue)}
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">Par résa</p>
+                <p className="mt-1 truncate text-xs text-gray-500">Par résa</p>
               </div>
-              <Users className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <Users className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -377,8 +385,10 @@ export function RevenueAnalytics() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm text-gray-600 truncate">Taux occupation</p>
-                <p className="text-lg md:text-2xl font-bold text-amber-600">
+                <p className="truncate text-xs text-gray-600 md:text-sm">
+                  Taux occupation
+                </p>
+                <p className="text-lg font-bold text-amber-600 md:text-2xl">
                   {analytics.topSpaces.length > 0
                     ? Math.round(
                         analytics.topSpaces.reduce(
@@ -389,9 +399,9 @@ export function RevenueAnalytics() {
                     : 0}
                   %
                 </p>
-                <p className="mt-1 text-xs text-gray-500 truncate">Moyenne</p>
+                <p className="mt-1 truncate text-xs text-gray-500">Moyenne</p>
               </div>
-              <Building className="h-6 w-6 md:h-8 md:w-8 text-gray-400 flex-shrink-0" />
+              <Building className="h-6 w-6 flex-shrink-0 text-gray-400 md:h-8 md:w-8" />
             </div>
           </CardContent>
         </Card>
@@ -400,9 +410,11 @@ export function RevenueAnalytics() {
       {/* Graphique principal - Responsive avec hauteur adaptive */}
       <Card>
         <CardHeader>
-          <div className="space-y-3 md:space-y-0 md:flex md:items-center md:justify-between">
+          <div className="space-y-3 md:flex md:items-center md:justify-between md:space-y-0">
             <div>
-              <CardTitle className="text-base md:text-lg">Évolution des revenus</CardTitle>
+              <CardTitle className="text-base md:text-lg">
+                Évolution des revenus
+              </CardTitle>
               <CardDescription className="text-sm">
                 Tendance sur la période sélectionnée
               </CardDescription>
@@ -416,7 +428,7 @@ export function RevenueAnalytics() {
                   size="sm"
                   variant={selectedMetric === metric ? 'default' : 'outline'}
                   onClick={() => setSelectedMetric(metric)}
-                  className="text-xs touch-manipulation min-h-10"
+                  className="min-h-10 touch-manipulation text-xs"
                 >
                   {metric === 'revenue'
                     ? 'Revenus'
@@ -469,7 +481,7 @@ export function RevenueAnalytics() {
                   contentStyle={{
                     fontSize: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid #e5e7eb',
                   }}
                 />
                 <Area
@@ -491,8 +503,12 @@ export function RevenueAnalytics() {
         {/* Top espaces */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Top espaces par revenus</CardTitle>
-            <CardDescription className="text-sm">Espaces les plus rentables</CardDescription>
+            <CardTitle className="text-base md:text-lg">
+              Top espaces par revenus
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Espaces les plus rentables
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-48 md:h-64">
@@ -507,8 +523,8 @@ export function RevenueAnalytics() {
                     fontSize={10}
                     interval={0}
                   />
-                  <YAxis 
-                    tickFormatter={(value) => `${value}€`} 
+                  <YAxis
+                    tickFormatter={(value) => `${value}€`}
                     fontSize={10}
                     width={50}
                   />
@@ -520,7 +536,7 @@ export function RevenueAnalytics() {
                     contentStyle={{
                       fontSize: '12px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e7eb'
+                      border: '1px solid #e5e7eb',
                     }}
                   />
                   <Bar dataKey="revenue" fill="#10b981" radius={[2, 2, 0, 0]} />
@@ -533,7 +549,9 @@ export function RevenueAnalytics() {
         {/* Revenus par statut */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Revenus par statut</CardTitle>
+            <CardTitle className="text-base md:text-lg">
+              Revenus par statut
+            </CardTitle>
             <CardDescription className="text-sm">
               Répartition des revenus selon le statut
             </CardDescription>
@@ -563,7 +581,7 @@ export function RevenueAnalytics() {
                     contentStyle={{
                       fontSize: '12px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e7eb'
+                      border: '1px solid #e5e7eb',
                     }}
                   />
                 </PieChart>
@@ -574,14 +592,16 @@ export function RevenueAnalytics() {
             <div className="mt-4 grid grid-cols-1 gap-2 md:space-y-2">
               {analytics.revenueByStatus.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-1 items-center space-x-2">
                     <div
-                      className="h-3 w-3 rounded flex-shrink-0"
+                      className="h-3 w-3 flex-shrink-0 rounded"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-sm capitalize truncate">{item.status}</span>
+                    <span className="truncate text-sm capitalize">
+                      {item.status}
+                    </span>
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="flex-shrink-0 text-right">
                     <div className="text-sm font-medium">
                       {formatCurrency(item.revenue)}
                     </div>

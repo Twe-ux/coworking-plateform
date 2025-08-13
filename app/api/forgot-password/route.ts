@@ -15,7 +15,7 @@ const TOKEN_LENGTH = 32
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     // Validation des données
     const validatedData = forgotPasswordSchema.parse(body)
     const { email } = validatedData
@@ -25,19 +25,17 @@ export async function POST(request: NextRequest) {
     const usersCollection = db.collection('users')
 
     // Chercher l'utilisateur
-    const user = await usersCollection.findOne({ 
-      email: email.toLowerCase() 
+    const user = await usersCollection.findOne({
+      email: email.toLowerCase(),
     })
 
     // Pour la sécurité, toujours retourner le même message
     // même si l'utilisateur n'existe pas (évite l'énumération d'emails)
-    const successMessage = 'Si cette adresse email existe dans notre système, vous recevrez un lien de réinitialisation dans quelques minutes.'
+    const successMessage =
+      'Si cette adresse email existe dans notre système, vous recevrez un lien de réinitialisation dans quelques minutes.'
 
     if (!user) {
-      return NextResponse.json(
-        { message: successMessage },
-        { status: 200 }
-      )
+      return NextResponse.json({ message: successMessage }, { status: 200 })
     }
 
     // Générer un token sécurisé
@@ -60,14 +58,14 @@ export async function POST(request: NextRequest) {
 
     // Envoyer l'email de réinitialisation
     const emailConfigured = checkEmailConfiguration()
-    
+
     if (emailConfigured) {
       const emailResult = await sendPasswordResetEmail({
         email: user.email,
         resetToken,
-        firstName: user.firstName || 'Utilisateur'
+        firstName: user.firstName || 'Utilisateur',
       })
-      
+
       if (!emailResult.success) {
         console.error('Échec envoi email:', emailResult.error)
         // On continue quand même pour ne pas révéler d'informations
@@ -80,25 +78,24 @@ export async function POST(request: NextRequest) {
         console.log('='.repeat(50))
         console.log(`Email: ${email}`)
         console.log(`Token: ${resetToken}`)
-        console.log(`Lien: ${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`)
+        console.log(
+          `Lien: ${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`
+        )
         console.log(`Expire: ${resetTokenExpiry.toLocaleString('fr-FR')}`)
         console.log('='.repeat(50))
       }
     }
 
-    return NextResponse.json(
-      { message: successMessage },
-      { status: 200 }
-    )
+    return NextResponse.json({ message: successMessage }, { status: 200 })
   } catch (error) {
     console.error('Erreur forgot-password:', error)
-    
+
     // Erreur de validation
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           message: 'Données invalides',
-          errors: error.errors.map(e => e.message)
+          errors: error.errors.map((e) => e.message),
         },
         { status: 400 }
       )

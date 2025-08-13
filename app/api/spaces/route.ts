@@ -12,12 +12,14 @@ export async function GET() {
 
     // Récupérer seulement les espaces disponibles
     const spaces = await Space.find({ available: true })
-      .select('id name location capacity pricePerHour pricePerDay pricePerWeek pricePerMonth features amenities image rating specialty isPopular description openingHours color')
+      .select(
+        'id name location capacity pricePerHour pricePerDay pricePerWeek pricePerMonth features amenities image rating specialty isPopular description openingHours color'
+      )
       .sort({ isPopular: -1, rating: -1 })
       .lean()
 
     // Formater les données pour l'interface de réservation
-    const formattedSpaces = spaces.map(space => ({
+    const formattedSpaces = spaces.map((space) => ({
       id: space.id,
       name: space.name,
       location: space.location,
@@ -34,22 +36,21 @@ export async function GET() {
       isPopular: space.isPopular,
       description: space.description || '',
       color: space.color || 'from-coffee-primary to-coffee-accent',
-      openingHours: space.openingHours
+      openingHours: space.openingHours,
     }))
 
     return NextResponse.json({
       success: true,
       data: formattedSpaces,
-      count: formattedSpaces.length
+      count: formattedSpaces.length,
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API Spaces publique:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erreur lors de la récupération des espaces',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     )

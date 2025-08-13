@@ -36,25 +36,29 @@ export default function DashboardWithLoading() {
 
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="min-h-screen bg-gradient-to-br from-orange-50/50 via-amber-50/30 to-yellow-50/50 flex items-center justify-center"
+        className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50/50 via-amber-50/30 to-yellow-50/50"
       >
-        <div className="text-center space-y-4 p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-orange-200/50">
+        <div className="space-y-4 rounded-2xl border border-orange-200/50 bg-white/80 p-8 text-center backdrop-blur-sm">
           <motion.div
             animate={{ rotate: [0, -10, 10, -10, 0] }}
             transition={{ duration: 0.5, repeat: 3 }}
           >
-            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-400 to-orange-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-2xl">⚠</span>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-400 to-orange-500">
+              <span className="text-2xl text-white">⚠</span>
             </div>
           </motion.div>
           <div>
-            <h2 className="text-xl font-bold text-orange-900">Erreur de chargement</h2>
-            <p className="text-orange-700/70 mt-2">Impossible de charger les données du dashboard</p>
+            <h2 className="text-xl font-bold text-orange-900">
+              Erreur de chargement
+            </h2>
+            <p className="mt-2 text-orange-700/70">
+              Impossible de charger les données du dashboard
+            </p>
           </div>
-          <Button 
+          <Button
             onClick={refetch}
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
           >
@@ -98,18 +102,18 @@ export default function DashboardWithLoading() {
           transition={{ delay: 1 }}
           className="fixed bottom-4 left-4 z-50"
         >
-          <div className="bg-black/80 backdrop-blur-sm text-white p-3 rounded-lg border border-white/10">
-            <p className="text-xs mb-2 font-medium">Dev Controls</p>
+          <div className="rounded-lg border border-white/10 bg-black/80 p-3 text-white backdrop-blur-sm">
+            <p className="mb-2 text-xs font-medium">Dev Controls</p>
             <div className="flex gap-2">
               <button
                 onClick={refetch}
-                className="text-xs px-2 py-1 bg-orange-500 hover:bg-orange-600 rounded transition-colors"
+                className="rounded bg-orange-500 px-2 py-1 text-xs transition-colors hover:bg-orange-600"
               >
                 Simuler Rechargement
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-700 rounded transition-colors"
+                className="rounded bg-gray-600 px-2 py-1 text-xs transition-colors hover:bg-gray-700"
               >
                 Recharger Page
               </button>
@@ -122,12 +126,12 @@ export default function DashboardWithLoading() {
 }
 
 // Loading state wrapper component for individual sections
-export function WithLoadingState({ 
-  children, 
-  isLoading, 
+export function WithLoadingState({
+  children,
+  isLoading,
   fallback,
-  delay = 0 
-}: { 
+  delay = 0,
+}: {
   children: React.ReactNode
   isLoading: boolean
   fallback: React.ReactNode

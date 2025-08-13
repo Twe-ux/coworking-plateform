@@ -50,7 +50,8 @@ export async function checkBookingConflicts(
     await connectMongoose()
 
     // Convertir spaceId en ObjectId si nécessaire
-    const spaceObjectId = typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId
+    const spaceObjectId =
+      typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId
 
     // Construire la requête de base
     const query: any = {
@@ -64,7 +65,10 @@ export async function checkBookingConflicts(
 
     // Exclure une réservation spécifique (utile pour les modifications)
     if (excludeBookingId) {
-      const excludeObjectId = typeof excludeBookingId === 'string' ? new ObjectId(excludeBookingId) : excludeBookingId
+      const excludeObjectId =
+        typeof excludeBookingId === 'string'
+          ? new ObjectId(excludeBookingId)
+          : excludeBookingId
       query._id = { $ne: excludeObjectId }
     }
 
@@ -81,13 +85,17 @@ export async function checkBookingConflicts(
 
       // Vérifier les chevauchements
       const hasOverlap = !(
-        newEndMinutes <= existingStartMinutes || newStartMinutes >= existingEndMinutes
+        newEndMinutes <= existingStartMinutes ||
+        newStartMinutes >= existingEndMinutes
       )
 
       if (hasOverlap) {
         let reason = `Conflit avec la réservation ${booking._id}`
-        
-        if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
+
+        if (
+          newStartMinutes < existingEndMinutes &&
+          newEndMinutes > existingStartMinutes
+        ) {
           reason = `Chevauchement de ${Math.max(newStartMinutes, existingStartMinutes)} à ${Math.min(newEndMinutes, existingEndMinutes)} minutes`
         }
 
@@ -124,8 +132,8 @@ export async function getAvailableTimeSlots(
     const space = await Space.findOne({
       $or: [
         { _id: typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId },
-        { id: spaceId.toString() }
-      ]
+        { id: spaceId.toString() },
+      ],
     })
 
     if (!space) {
@@ -145,9 +153,13 @@ export async function getAvailableTimeSlots(
 
     // Générer tous les créneaux possibles
     const allSlots: TimeSlot[] = []
-    for (let minutes = openMinutes; minutes < closeMinutes; minutes += slotDuration) {
+    for (
+      let minutes = openMinutes;
+      minutes < closeMinutes;
+      minutes += slotDuration
+    ) {
       const slotEnd = Math.min(minutes + slotDuration, closeMinutes)
-      
+
       allSlots.push({
         start: minutesToTime(minutes),
         end: minutesToTime(slotEnd),
@@ -157,7 +169,8 @@ export async function getAvailableTimeSlots(
     }
 
     // Récupérer les réservations existantes pour cette date
-    const spaceObjectId = typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId
+    const spaceObjectId =
+      typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId
     const existingBookings = await Booking.find({
       spaceId: spaceObjectId,
       date: {
@@ -178,7 +191,8 @@ export async function getAvailableTimeSlots(
 
         // Vérifier le chevauchement
         const hasOverlap = !(
-          slotEndMinutes <= bookingStartMinutes || slotStartMinutes >= bookingEndMinutes
+          slotEndMinutes <= bookingStartMinutes ||
+          slotStartMinutes >= bookingEndMinutes
         )
 
         if (hasOverlap) {
@@ -212,8 +226,8 @@ export async function getOccupancyStats(
     const space = await Space.findOne({
       $or: [
         { _id: typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId },
-        { id: spaceId.toString() }
-      ]
+        { id: spaceId.toString() },
+      ],
     })
 
     if (!space) {
@@ -223,10 +237,11 @@ export async function getOccupancyStats(
     // Récupérer tous les créneaux possibles
     const allSlots = await getAvailableTimeSlots(spaceId, date, 60)
     const totalSlots = allSlots.length
-    const occupiedSlots = allSlots.filter(slot => !slot.available).length
+    const occupiedSlots = allSlots.filter((slot) => !slot.available).length
 
     // Calculer les revenus pour cette date
-    const spaceObjectId = typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId
+    const spaceObjectId =
+      typeof spaceId === 'string' ? new ObjectId(spaceId) : spaceId
     const bookings = await Booking.find({
       spaceId: spaceObjectId,
       date: {
@@ -236,7 +251,10 @@ export async function getOccupancyStats(
       status: { $in: ['confirmed', 'completed'] },
     })
 
-    const revenue = bookings.reduce((total, booking) => total + booking.totalPrice, 0)
+    const revenue = bookings.reduce(
+      (total, booking) => total + booking.totalPrice,
+      0
+    )
 
     return {
       spaceId: space.id,
@@ -249,7 +267,7 @@ export async function getOccupancyStats(
     }
   } catch (error) {
     console.error('Erreur lors du calcul des statistiques:', error)
-    throw new Error('Impossible de calculer les statistiques d\'occupation')
+    throw new Error("Impossible de calculer les statistiques d'occupation")
   }
 }
 
@@ -277,7 +295,10 @@ export async function findConsecutiveFreeSlots(
       } else {
         // Fin d'un bloc libre, vérifier s'il respecte la durée minimum
         if (currentBlock.length > 0) {
-          const totalDuration = currentBlock.reduce((sum, s) => sum + s.duration, 0)
+          const totalDuration = currentBlock.reduce(
+            (sum, s) => sum + s.duration,
+            0
+          )
           if (totalDuration >= minimumDuration) {
             consecutiveSlots.push({
               start: currentBlock[0].start,
@@ -339,8 +360,8 @@ export async function validateBookingData(bookingData: {
         spaceQuery = {
           $or: [
             { _id: new ObjectId(bookingData.spaceId) },
-            { id: bookingData.spaceId }
-          ]
+            { id: bookingData.spaceId },
+          ],
         }
       } else {
         // String normal - chercher par id
@@ -350,7 +371,7 @@ export async function validateBookingData(bookingData: {
       // Fallback - convertir en string et chercher par id
       spaceQuery = { id: String(bookingData.spaceId) }
     }
-    
+
     const space = await Space.findOne(spaceQuery)
 
     if (!space) {
@@ -360,30 +381,36 @@ export async function validateBookingData(bookingData: {
 
     // Vérifier que l'espace est disponible
     if (!space.available) {
-      errors.push('Cet espace n\'est actuellement pas disponible')
+      errors.push("Cet espace n'est actuellement pas disponible")
     }
 
     // Vérifier la capacité
     if (bookingData.guests > space.capacity) {
-      errors.push(`Le nombre d'invités (${bookingData.guests}) dépasse la capacité de l'espace (${space.capacity})`)
+      errors.push(
+        `Le nombre d'invités (${bookingData.guests}) dépasse la capacité de l'espace (${space.capacity})`
+      )
     }
 
     // Vérifier que la date n'est pas dans le passé
     // Utiliser la timezone française pour une comparaison correcte
-    const todayParis = new Date(new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+    const todayParis = new Date(
+      new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })
+    )
     const todayStartParis = startOfDay(todayParis)
-    const bookingDateLocal = new Date(bookingData.date.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+    const bookingDateLocal = new Date(
+      bookingData.date.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })
+    )
     const bookingDayStart = startOfDay(bookingDateLocal)
-    
+
     console.log('📅 [Validation Date] Comparaison:', {
       todayParis: todayParis.toISOString(),
       todayStartParis: todayStartParis.toISOString(),
       bookingDate: bookingData.date.toISOString(),
       bookingDateLocal: bookingDateLocal.toISOString(),
       bookingDayStart: bookingDayStart.toISOString(),
-      isPast: bookingDayStart < todayStartParis
+      isPast: bookingDayStart < todayStartParis,
     })
-    
+
     if (bookingDayStart < todayStartParis) {
       errors.push('La date ne peut pas être dans le passé')
     }
@@ -393,48 +420,60 @@ export async function validateBookingData(bookingData: {
       startTime: bookingData.startTime,
       endTime: bookingData.endTime,
       startTimeType: typeof bookingData.startTime,
-      endTimeType: typeof bookingData.endTime
+      endTimeType: typeof bookingData.endTime,
     })
 
     // Vérifier le format des heures
     if (!isValidTimeFormat(bookingData.startTime)) {
-      errors.push('Format d\'heure de début invalide')
+      errors.push("Format d'heure de début invalide")
     }
 
     if (!isValidTimeFormat(bookingData.endTime)) {
-      errors.push('Format d\'heure de fin invalide')
+      errors.push("Format d'heure de fin invalide")
     }
 
     // Vérifier que l'heure de fin est après l'heure de début (seulement si les heures sont valides)
-    if (bookingData.startTime && bookingData.endTime && 
-        isValidTimeFormat(bookingData.startTime) && isValidTimeFormat(bookingData.endTime)) {
-      if (timeToMinutes(bookingData.endTime) <= timeToMinutes(bookingData.startTime)) {
-        errors.push('L\'heure de fin doit être après l\'heure de début')
+    if (
+      bookingData.startTime &&
+      bookingData.endTime &&
+      isValidTimeFormat(bookingData.startTime) &&
+      isValidTimeFormat(bookingData.endTime)
+    ) {
+      if (
+        timeToMinutes(bookingData.endTime) <=
+        timeToMinutes(bookingData.startTime)
+      ) {
+        errors.push("L'heure de fin doit être après l'heure de début")
       }
     }
 
     // Vérifier les heures d'ouverture
     const dayName = getDayName(bookingData.date)
     const openingHours = space.openingHours?.[dayName]
-    
-    console.log('🏪 Debug heures d\'ouverture:', {
+
+    console.log("🏪 Debug heures d'ouverture:", {
       dayName,
       openingHours,
       spaceHasOpeningHours: !!space.openingHours,
       allOpeningHours: space.openingHours,
       spaceId: bookingData.spaceId,
-      spaceName: space.name
+      spaceName: space.name,
     })
 
     if (openingHours && !openingHours.closed) {
       // Vérifier que les heures sont définies avant de les traiter
       if (!openingHours.open || !openingHours.close) {
-        console.log('⚠️ Heures d\'ouverture manquantes pour', space.name, ':', openingHours)
+        console.log(
+          "⚠️ Heures d'ouverture manquantes pour",
+          space.name,
+          ':',
+          openingHours
+        )
         console.log('📋 Données complètes espace:', {
           id: space.id,
           _id: space._id,
           name: space.name,
-          openingHours: space.openingHours
+          openingHours: space.openingHours,
         })
         // Ignorer la validation des heures d'ouverture si elles ne sont pas définies
       } else {
@@ -444,11 +483,13 @@ export async function validateBookingData(bookingData: {
         const endMinutes = timeToMinutes(bookingData.endTime)
 
         if (startMinutes < openMinutes || endMinutes > closeMinutes) {
-          errors.push(`L'horaire doit être entre ${openingHours.open} et ${openingHours.close}`)
+          errors.push(
+            `L'horaire doit être entre ${openingHours.open} et ${openingHours.close}`
+          )
         }
       }
     } else if (openingHours?.closed) {
-      errors.push('L\'espace est fermé ce jour-là')
+      errors.push("L'espace est fermé ce jour-là")
     }
 
     // Vérifier les conflits de réservation
@@ -505,14 +546,33 @@ function minutesToTime(minutes: number): string {
  * Obtient le nom du jour pour les heures d'ouverture
  * Utilise l'heure locale française pour éviter les problèmes de timezone
  */
-function getDayName(date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' {
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  
+function getDayName(
+  date: Date
+):
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday' {
+  const days = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ]
+
   // Créer une nouvelle date en heure locale française
   // pour éviter les décalages UTC
-  const localDate = new Date(date.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
+  const localDate = new Date(
+    date.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })
+  )
   const dayIndex = localDate.getDay()
-  
+
   console.log('📅 [getDayName] Conversion timezone:', {
     originalDate: date,
     originalUTC: date.toISOString(),
@@ -520,10 +580,17 @@ function getDayName(date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday'
     originalDayIndex: date.getDay(),
     localDayIndex: dayIndex,
     originalDayName: days[date.getDay()],
-    localDayName: days[dayIndex]
+    localDayName: days[dayIndex],
   })
-  
-  return days[dayIndex] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+
+  return days[dayIndex] as
+    | 'monday'
+    | 'tuesday'
+    | 'wednesday'
+    | 'thursday'
+    | 'friday'
+    | 'saturday'
+    | 'sunday'
 }
 
 /**
@@ -559,11 +626,11 @@ export async function generateOccupancyReport(
     let spacesToAnalyze: ISpace[]
 
     if (spaceIds && spaceIds.length > 0) {
-      spacesToAnalyze = await Space.find({ 
+      spacesToAnalyze = await Space.find({
         $or: [
-          { _id: { $in: spaceIds.map(id => new ObjectId(id)) } },
-          { id: { $in: spaceIds } }
-        ]
+          { _id: { $in: spaceIds.map((id) => new ObjectId(id)) } },
+          { id: { $in: spaceIds } },
+        ],
       })
     } else {
       spacesToAnalyze = await Space.find({ available: true })
@@ -571,11 +638,11 @@ export async function generateOccupancyReport(
 
     for (const space of spacesToAnalyze) {
       const currentDate = new Date(startDate)
-      
+
       while (currentDate <= endDate) {
         const stats = await getOccupancyStats(space._id, currentDate)
         report.push(stats)
-        
+
         currentDate.setDate(currentDate.getDate() + 1)
       }
     }
@@ -583,6 +650,6 @@ export async function generateOccupancyReport(
     return report
   } catch (error) {
     console.error('Erreur lors de la génération du rapport:', error)
-    throw new Error('Impossible de générer le rapport d\'occupation')
+    throw new Error("Impossible de générer le rapport d'occupation")
   }
 }

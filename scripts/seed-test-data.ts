@@ -22,7 +22,7 @@ async function seedTestData() {
         role: 'Manager',
         color: 'bg-blue-500',
         startDate: new Date('2024-01-15'),
-        isActive: true
+        isActive: true,
       },
       {
         firstName: 'Sarah',
@@ -32,7 +32,7 @@ async function seedTestData() {
         role: 'Reception',
         color: 'bg-green-500',
         startDate: new Date('2024-02-01'),
-        isActive: true
+        isActive: true,
       },
       {
         firstName: 'Pierre',
@@ -42,8 +42,8 @@ async function seedTestData() {
         role: 'Security',
         color: 'bg-purple-500',
         startDate: new Date('2024-01-20'),
-        isActive: true
-      }
+        isActive: true,
+      },
     ]
 
     // Nettoyer les données existantes
@@ -73,7 +73,7 @@ async function seedTestData() {
         type: 'morning',
         location: 'Reception',
         notes: 'Gestion équipe matin',
-        isActive: true
+        isActive: true,
       })
 
       // Shift après-midi pour Sarah (Reception) si ce n'est pas dimanche
@@ -86,7 +86,7 @@ async function seedTestData() {
           type: 'afternoon',
           location: 'Reception',
           notes: 'Accueil clients',
-          isActive: true
+          isActive: true,
         })
       }
 
@@ -100,7 +100,7 @@ async function seedTestData() {
           type: 'evening',
           location: 'Security Desk',
           notes: 'Surveillance bâtiment',
-          isActive: true
+          isActive: true,
         })
       }
     }

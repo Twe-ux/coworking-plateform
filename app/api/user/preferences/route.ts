@@ -10,7 +10,7 @@ import { User } from '@/lib/models/user'
 export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest) {
 
     if (emailSettings && typeof emailSettings !== 'object') {
       return NextResponse.json(
-        { success: false, error: 'Format d\'email settings invalide' },
+        { success: false, error: "Format d'email settings invalide" },
         { status: 400 }
       )
     }
@@ -45,7 +45,7 @@ export async function PATCH(request: NextRequest) {
       preferencesUpdate['preferences.notifications'] = {
         email: Boolean(notifications.email),
         sms: Boolean(notifications.sms),
-        push: Boolean(notifications.push)
+        push: Boolean(notifications.push),
       }
     }
 
@@ -55,7 +55,7 @@ export async function PATCH(request: NextRequest) {
         bookingReminder24h: Boolean(emailSettings.bookingReminder24h),
         bookingReminder2h: Boolean(emailSettings.bookingReminder2h),
         bookingCancellation: Boolean(emailSettings.bookingCancellation),
-        promotions: Boolean(emailSettings.promotions)
+        promotions: Boolean(emailSettings.promotions),
       }
     }
 
@@ -85,16 +85,16 @@ export async function PATCH(request: NextRequest) {
       success: true,
       message: 'Préférences mises à jour avec succès',
       data: {
-        preferences: updatedUser.preferences
-      }
+        preferences: updatedUser.preferences,
+      },
     })
-
   } catch (error) {
     console.error('Erreur mise à jour préférences:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )
@@ -107,7 +107,7 @@ export async function PATCH(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -117,8 +117,9 @@ export async function GET(request: NextRequest) {
 
     await connectMongoose()
 
-    const user = await User.findById(session.user.id)
-      .select('preferences email firstName lastName')
+    const user = await User.findById(session.user.id).select(
+      'preferences email firstName lastName'
+    )
 
     if (!user) {
       return NextResponse.json(
@@ -132,35 +133,35 @@ export async function GET(request: NextRequest) {
       notifications: {
         email: true,
         sms: false,
-        push: true
+        push: true,
       },
       emailSettings: {
         bookingConfirmation: true,
         bookingReminder24h: true,
         bookingReminder2h: true,
         bookingCancellation: true,
-        promotions: false
+        promotions: false,
       },
       language: 'fr',
-      timezone: 'Europe/Paris'
+      timezone: 'Europe/Paris',
     }
 
     const preferences = {
       ...defaultPreferences,
-      ...user.preferences
+      ...user.preferences,
     }
 
     return NextResponse.json({
       success: true,
-      data: { preferences }
+      data: { preferences },
     })
-
   } catch (error) {
     console.error('Erreur récupération préférences:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Erreur serveur interne' 
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erreur serveur interne',
       },
       { status: 500 }
     )

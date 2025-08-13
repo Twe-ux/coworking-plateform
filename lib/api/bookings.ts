@@ -3,10 +3,10 @@
  * Fonctions pour interagir avec les endpoints de l'API bookings
  */
 
-import { 
-  BookingData, 
-  BookingWithSpace, 
-  CreateBookingRequest, 
+import {
+  BookingData,
+  BookingWithSpace,
+  CreateBookingRequest,
   UpdateBookingRequest,
   BookingsListResponse,
   BookingResponse,
@@ -15,7 +15,7 @@ import {
   GetBookingsParams,
   GetSpacesParams,
   GetAvailabilityParams,
-  ApiError
+  ApiError,
 } from '@/types/booking'
 
 // Configuration de base pour les requêtes
@@ -27,29 +27,29 @@ const DEFAULT_HEADERS = {
 // Fonction utilitaire pour gérer les réponses API
 async function handleApiResponse<T>(response: Response): Promise<T> {
   const data = await response.json()
-  
+
   if (!response.ok) {
     const error: ApiError = {
       error: data.error || 'Erreur inconnue',
       code: data.code || 'UNKNOWN_ERROR',
-      details: data.details
+      details: data.details,
     }
     throw error
   }
-  
+
   return data
 }
 
 // Fonction utilitaire pour construire les query params
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams()
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       searchParams.append(key, String(value))
     }
   })
-  
+
   return searchParams.toString()
 }
 
@@ -66,7 +66,7 @@ export const bookingsApi = {
       headers: DEFAULT_HEADERS,
       body: JSON.stringify(bookingData),
     })
-    
+
     const result = await handleApiResponse<BookingResponse>(response)
     return result.booking!
   },
@@ -77,12 +77,12 @@ export const bookingsApi = {
   async list(params: GetBookingsParams = {}): Promise<BookingsListResponse> {
     const queryString = buildQueryString(params)
     const url = `${API_BASE_URL}/api/bookings${queryString ? `?${queryString}` : ''}`
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: DEFAULT_HEADERS,
     })
-    
+
     return handleApiResponse<BookingsListResponse>(response)
   },
 
@@ -94,21 +94,26 @@ export const bookingsApi = {
       method: 'GET',
       headers: DEFAULT_HEADERS,
     })
-    
-    const result = await handleApiResponse<{ booking: BookingWithSpace }>(response)
+
+    const result = await handleApiResponse<{ booking: BookingWithSpace }>(
+      response
+    )
     return result.booking
   },
 
   /**
    * Modifier une réservation
    */
-  async update(id: string, updateData: UpdateBookingRequest): Promise<BookingData> {
+  async update(
+    id: string,
+    updateData: UpdateBookingRequest
+  ): Promise<BookingData> {
     const response = await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
       method: 'PUT',
       headers: DEFAULT_HEADERS,
       body: JSON.stringify(updateData),
     })
-    
+
     const result = await handleApiResponse<BookingResponse>(response)
     return result.booking!
   },
@@ -128,24 +133,26 @@ export const bookingsApi = {
       method: 'DELETE',
       headers: DEFAULT_HEADERS,
     })
-    
+
     await handleApiResponse<{ message: string; deletedId: string }>(response)
   },
 
   /**
    * Vérifier la disponibilité d'un espace
    */
-  async checkAvailability(params: GetAvailabilityParams): Promise<AvailabilityResponse> {
+  async checkAvailability(
+    params: GetAvailabilityParams
+  ): Promise<AvailabilityResponse> {
     const queryString = buildQueryString(params)
     const url = `${API_BASE_URL}/api/bookings/availability?${queryString}`
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: DEFAULT_HEADERS,
     })
-    
+
     return handleApiResponse<AvailabilityResponse>(response)
-  }
+  },
 }
 
 /**
@@ -158,12 +165,12 @@ export const spacesApi = {
   async list(params: GetSpacesParams = {}): Promise<SpacesListResponse> {
     const queryString = buildQueryString(params)
     const url = `${API_BASE_URL}/api/spaces${queryString ? `?${queryString}` : ''}`
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: DEFAULT_HEADERS,
     })
-    
+
     return handleApiResponse<SpacesListResponse>(response)
   },
 
@@ -177,9 +184,12 @@ export const spacesApi = {
   /**
    * Rechercher des espaces par nom ou localisation
    */
-  async search(query: string, filters: Omit<GetSpacesParams, 'search'> = {}): Promise<SpacesListResponse> {
+  async search(
+    query: string,
+    filters: Omit<GetSpacesParams, 'search'> = {}
+  ): Promise<SpacesListResponse> {
     return this.list({ ...filters, search: query })
-  }
+  },
 }
 
 /**
@@ -189,9 +199,11 @@ export function useBookingsApi() {
   return {
     bookings: bookingsApi,
     spaces: spacesApi,
-    
+
     // Fonctions utilitaires
-    async createBookingWithValidation(bookingData: CreateBookingRequest): Promise<BookingData> {
+    async createBookingWithValidation(
+      bookingData: CreateBookingRequest
+    ): Promise<BookingData> {
       // Vérifier la disponibilité avant de créer
       const availability = await bookingsApi.checkAvailability({
         spaceId: bookingData.spaceId,
@@ -199,17 +211,20 @@ export function useBookingsApi() {
         startTime: bookingData.startTime,
         endTime: bookingData.endTime,
       })
-      
+
       if (!availability.available) {
         throw new Error(availability.reason || 'Créneau indisponible')
       }
-      
+
       return bookingsApi.create(bookingData)
     },
 
-    async getBookingWithRetry(id: string, maxRetries: number = 3): Promise<BookingWithSpace> {
+    async getBookingWithRetry(
+      id: string,
+      maxRetries: number = 3
+    ): Promise<BookingWithSpace> {
       let lastError: Error | null = null
-      
+
       for (let i = 0; i < maxRetries; i++) {
         try {
           return await bookingsApi.getById(id)
@@ -217,13 +232,15 @@ export function useBookingsApi() {
           lastError = error as Error
           if (i < maxRetries - 1) {
             // Attendre avant de réessayer (backoff exponentiel)
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000))
+            await new Promise((resolve) =>
+              setTimeout(resolve, Math.pow(2, i) * 1000)
+            )
           }
         }
       }
-      
+
       throw lastError
-    }
+    },
   }
 }
 
@@ -279,6 +296,6 @@ export default {
     ValidationError,
     ConflictError,
     NotFoundError,
-    UnauthorizedError
-  }
+    UnauthorizedError,
+  },
 }

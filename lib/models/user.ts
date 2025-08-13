@@ -55,7 +55,7 @@ const userSchema = new Schema<IUser>(
   {
     email: {
       type: String,
-      required: [true, 'L\'adresse email est obligatoire'],
+      required: [true, "L'adresse email est obligatoire"],
       unique: true,
       lowercase: true,
       trim: true,
@@ -64,7 +64,7 @@ const userSchema = new Schema<IUser>(
         validator: function (value: string) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
         },
-        message: 'Format d\'adresse email invalide',
+        message: "Format d'adresse email invalide",
       },
     },
     password: {
@@ -134,7 +134,7 @@ const userSchema = new Schema<IUser>(
         validator: function (value: string) {
           return !value || /^(https?:\/\/|\/|data:image\/)/.test(value)
         },
-        message: 'Format d\'image invalide',
+        message: "Format d'image invalide",
       },
     },
     phone: {
@@ -195,21 +195,37 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: true, // Ajoute automatiquement createdAt et updatedAt
-    toJSON: { 
+    toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: function (doc, ret) {
         // Supprimer les champs sensibles lors de la sérialisation JSON
-        const { password, resetPasswordToken, resetPasswordExpires, emailVerificationToken, emailVerificationExpires, twoFactorSecret, ...sanitized } = ret
+        const {
+          password,
+          resetPasswordToken,
+          resetPasswordExpires,
+          emailVerificationToken,
+          emailVerificationExpires,
+          twoFactorSecret,
+          ...sanitized
+        } = ret
         return sanitized
-      }
+      },
     },
-    toObject: { 
+    toObject: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: function (doc, ret) {
         // Supprimer les champs sensibles lors de la conversion en objet
-        const { password, resetPasswordToken, resetPasswordExpires, emailVerificationToken, emailVerificationExpires, twoFactorSecret, ...sanitized } = ret
+        const {
+          password,
+          resetPasswordToken,
+          resetPasswordExpires,
+          emailVerificationToken,
+          emailVerificationExpires,
+          twoFactorSecret,
+          ...sanitized
+        } = ret
         return sanitized
-      }
+      },
     },
   }
 )
@@ -222,12 +238,12 @@ userSchema.index({ lastLoginAt: -1 }, { name: 'last_login' })
 
 // Index de texte pour la recherche
 userSchema.index(
-  { 
-    firstName: 'text', 
-    lastName: 'text', 
+  {
+    firstName: 'text',
+    lastName: 'text',
     email: 'text',
-    name: 'text'
-  }, 
+    name: 'text',
+  },
   { name: 'user_text_search' }
 )
 
@@ -237,9 +253,9 @@ userSchema.index(
   {
     name: 'unverified_accounts_ttl',
     expireAfterSeconds: 7 * 24 * 60 * 60, // 7 jours
-    partialFilterExpression: { 
-      emailVerified: null, 
-      status: 'pending' 
+    partialFilterExpression: {
+      emailVerified: null,
+      status: 'pending',
     },
   }
 )
@@ -296,10 +312,10 @@ userSchema.methods.getRecentLoginAttempts = function (
   hours: number = 1
 ): number {
   if (!this.loginHistory || this.loginHistory.length === 0) return 0
-  
+
   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000)
   return this.loginHistory.filter(
-    attempt => attempt.timestamp > cutoff && !attempt.success
+    (attempt) => attempt.timestamp > cutoff && !attempt.success
   ).length
 }
 
@@ -319,7 +335,7 @@ userSchema.statics.findByRole = function (role: UserRole) {
 }
 
 userSchema.statics.searchUsers = function (
-  searchTerm: string, 
+  searchTerm: string,
   role?: UserRole,
   limit: number = 20
 ) {
@@ -329,13 +345,15 @@ userSchema.statics.searchUsers = function (
       { lastName: { $regex: searchTerm, $options: 'i' } },
       { email: { $regex: searchTerm, $options: 'i' } },
       { name: { $regex: searchTerm, $options: 'i' } },
-    ]
+    ],
   }
-  
+
   if (role) query.role = role
-  
+
   return this.find(query)
-    .select('-password -resetPasswordToken -emailVerificationToken -twoFactorSecret')
+    .select(
+      '-password -resetPasswordToken -emailVerificationToken -twoFactorSecret'
+    )
     .sort({ lastLoginAt: -1 })
     .limit(limit)
 }

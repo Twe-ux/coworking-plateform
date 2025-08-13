@@ -2,21 +2,44 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ObjectId } from 'mongodb'
 import { connectToDatabase } from '@/lib/mongodb'
-import { 
+import {
   Space,
   getAvailableTimeSlots,
   findConsecutiveFreeSlots,
-  checkBookingConflicts
+  checkBookingConflicts,
 } from '@/lib/models'
 
 // Schema de validation pour les paramètres de disponibilité
 const availabilityQuerySchema = z.object({
-  spaceId: z.string().min(1, 'L\'ID de l\'espace est requis'),
+  spaceId: z.string().min(1, "L'ID de l'espace est requis"),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date invalide'),
-  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:mm)').optional(),
-  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:mm)').optional(),
-  duration: z.string().transform(val => parseInt(val)).refine(val => val > 0 && val <= 720, 'Durée invalide (1-720 minutes)').optional(),
-  slotDuration: z.string().transform(val => parseInt(val) || 60).refine(val => [15, 30, 60, 120].includes(val), 'Durée de créneau invalide (15, 30, 60 ou 120 min)').optional()
+  startTime: z
+    .string()
+    .regex(
+      /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      "Format d'heure invalide (HH:mm)"
+    )
+    .optional(),
+  endTime: z
+    .string()
+    .regex(
+      /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      "Format d'heure invalide (HH:mm)"
+    )
+    .optional(),
+  duration: z
+    .string()
+    .transform((val) => parseInt(val))
+    .refine((val) => val > 0 && val <= 720, 'Durée invalide (1-720 minutes)')
+    .optional(),
+  slotDuration: z
+    .string()
+    .transform((val) => parseInt(val) || 60)
+    .refine(
+      (val) => [15, 30, 60, 120].includes(val),
+      'Durée de créneau invalide (15, 30, 60 ou 120 min)'
+    )
+    .optional(),
 })
 
 /**
@@ -32,21 +55,28 @@ export async function GET(request: NextRequest) {
       startTime: searchParams.get('startTime'),
       endTime: searchParams.get('endTime'),
       duration: searchParams.get('duration'),
-      slotDuration: searchParams.get('slotDuration')
+      slotDuration: searchParams.get('slotDuration'),
     })
 
     if (!queryValidation.success) {
       return NextResponse.json(
-        { 
-          error: 'Paramètres de requête invalides', 
+        {
+          error: 'Paramètres de requête invalides',
           code: 'QUERY_VALIDATION_ERROR',
-          details: queryValidation.error.errors
+          details: queryValidation.error.errors,
         },
         { status: 400 }
       )
     }
 
-    const { spaceId, date, startTime, endTime, duration, slotDuration = 60 } = queryValidation.data
+    const {
+      spaceId,
+      date,
+      startTime,
+      endTime,
+      duration,
+      slotDuration = 60,
+    } = queryValidation.data
 
     // Connexion à la base de données
     await connectToDatabase()
@@ -55,8 +85,8 @@ export async function GET(request: NextRequest) {
     const space = await Space.findOne({
       $or: [
         { _id: ObjectId.isValid(spaceId) ? new ObjectId(spaceId) : null },
-        { id: spaceId }
-      ]
+        { id: spaceId },
+      ],
     })
 
     if (!space) {
@@ -76,8 +106,8 @@ export async function GET(request: NextRequest) {
           id: space.id,
           name: space.name,
           location: space.location,
-          available: space.available
-        }
+          available: space.available,
+        },
       })
     }
 
@@ -100,13 +130,13 @@ export async function GET(request: NextRequest) {
         requestedSlot: {
           startTime,
           endTime,
-          available: isAvailable
+          available: isAvailable,
         },
-        conflicts: conflicts.map(conflict => ({
+        conflicts: conflicts.map((conflict) => ({
           reason: conflict.reason,
           bookingId: conflict.conflictingBooking._id.toString(),
           conflictStartTime: conflict.conflictingBooking.startTime,
-          conflictEndTime: conflict.conflictingBooking.endTime
+          conflictEndTime: conflict.conflictingBooking.endTime,
         })),
         spaceInfo: {
           id: space.id,
@@ -114,41 +144,50 @@ export async function GET(request: NextRequest) {
           location: space.location,
           capacity: space.capacity,
           specialty: space.specialty,
-          available: space.available
-        }
+          available: space.available,
+        },
       })
     }
 
     // Cas 2: Récupération de tous les créneaux disponibles
-    const timeSlots = await getAvailableTimeSlots(space._id, targetDate, slotDuration)
+    const timeSlots = await getAvailableTimeSlots(
+      space._id,
+      targetDate,
+      slotDuration
+    )
 
     // Cas 3: Si une durée minimale est spécifiée, trouver les créneaux consécutifs
     let consecutiveSlots: any[] = []
     if (duration) {
-      const consecutiveSlotsResult = await findConsecutiveFreeSlots(space._id, targetDate, duration)
-      consecutiveSlots = consecutiveSlotsResult.map(slot => ({
+      const consecutiveSlotsResult = await findConsecutiveFreeSlots(
+        space._id,
+        targetDate,
+        duration
+      )
+      consecutiveSlots = consecutiveSlotsResult.map((slot) => ({
         startTime: slot.start,
         endTime: slot.end,
         duration: slot.duration,
-        available: slot.available
+        available: slot.available,
       }))
     }
 
     // Calculer les statistiques de disponibilité
     const totalSlots = timeSlots.length
-    const availableSlots = timeSlots.filter(slot => slot.available).length
-    const occupancyRate = totalSlots > 0 ? ((totalSlots - availableSlots) / totalSlots) * 100 : 0
+    const availableSlots = timeSlots.filter((slot) => slot.available).length
+    const occupancyRate =
+      totalSlots > 0 ? ((totalSlots - availableSlots) / totalSlots) * 100 : 0
 
     // Regrouper les créneaux consécutifs libres pour faciliter l'affichage
     const freeBlocks: any[] = []
     let currentBlock: any = null
 
-    for (const slot of timeSlots.filter(s => s.available)) {
+    for (const slot of timeSlots.filter((s) => s.available)) {
       if (!currentBlock) {
         currentBlock = {
           startTime: slot.start,
           endTime: slot.end,
-          duration: slot.duration
+          duration: slot.duration,
         }
       } else {
         // Vérifier si ce créneau est consécutif au précédent
@@ -161,7 +200,7 @@ export async function GET(request: NextRequest) {
           currentBlock = {
             startTime: slot.start,
             endTime: slot.end,
-            duration: slot.duration
+            duration: slot.duration,
           }
         }
       }
@@ -174,17 +213,35 @@ export async function GET(request: NextRequest) {
 
     // Informations sur les heures d'ouverture de l'espace pour cette date
     // Utiliser l'heure locale française pour éviter les problèmes de timezone
-    const localDate = new Date(targetDate.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))
-    const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][localDate.getDay()]
-    
+    const localDate = new Date(
+      targetDate.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })
+    )
+    const dayName = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ][localDate.getDay()]
+
     console.log('📅 [Availability] Conversion timezone:', {
       originalDate: targetDate,
       originalUTC: targetDate.toISOString(),
       localDateParis: localDate,
       originalDayIndex: targetDate.getDay(),
       localDayIndex: localDate.getDay(),
-      originalDayName: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][targetDate.getDay()],
-      localDayName: dayName
+      originalDayName: [
+        'sunday',
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+      ][targetDate.getDay()],
+      localDayName: dayName,
     })
     const openingHours = space.openingHours?.[dayName]
 
@@ -201,37 +258,43 @@ export async function GET(request: NextRequest) {
         features: space.features,
         rating: space.rating,
         available: space.available,
-        openingHours: openingHours ? {
-          open: openingHours.open,
-          close: openingHours.close,
-          closed: openingHours.closed || false
-        } : null
+        openingHours: openingHours
+          ? {
+              open: openingHours.open,
+              close: openingHours.close,
+              closed: openingHours.closed || false,
+            }
+          : null,
       },
       availability: {
         totalSlots,
         availableSlots,
         occupiedSlots: totalSlots - availableSlots,
-        occupancyRate: Math.round(occupancyRate * 100) / 100
+        occupancyRate: Math.round(occupancyRate * 100) / 100,
       },
-      timeSlots: timeSlots.map(slot => ({
+      timeSlots: timeSlots.map((slot) => ({
         startTime: slot.start,
         endTime: slot.end,
         available: slot.available,
-        duration: slot.duration
+        duration: slot.duration,
       })),
       freeBlocks,
       consecutiveSlots: duration ? consecutiveSlots : undefined,
       recommendations: {
-        bestAvailability: freeBlocks.length > 0 ? freeBlocks.reduce((max, block) => 
-          block.duration > max.duration ? block : max
-        ) : null,
-        suggestedDuration: duration || (freeBlocks.length > 0 ? freeBlocks[0].duration : slotDuration)
-      }
+        bestAvailability:
+          freeBlocks.length > 0
+            ? freeBlocks.reduce((max, block) =>
+                block.duration > max.duration ? block : max
+              )
+            : null,
+        suggestedDuration:
+          duration ||
+          (freeBlocks.length > 0 ? freeBlocks[0].duration : slotDuration),
+      },
     })
-
   } catch (error) {
     console.error('[GET /api/bookings/availability] Error:', error)
-    
+
     // Gestion des erreurs spécifiques
     if (error instanceof Error) {
       if (error.message.includes('Espace non trouvé')) {
@@ -242,10 +305,10 @@ export async function GET(request: NextRequest) {
       }
       if (error.message.includes('ferme')) {
         return NextResponse.json(
-          { 
-            available: false, 
+          {
+            available: false,
             reason: 'Espace fermé ce jour-là',
-            code: 'SPACE_CLOSED'
+            code: 'SPACE_CLOSED',
           },
           { status: 200 }
         )
@@ -253,7 +316,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Erreur lors de la vérification de disponibilité', code: 'INTERNAL_ERROR' },
+      {
+        error: 'Erreur lors de la vérification de disponibilité',
+        code: 'INTERNAL_ERROR',
+      },
       { status: 500 }
     )
   }

@@ -50,17 +50,20 @@ This project is organized as a monorepo using Turborepo, featuring multiple appl
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd coworking-platform
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 # Copy environment files for each app
 cp apps/web/.env.example apps/web/.env.local
@@ -70,11 +73,13 @@ cp apps/api/.env.example apps/api/.env
 ```
 
 4. Start development servers:
+
 ```bash
 pnpm dev
 ```
 
 This will start all applications:
+
 - Web: http://localhost:3000
 - Dashboard: http://localhost:3001
 - Admin: http://localhost:3002
@@ -141,12 +146,14 @@ The monorepo is designed for easy deployment to various platforms:
 ## Architecture Decisions
 
 ### Monorepo Benefits
+
 - **Code Sharing**: Common components, utilities, and configurations
 - **Consistent Dependencies**: Unified package management
 - **Atomic Changes**: Cross-package changes in single commits
 - **Simplified CI/CD**: Single repository for all applications
 
 ### Package Structure
+
 - **UI Package**: Ensures consistent design system across all apps
 - **Database Package**: Centralized data models and schemas
 - **Auth Package**: Unified authentication across applications

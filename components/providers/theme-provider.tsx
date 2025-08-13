@@ -32,7 +32,7 @@ interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   // Thème fixe pour le café coworking - ambiance chaleureuse
   const theme: Theme = 'light'
-  
+
   useEffect(() => {
     // S'assurer que le thème sombre n'est jamais appliqué
     document.documentElement.classList.remove('dark')

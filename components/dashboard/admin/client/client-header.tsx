@@ -2,7 +2,15 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { Bell, Search, Menu, ShoppingBag, Coffee, Wifi, Users } from 'lucide-react'
+import {
+  Bell,
+  Search,
+  Menu,
+  ShoppingBag,
+  Coffee,
+  Wifi,
+  Users,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +31,7 @@ export function ClientHeader() {
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
-    <header 
+    <header
       className="sticky top-0 z-40 border-b border-[var(--color-client-border)]"
       style={{ backgroundColor: 'var(--color-client-card)' }}
     >
@@ -35,46 +43,70 @@ export function ClientHeader() {
 
         {/* Logo mobile */}
         <div className="flex items-center gap-2 lg:hidden">
-          <Coffee className="h-6 w-6" style={{ color: 'var(--color-coffee-primary)' }} />
-          <span className="font-bold" style={{ color: 'var(--color-client-text)' }}>
+          <Coffee
+            className="h-6 w-6"
+            style={{ color: 'var(--color-coffee-primary)' }}
+          />
+          <span
+            className="font-bold"
+            style={{ color: 'var(--color-client-text)' }}
+          >
             Cow or King
           </span>
         </div>
 
         {/* Search bar */}
-        <div className="flex-1 max-w-md">
+        <div className="max-w-md flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-client-muted)' }} />
+            <Search
+              className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+              style={{ color: 'var(--color-client-muted)' }}
+            />
             <Input
               placeholder="Rechercher un espace, une commande..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 border-[var(--color-client-border)]"
+              className="border-[var(--color-client-border)] pl-9"
               style={{ backgroundColor: 'var(--color-client-bg)' }}
             />
           </div>
         </div>
 
         {/* Status indicators */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden items-center gap-4 md:flex">
           {/* Cafe status */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--color-client-border)]">
-            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-medium" style={{ color: 'var(--color-client-text)' }}>
+          <div className="flex items-center gap-2 rounded-full border border-[var(--color-client-border)] px-3 py-1.5">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+            <span
+              className="text-sm font-medium"
+              style={{ color: 'var(--color-client-text)' }}
+            >
               Café ouvert
             </span>
           </div>
 
           {/* Current occupancy */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'var(--color-coffee-secondary)' }}>
-            <Users className="h-4 w-4" style={{ color: 'var(--color-coffee-primary)' }} />
-            <span className="text-sm font-medium" style={{ color: 'var(--color-client-text)' }}>
+          <div
+            className="flex items-center gap-2 rounded-full px-3 py-1.5"
+            style={{ backgroundColor: 'var(--color-coffee-secondary)' }}
+          >
+            <Users
+              className="h-4 w-4"
+              style={{ color: 'var(--color-coffee-primary)' }}
+            />
+            <span
+              className="text-sm font-medium"
+              style={{ color: 'var(--color-client-text)' }}
+            >
               12/24 places
             </span>
           </div>
 
           {/* WiFi status */}
-          <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-coffee-light)' }}>
+          <div
+            className="flex items-center gap-1 rounded px-2 py-1"
+            style={{ backgroundColor: 'var(--color-coffee-light)' }}
+          >
             <Wifi className="h-4 w-4 text-green-600" />
             <span className="text-xs font-medium text-green-700">WiFi</span>
           </div>
@@ -87,8 +119,8 @@ export function ClientHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-5 w-5" />
-                <Badge 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
+                <Badge
+                  className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center text-xs"
                   style={{ backgroundColor: 'var(--color-coffee-accent)' }}
                 >
                   2
@@ -102,14 +134,18 @@ export function ClientHeader() {
                 <Coffee className="mr-2 h-4 w-4" />
                 <div>
                   <p className="text-sm font-medium">Votre café est prêt !</p>
-                  <p className="text-xs text-muted-foreground">Cappuccino - Comptoir</p>
+                  <p className="text-muted-foreground text-xs">
+                    Cappuccino - Comptoir
+                  </p>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell className="mr-2 h-4 w-4" />
                 <div>
                   <p className="text-sm font-medium">Réservation confirmée</p>
-                  <p className="text-xs text-muted-foreground">Espace Focus - Demain 14h</p>
+                  <p className="text-muted-foreground text-xs">
+                    Espace Focus - Demain 14h
+                  </p>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -119,8 +155,8 @@ export function ClientHeader() {
           <Button variant="ghost" size="sm" className="relative" asChild>
             <Link href="/dashboard/client/commandes">
               <ShoppingBag className="h-5 w-5" />
-              <Badge 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
+              <Badge
+                className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center text-xs"
                 style={{ backgroundColor: 'var(--color-coffee-primary)' }}
               >
                 1
@@ -136,9 +172,17 @@ export function ClientHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={session?.user?.image || undefined} alt="Avatar" />
-                  <AvatarFallback style={{ backgroundColor: 'var(--color-coffee-light)' }}>
-                    {session?.user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                  <AvatarImage
+                    src={session?.user?.image || undefined}
+                    alt="Avatar"
+                  />
+                  <AvatarFallback
+                    style={{ backgroundColor: 'var(--color-coffee-light)' }}
+                  >
+                    {session?.user?.name
+                      ?.split(' ')
+                      .map((n) => n[0])
+                      .join('') || 'U'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -146,8 +190,12 @@ export function ClientHeader() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
                 <div>
-                  <p className="text-sm font-medium">{session?.user?.name || 'Utilisateur'}</p>
-                  <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
+                  <p className="text-sm font-medium">
+                    {session?.user?.name || 'Utilisateur'}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {session?.user?.email}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

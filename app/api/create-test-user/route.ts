@@ -16,29 +16,29 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    console.log('🔄 Création d\'un utilisateur de test...')
-    
+    console.log("🔄 Création d'un utilisateur de test...")
+
     const { db } = await connectToDatabase()
     const usersCollection = db.collection('users')
-    
+
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await usersCollection.findOne({
-      email: 'test@coworking.com'
+      email: 'test@coworking.com',
     })
-    
+
     if (existingUser) {
       return NextResponse.json({
         message: 'Utilisateur de test déjà existant',
         user: {
           email: 'test@coworking.com',
-          role: existingUser.role
-        }
+          role: existingUser.role,
+        },
       })
     }
-    
+
     // Créer un mot de passe hashé
     const hashedPassword = await bcrypt.hash('testpassword123', 12)
-    
+
     // Créer l'utilisateur de test
     const testUser = {
       email: 'test@coworking.com',
@@ -51,17 +51,17 @@ export async function POST(request: NextRequest) {
       status: 'active',
       createdAt: new Date(),
       updatedAt: new Date(),
-      loginHistory: []
+      loginHistory: [],
     }
-    
+
     const result = await usersCollection.insertOne(testUser)
-    
+
     if (!result.insertedId) {
-      throw new Error('Erreur lors de la création de l\'utilisateur de test')
+      throw new Error("Erreur lors de la création de l'utilisateur de test")
     }
-    
+
     console.log(`✅ Utilisateur de test créé avec l'ID: ${result.insertedId}`)
-    
+
     return NextResponse.json({
       message: 'Utilisateur de test créé avec succès',
       user: {
@@ -69,21 +69,23 @@ export async function POST(request: NextRequest) {
         email: testUser.email,
         firstName: testUser.firstName,
         lastName: testUser.lastName,
-        role: testUser.role
+        role: testUser.role,
       },
       credentials: {
         email: 'test@coworking.com',
-        password: 'testpassword123'
-      }
+        password: 'testpassword123',
+      },
     })
-    
   } catch (error) {
-    console.error('❌ Erreur lors de la création de l\'utilisateur de test:', error)
-    
+    console.error(
+      "❌ Erreur lors de la création de l'utilisateur de test:",
+      error
+    )
+
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de la création de l\'utilisateur de test',
-        details: error instanceof Error ? error.message : 'Erreur inconnue'
+      {
+        error: "Erreur lors de la création de l'utilisateur de test",
+        details: error instanceof Error ? error.message : 'Erreur inconnue',
       },
       { status: 500 }
     )
@@ -104,19 +106,19 @@ export async function GET(request: NextRequest) {
   try {
     const { db } = await connectToDatabase()
     const usersCollection = db.collection('users')
-    
+
     const testUser = await usersCollection.findOne(
       { email: 'test@coworking.com' },
       { projection: { password: 0 } } // Exclure le mot de passe
     )
-    
+
     if (!testUser) {
       return NextResponse.json(
         { message: 'Aucun utilisateur de test trouvé' },
         { status: 404 }
       )
     }
-    
+
     return NextResponse.json({
       message: 'Utilisateur de test trouvé',
       user: {
@@ -125,21 +127,23 @@ export async function GET(request: NextRequest) {
         firstName: testUser.firstName,
         lastName: testUser.lastName,
         role: testUser.role,
-        isActive: testUser.isActive
+        isActive: testUser.isActive,
       },
       credentials: {
         email: 'test@coworking.com',
-        password: 'testpassword123'
-      }
+        password: 'testpassword123',
+      },
     })
-    
   } catch (error) {
-    console.error('❌ Erreur lors de la récupération de l\'utilisateur de test:', error)
-    
+    console.error(
+      "❌ Erreur lors de la récupération de l'utilisateur de test:",
+      error
+    )
+
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de la récupération de l\'utilisateur de test',
-        details: error instanceof Error ? error.message : 'Erreur inconnue'
+      {
+        error: "Erreur lors de la récupération de l'utilisateur de test",
+        details: error instanceof Error ? error.message : 'Erreur inconnue',
       },
       { status: 500 }
     )

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
-import { 
-  verifyPassword, 
-  logSecurityEvent, 
-  checkBruteForce, 
-  recordFailedLogin, 
+import {
+  verifyPassword,
+  logSecurityEvent,
+  checkBruteForce,
+  recordFailedLogin,
   resetLoginAttempts,
-  getRealIP
+  getRealIP,
 } from '@/lib/auth-utils'
 import { UserRole } from '@/types/auth'
 
@@ -17,7 +17,7 @@ import { UserRole } from '@/types/auth'
 export async function POST(request: NextRequest) {
   const ip = getRealIP(request)
   const userAgent = request.headers.get('user-agent') || 'unknown'
-  
+
   try {
     // Vérifier les tentatives de brute force
     const bruteForceCheck = checkBruteForce(ip)
@@ -29,23 +29,24 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         success: false,
-        details: { 
-          reason: 'brute_force_protection', 
-          remainingTime: bruteForceCheck.remainingTime 
-        }
+        details: {
+          reason: 'brute_force_protection',
+          remainingTime: bruteForceCheck.remainingTime,
+        },
       })
-      
+
       return NextResponse.json(
-        { 
-          error: 'Trop de tentatives de connexion. Réessayez dans quelques minutes.',
-          remainingTime: bruteForceCheck.remainingTime
+        {
+          error:
+            'Trop de tentatives de connexion. Réessayez dans quelques minutes.',
+          remainingTime: bruteForceCheck.remainingTime,
         },
         { status: 429 }
       )
     }
 
     const body = await request.json().catch(() => null)
-    
+
     if (!body || !body.email || !body.password) {
       await logSecurityEvent({
         userId: undefined,
@@ -54,9 +55,9 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         success: false,
-        details: { reason: 'missing_credentials' }
+        details: { reason: 'missing_credentials' },
       })
-      
+
       return NextResponse.json(
         { error: 'Email et mot de passe requis' },
         { status: 400 }
@@ -75,21 +76,21 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         success: false,
-        details: { email }
+        details: { email },
       })
-      
+
       return NextResponse.json(
-        { error: 'Format d\'email invalide' },
+        { error: "Format d'email invalide" },
         { status: 400 }
       )
     }
 
     // Connexion à la base de données
     const { db } = await connectToDatabase()
-    
+
     // Rechercher l'utilisateur
     const user = await db.collection('users').findOne({
-      email: email.toLowerCase().trim()
+      email: email.toLowerCase().trim(),
     })
 
     if (!user) {
@@ -101,9 +102,9 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         success: false,
-        details: { email }
+        details: { email },
       })
-      
+
       // Réponse générique pour éviter l'énumération des utilisateurs
       return NextResponse.json(
         { error: 'Identifiants invalides' },
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Vérifier le mot de passe
     const isPasswordValid = await verifyPassword(password, user.password)
-    
+
     if (!isPasswordValid) {
       recordFailedLogin(ip)
       await logSecurityEvent({
@@ -123,9 +124,9 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         success: false,
-        details: { email }
+        details: { email },
       })
-      
+
       return NextResponse.json(
         { error: 'Identifiants invalides' },
         { status: 401 }
@@ -141,13 +142,13 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         success: false,
-        details: { 
+        details: {
           email,
           status: user.status,
-          isActive: user.isActive
-        }
+          isActive: user.isActive,
+        },
       })
-      
+
       return NextResponse.json(
         { error: 'Compte désactivé ou suspendu' },
         { status: 403 }
@@ -161,10 +162,10 @@ export async function POST(request: NextRequest) {
     const updateResult = await db.collection('users').updateOne(
       { _id: user._id },
       {
-        $set: { 
+        $set: {
           lastLoginAt: new Date(),
           lastLoginIP: ip,
-          lastLoginUserAgent: userAgent
+          lastLoginUserAgent: userAgent,
         },
         $push: {
           loginHistory: {
@@ -172,14 +173,16 @@ export async function POST(request: NextRequest) {
             ip,
             userAgent,
             success: true,
-            method: 'api_auth'
-          }
-        } as any
+            method: 'api_auth',
+          },
+        } as any,
       }
     )
 
     if (updateResult.matchedCount === 0) {
-      console.warn(`Impossible de mettre à jour les informations de connexion pour l'utilisateur ${user._id}`)
+      console.warn(
+        `Impossible de mettre à jour les informations de connexion pour l'utilisateur ${user._id}`
+      )
     }
 
     // Log de succès
@@ -190,10 +193,10 @@ export async function POST(request: NextRequest) {
       ip,
       userAgent,
       success: true,
-      details: { 
+      details: {
         email,
-        role: user.role
-      }
+        role: user.role,
+      },
     })
 
     // Retourner les informations utilisateur (sans le mot de passe)
@@ -206,14 +209,13 @@ export async function POST(request: NextRequest) {
       permissions: user.permissions || [],
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     }
 
     return NextResponse.json(userResponse, { status: 200 })
-
   } catch (error) {
-    console.error('Erreur dans l\'API d\'authentification:', error)
-    
+    console.error("Erreur dans l'API d'authentification:", error)
+
     await logSecurityEvent({
       userId: undefined,
       action: 'AUTH_API_ERROR',
@@ -221,11 +223,11 @@ export async function POST(request: NextRequest) {
       ip,
       userAgent,
       success: false,
-      details: { 
-        error: error instanceof Error ? error.message : 'unknown_error'
-      }
+      details: {
+        error: error instanceof Error ? error.message : 'unknown_error',
+      },
     })
-    
+
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }
@@ -239,24 +241,24 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const { db } = await connectToDatabase()
-    
+
     // Test simple de connectivité à la base de données
     await db.admin().ping()
-    
+
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      service: 'auth-api'
+      service: 'auth-api',
     })
   } catch (error) {
-    console.error('Erreur de santé de l\'API d\'authentification:', error)
-    
+    console.error("Erreur de santé de l'API d'authentification:", error)
+
     return NextResponse.json(
       {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
         service: 'auth-api',
-        error: error instanceof Error ? error.message : 'unknown_error'
+        error: error instanceof Error ? error.message : 'unknown_error',
       },
       { status: 503 }
     )

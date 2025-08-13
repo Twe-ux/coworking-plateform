@@ -14,7 +14,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -65,16 +65,15 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: formattedEmployee
+      data: formattedEmployee,
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API GET employee:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la récupération de l\'employé',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la récupération de l'employé",
+        details: error.message,
       },
       { status: 500 }
     )
@@ -90,7 +89,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -128,7 +127,7 @@ export async function PUT(
 
     // Préparer les données à mettre à jour
     const updateData: any = {}
-    
+
     if (firstName !== undefined) updateData.firstName = firstName.trim()
     if (lastName !== undefined) updateData.lastName = lastName.trim()
     if (email !== undefined) updateData.email = email ? email.trim() : null
@@ -141,9 +140,9 @@ export async function PUT(
     const updatedEmployee = await Employee.findByIdAndUpdate(
       params.id,
       updateData,
-      { 
-        new: true, 
-        runValidators: true 
+      {
+        new: true,
+        runValidators: true,
       }
     ).lean()
 
@@ -172,19 +171,20 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: 'Employé mis à jour avec succès',
-      data: formattedEmployee
+      data: formattedEmployee,
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API PUT employee:', error)
-    
+
     if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message)
+      const validationErrors = Object.values(error.errors).map(
+        (err: any) => err.message
+      )
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Données invalides',
-          details: validationErrors 
+          details: validationErrors,
         },
         { status: 400 }
       )
@@ -192,19 +192,19 @@ export async function PUT(
 
     if (error.code === 11000) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Un employé avec cet email existe déjà' 
+        {
+          success: false,
+          error: 'Un employé avec cet email existe déjà',
         },
         { status: 409 }
       )
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la mise à jour de l\'employé',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la mise à jour de l'employé",
+        details: error.message,
       },
       { status: 500 }
     )
@@ -220,7 +220,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -260,16 +260,15 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Employé désactivé avec succès'
+      message: 'Employé désactivé avec succès',
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API DELETE employee:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la suppression de l\'employé',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la suppression de l'employé",
+        details: error.message,
       },
       { status: 500 }
     )

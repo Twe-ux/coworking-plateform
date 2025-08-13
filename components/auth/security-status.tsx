@@ -14,7 +14,10 @@ interface SecurityStatusProps {
   className?: string
 }
 
-export function SecurityStatus({ showDetails = false, className = '' }: SecurityStatusProps) {
+export function SecurityStatus({
+  showDetails = false,
+  className = '',
+}: SecurityStatusProps) {
   const auth = useAuth()
 
   if (!auth.isAuthenticated) {
@@ -52,15 +55,17 @@ export function SecurityStatus({ showDetails = false, className = '' }: Security
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border p-4 ${className}`}>
+    <div className={`rounded-lg border bg-white p-4 shadow-sm ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
             <span className="text-sm font-medium text-gray-900">Connecté</span>
           </div>
-          
-          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(auth.user!.role)}`}>
+
+          <div
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getRoleBadgeColor(auth.user!.role)}`}
+          >
             <span className="mr-1">{getRoleIcon(auth.user!.role)}</span>
             {auth.user!.role}
           </div>
@@ -74,7 +79,7 @@ export function SecurityStatus({ showDetails = false, className = '' }: Security
       </div>
 
       {showDetails && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="mt-3 border-t border-gray-200 pt-3">
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
               <span className="font-medium text-gray-700">Utilisateur:</span>
@@ -83,7 +88,7 @@ export function SecurityStatus({ showDetails = false, className = '' }: Security
               </div>
               <div className="text-gray-500">{auth.user!.email}</div>
             </div>
-            
+
             <div>
               <span className="font-medium text-gray-700">Sécurité:</span>
               <div className="space-y-1">
@@ -93,13 +98,21 @@ export function SecurityStatus({ showDetails = false, className = '' }: Security
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Compte actif:</span>
-                  <span className={auth.user!.isActive ? 'text-green-600' : 'text-red-600'}>
+                  <span
+                    className={
+                      auth.user!.isActive ? 'text-green-600' : 'text-red-600'
+                    }
+                  >
                     {auth.user!.isActive ? '✅' : '❌'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Protection CSRF:</span>
-                  <span className={auth.csrfToken ? 'text-green-600' : 'text-red-600'}>
+                  <span
+                    className={
+                      auth.csrfToken ? 'text-green-600' : 'text-red-600'
+                    }
+                  >
                     {auth.csrfToken ? '✅' : '❌'}
                   </span>
                 </div>
@@ -108,13 +121,15 @@ export function SecurityStatus({ showDetails = false, className = '' }: Security
           </div>
 
           {auth.user!.permissions && auth.user!.permissions.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <span className="font-medium text-gray-700 text-xs">Permissions:</span>
-              <div className="flex flex-wrap gap-1 mt-1">
+            <div className="mt-3 border-t border-gray-200 pt-3">
+              <span className="text-xs font-medium text-gray-700">
+                Permissions:
+              </span>
+              <div className="mt-1 flex flex-wrap gap-1">
                 {auth.user!.permissions.map((permission) => (
                   <span
                     key={permission}
-                    className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded"
+                    className="inline-block rounded bg-blue-50 px-2 py-1 text-xs text-blue-700"
                   >
                     {permission}
                   </span>
@@ -137,7 +152,7 @@ export function SecurityIndicator() {
   if (auth.isLoading) {
     return (
       <div className="flex items-center space-x-2">
-        <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+        <div className="h-2 w-2 animate-pulse rounded-full bg-gray-400"></div>
         <span className="text-xs text-gray-500">Chargement...</span>
       </div>
     )
@@ -146,7 +161,7 @@ export function SecurityIndicator() {
   if (!auth.isAuthenticated) {
     return (
       <div className="flex items-center space-x-2">
-        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+        <div className="h-2 w-2 rounded-full bg-red-500"></div>
         <span className="text-xs text-red-600">Non connecté</span>
       </div>
     )
@@ -154,7 +169,7 @@ export function SecurityIndicator() {
 
   return (
     <div className="flex items-center space-x-2">
-      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+      <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
       <span className="text-xs text-green-600">Sécurisé</span>
     </div>
   )
@@ -172,6 +187,6 @@ export function useSecurityStatus() {
     isActive: auth.user?.isActive || false,
     isAuthenticated: auth.isAuthenticated,
     role: auth.user?.role,
-    permissions: auth.user?.permissions || []
+    permissions: auth.user?.permissions || [],
   }
 }
