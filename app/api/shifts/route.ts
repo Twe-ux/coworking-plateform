@@ -26,6 +26,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Vérifier les permissions (admin, manager ou staff pour lecture seule)
+    const userRole = (session?.user as any)?.role
+    if (
+      !['admin', 'manager', 'staff'].includes(userRole) &&
+      process.env.NODE_ENV !== 'development'
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Permissions insuffisantes' },
+        { status: 403 }
+      )
+    }
+
     await dbConnect()
 
     const { searchParams } = new URL(request.url)

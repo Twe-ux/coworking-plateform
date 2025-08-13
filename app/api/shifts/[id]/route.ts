@@ -22,11 +22,23 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
+      )
+    }
+
+    // Vérifier les permissions (admin, manager ou staff pour lecture seule)
+    const userRole = (session?.user as any)?.role
+    if (
+      !['admin', 'manager', 'staff'].includes(userRole) &&
+      process.env.NODE_ENV !== 'development'
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Permissions insuffisantes' },
+        { status: 403 }
       )
     }
 
@@ -52,7 +64,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         lastName: shift.employeeId.lastName,
         fullName: shift.employeeId.fullName,
         role: shift.employeeId.role,
-        color: shift.employeeId.color
+        color: shift.employeeId.color,
       },
       date: shift.date,
       startTime: shift.startTime,
@@ -63,18 +75,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       isActive: shift.isActive,
       timeRange: `${shift.startTime} - ${shift.endTime}`,
       createdAt: shift.createdAt,
-      updatedAt: shift.updatedAt
+      updatedAt: shift.updatedAt,
     }
 
     return NextResponse.json({
       success: true,
-      data: transformedShift
+      data: transformedShift,
     })
-
   } catch (error) {
     console.error('Erreur API GET shift:', error)
     return NextResponse.json(
-      { success: false, error: 'Erreur serveur lors de la récupération du créneau' },
+      {
+        success: false,
+        error: 'Erreur serveur lors de la récupération du créneau',
+      },
       { status: 500 }
     )
   }
@@ -84,7 +98,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     // Temporary debug bypass for development
     if (!session?.user && process.env.NODE_ENV !== 'development') {
       return NextResponse.json(
@@ -94,7 +108,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const userRole = (session?.user as any)?.role
-    if (!['admin', 'manager'].includes(userRole) && process.env.NODE_ENV !== 'development') {
+    if (
+      !['admin', 'manager'].includes(userRole) &&
+      process.env.NODE_ENV !== 'development'
+    ) {
       return NextResponse.json(
         { success: false, error: 'Permissions insuffisantes' },
         { status: 403 }
@@ -102,7 +119,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const { employeeId, date, startTime, endTime, type, location, notes, isActive } = body
+    const {
+      employeeId,
+      date,
+      startTime,
+      endTime,
+      type,
+      location,
+      notes,
+      isActive,
+    } = body
 
     await dbConnect()
 
@@ -133,7 +159,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (startTime !== undefined) updateData.startTime = startTime
     if (endTime !== undefined) updateData.endTime = endTime
     if (type !== undefined) updateData.type = type
-    if (location !== undefined) updateData.location = location?.trim() || undefined
+    if (location !== undefined)
+      updateData.location = location?.trim() || undefined
     if (notes !== undefined) updateData.notes = notes?.trim() || undefined
     if (isActive !== undefined) updateData.isActive = isActive
 
@@ -153,32 +180,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           {
             $and: [
               { startTime: { $lte: checkStartTime } },
-              { endTime: { $gt: checkStartTime } }
-            ]
+              { endTime: { $gt: checkStartTime } },
+            ],
           },
           {
             $and: [
               { startTime: { $lt: checkEndTime } },
-              { endTime: { $gte: checkEndTime } }
-            ]
+              { endTime: { $gte: checkEndTime } },
+            ],
           },
           {
             $and: [
               { startTime: { $gte: checkStartTime } },
-              { endTime: { $lte: checkEndTime } }
-            ]
-          }
-        ]
+              { endTime: { $lte: checkEndTime } },
+            ],
+          },
+        ],
       })
 
       if (conflictingShift) {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Conflit de créneaux détecté',
             details: {
-              conflict: `Un créneau existe déjà de ${conflictingShift.startTime} à ${conflictingShift.endTime}`
-            }
+              conflict: `Un créneau existe déjà de ${conflictingShift.startTime} à ${conflictingShift.endTime}`,
+            },
           },
           { status: 409 }
         )
@@ -186,11 +213,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Mettre à jour le créneau
-    const updatedShift = await Shift.findByIdAndUpdate(
-      params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('employeeId', 'firstName lastName fullName role color').lean()
+    const updatedShift = await Shift.findByIdAndUpdate(params.id, updateData, {
+      new: true,
+      runValidators: true,
+    })
+      .populate('employeeId', 'firstName lastName fullName role color')
+      .lean()
 
     const transformedShift = {
       id: updatedShift._id.toString(),
@@ -201,7 +229,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         lastName: updatedShift.employeeId.lastName,
         fullName: updatedShift.employeeId.fullName,
         role: updatedShift.employeeId.role,
-        color: updatedShift.employeeId.color
+        color: updatedShift.employeeId.color,
       },
       date: updatedShift.date,
       startTime: updatedShift.startTime,
@@ -212,37 +240,39 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       isActive: updatedShift.isActive,
       timeRange: `${updatedShift.startTime} - ${updatedShift.endTime}`,
       createdAt: updatedShift.createdAt,
-      updatedAt: updatedShift.updatedAt
+      updatedAt: updatedShift.updatedAt,
     }
 
     return NextResponse.json({
       success: true,
       data: transformedShift,
-      message: 'Créneau mis à jour avec succès'
+      message: 'Créneau mis à jour avec succès',
     })
-
   } catch (error: any) {
     console.error('Erreur API PUT shift:', error)
-    
+
     // Gestion des erreurs de validation Mongoose
     if (error.name === 'ValidationError') {
       const validationErrors: Record<string, string> = {}
       for (const field in error.errors) {
         validationErrors[field] = error.errors[field].message
       }
-      
+
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Erreurs de validation',
-          details: validationErrors
+          details: validationErrors,
         },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { success: false, error: 'Erreur serveur lors de la mise à jour du créneau' },
+      {
+        success: false,
+        error: 'Erreur serveur lors de la mise à jour du créneau',
+      },
       { status: 500 }
     )
   }
@@ -252,7 +282,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     // Temporary debug bypass for development
     if (!session?.user && process.env.NODE_ENV !== 'development') {
       return NextResponse.json(
@@ -262,7 +292,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     const userRole = (session?.user as any)?.role
-    if (!['admin', 'manager'].includes(userRole) && process.env.NODE_ENV !== 'development') {
+    if (
+      !['admin', 'manager'].includes(userRole) &&
+      process.env.NODE_ENV !== 'development'
+    ) {
       return NextResponse.json(
         { success: false, error: 'Permissions insuffisantes' },
         { status: 403 }
@@ -285,13 +318,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: 'Créneau supprimé avec succès'
+      message: 'Créneau supprimé avec succès',
     })
-
   } catch (error) {
     console.error('Erreur API DELETE shift:', error)
     return NextResponse.json(
-      { success: false, error: 'Erreur serveur lors de la suppression du créneau' },
+      {
+        success: false,
+        error: 'Erreur serveur lors de la suppression du créneau',
+      },
       { status: 500 }
     )
   }

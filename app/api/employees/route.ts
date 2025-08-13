@@ -10,7 +10,7 @@ import Employee from '@/lib/models/employee'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     // Temporary debug bypass for development
     if (!session?.user?.id && process.env.NODE_ENV !== 'development') {
       return NextResponse.json(
@@ -19,9 +19,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Vérifier les permissions (admin ou manager) - bypass in development
+    // Vérifier les permissions (admin, manager ou staff pour lecture seule) - bypass in development
     const userRole = (session?.user as any)?.role
-    if (!['admin', 'manager'].includes(userRole) && process.env.NODE_ENV !== 'development') {
+    if (
+      !['admin', 'manager', 'staff'].includes(userRole) &&
+      process.env.NODE_ENV !== 'development'
+    ) {
       return NextResponse.json(
         { success: false, error: 'Permissions insuffisantes' },
         { status: 403 }
@@ -38,15 +41,15 @@ export async function GET(request: NextRequest) {
 
     // Construction de la requête
     let query: any = {}
-    
+
     if (role) {
       query.role = role
     }
-    
+
     if (active !== null) {
       query.isActive = active === 'true'
     }
-    
+
     if (search) {
       query.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -60,7 +63,7 @@ export async function GET(request: NextRequest) {
       .lean()
 
     // Formater les données pour l'interface
-    const formattedEmployees = employees.map(employee => ({
+    const formattedEmployees = employees.map((employee) => ({
       id: employee._id.toString(),
       firstName: employee.firstName,
       lastName: employee.lastName,
@@ -78,16 +81,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: formattedEmployees,
-      count: formattedEmployees.length
+      count: formattedEmployees.length,
     })
-
   } catch (error: any) {
     console.error('❌ Erreur API GET employees:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erreur lors de la récupération des employés',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     )
@@ -100,7 +102,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
@@ -110,22 +112,18 @@ export async function POST(request: NextRequest) {
 
     // Vérifier les permissions (admin ou manager) - bypass in development
     const userRole = (session?.user as any)?.role
-    if (!['admin', 'manager'].includes(userRole) && process.env.NODE_ENV !== 'development') {
+    if (
+      !['admin', 'manager'].includes(userRole) &&
+      process.env.NODE_ENV !== 'development'
+    ) {
       return NextResponse.json(
         { success: false, error: 'Permissions insuffisantes' },
         { status: 403 }
       )
     }
 
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      role,
-      color,
-      startDate,
-    } = await request.json()
+    const { firstName, lastName, email, phone, role, color, startDate } =
+      await request.json()
 
     // Validation des données obligatoires
     if (!firstName || !lastName || !role) {
@@ -168,23 +166,27 @@ export async function POST(request: NextRequest) {
       updatedAt: newEmployee.updatedAt,
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Employé créé avec succès',
-      data: formattedEmployee
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Employé créé avec succès',
+        data: formattedEmployee,
+      },
+      { status: 201 }
+    )
   } catch (error: any) {
     console.error('❌ Erreur API POST employees:', error)
-    
+
     // Gestion des erreurs de validation Mongoose
     if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message)
+      const validationErrors = Object.values(error.errors).map(
+        (err: any) => err.message
+      )
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Données invalides',
-          details: validationErrors 
+          details: validationErrors,
         },
         { status: 400 }
       )
@@ -193,19 +195,19 @@ export async function POST(request: NextRequest) {
     // Gestion des erreurs de duplication
     if (error.code === 11000) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Un employé avec cet email existe déjà' 
+        {
+          success: false,
+          error: 'Un employé avec cet email existe déjà',
         },
         { status: 409 }
       )
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Erreur lors de la création de l\'employé',
-        details: error.message 
+      {
+        success: false,
+        error: "Erreur lors de la création de l'employé",
+        details: error.message,
       },
       { status: 500 }
     )
