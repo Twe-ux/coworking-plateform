@@ -11,6 +11,9 @@ export interface ITimeEntry extends Document {
   shiftNumber: 1 | 2
   totalHours?: number
   status: 'active' | 'completed'
+  hasError?: boolean
+  errorType?: 'MISSING_CLOCK_OUT' | 'INVALID_TIME_RANGE' | 'DUPLICATE_ENTRY'
+  errorMessage?: string
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -23,7 +26,7 @@ const timeEntrySchema = new Schema<ITimeEntry>(
     employeeId: {
       type: Schema.Types.ObjectId,
       ref: 'Employee',
-      required: [true, 'L\'ID de l\'employé est obligatoire'],
+      required: [true, "L'ID de l'employé est obligatoire"],
       index: true,
     },
     date: {
@@ -38,7 +41,7 @@ const timeEntrySchema = new Schema<ITimeEntry>(
     },
     clockIn: {
       type: Date,
-      required: [true, 'L\'heure d\'arrivée est obligatoire'],
+      required: [true, "L'heure d'arrivée est obligatoire"],
       default: Date.now,
     },
     clockOut: {
@@ -56,8 +59,8 @@ const timeEntrySchema = new Schema<ITimeEntry>(
     },
     totalHours: {
       type: Number,
-      min: [0, 'Le total d\'heures ne peut pas être négatif'],
-      max: [24, 'Le total d\'heures ne peut pas dépasser 24h'],
+      min: [0, "Le total d'heures ne peut pas être négatif"],
+      max: [24, "Le total d'heures ne peut pas dépasser 24h"],
     },
     status: {
       type: String,
@@ -67,6 +70,19 @@ const timeEntrySchema = new Schema<ITimeEntry>(
         message: 'Le statut doit être "active" ou "completed"',
       },
       default: 'active',
+    },
+    hasError: {
+      type: Boolean,
+      default: false,
+    },
+    errorType: {
+      type: String,
+      enum: ['MISSING_CLOCK_OUT', 'INVALID_TIME_RANGE', 'DUPLICATE_ENTRY'],
+      required: false,
+    },
+    errorMessage: {
+      type: String,
+      required: false,
     },
     isActive: {
       type: Boolean,
@@ -89,10 +105,10 @@ timeEntrySchema.index({ status: 1, isActive: 1 })
 // Index unique pour empêcher les doublons de shift par employé par jour
 timeEntrySchema.index(
   { employeeId: 1, date: 1, shiftNumber: 1 },
-  { 
+  {
     unique: true,
     partialFilterExpression: { isActive: true },
-    name: 'unique_employee_shift_per_day'
+    name: 'unique_employee_shift_per_day',
   }
 )
 
@@ -125,7 +141,9 @@ timeEntrySchema.pre('save', async function (next) {
       })
 
       if (existingShifts >= 2) {
-        throw new Error('Un employé ne peut avoir que 2 shifts maximum par jour')
+        throw new Error(
+          'Un employé ne peut avoir que 2 shifts maximum par jour'
+        )
       }
 
       // Déterminer automatiquement le numéro de shift
@@ -138,7 +156,9 @@ timeEntrySchema.pre('save', async function (next) {
 
     // Valider que clockOut est après clockIn
     if (this.clockOut && this.clockOut <= this.clockIn) {
-      throw new Error('L\'heure de sortie doit être postérieure à l\'heure d\'entrée')
+      throw new Error(
+        "L'heure de sortie doit être postérieure à l'heure d'entrée"
+      )
     }
 
     // Calculer les heures totales si clockOut est défini
@@ -162,10 +182,10 @@ timeEntrySchema.methods.calculateTotalHours = function (): number {
   if (!this.clockOut) {
     return 0
   }
-  
+
   const durationMs = this.clockOut.getTime() - this.clockIn.getTime()
   const hours = durationMs / (1000 * 60 * 60)
-  
+
   // Arrondir à 2 décimales
   return Math.round(hours * 100) / 100
 }
@@ -178,7 +198,7 @@ timeEntrySchema.methods.completeShift = async function (): Promise<void> {
   this.clockOut = new Date()
   this.totalHours = this.calculateTotalHours()
   this.status = 'completed'
-  
+
   await this.save()
 }
 
@@ -205,7 +225,7 @@ timeEntrySchema.statics.findByDateRange = function (
     },
     isActive: true,
   }
-  
+
   if (employeeId) {
     query.employeeId = employeeId
   }
@@ -244,7 +264,11 @@ timeEntrySchema.statics.getEmployeeHours = function (
 }
 
 timeEntrySchema.statics.getDailyReport = function (date: Date) {
-  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const startOfDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  )
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1)
 
   return this.aggregate([

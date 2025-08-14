@@ -3,7 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/mongodb'
 import TimeEntry from '@/lib/models/timeEntry'
-import type { TimeEntryFilter, PaginatedResponse, TimeEntry as TimeEntryType, ApiResponse } from '@/types/timeEntry'
+import type {
+  TimeEntryFilter,
+  PaginatedResponse,
+  TimeEntry as TimeEntryType,
+  ApiResponse,
+} from '@/types/timeEntry'
 import { TIME_ENTRY_ERRORS } from '@/types/timeEntry'
 
 /**
@@ -13,39 +18,49 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    // Vérification d'authentification (bypass en développement)
-    if (!session?.user?.id && process.env.NODE_ENV !== 'development') {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Non authentifié',
-        details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
-      }, { status: 401 })
+    // Vérification d'authentification
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: 'Non authentifié',
+          details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
+        },
+        { status: 401 }
+      )
     }
 
     // Vérification des permissions (admin, manager ou staff pour lecture)
     const userRole = (session?.user as any)?.role
-    if (
-      !['admin', 'manager', 'staff'].includes(userRole) &&
-      process.env.NODE_ENV !== 'development'
-    ) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Permissions insuffisantes',
-        details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
-      }, { status: 403 })
+    if (!['admin', 'manager', 'staff'].includes(userRole)) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: 'Permissions insuffisantes',
+          details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
+        },
+        { status: 403 }
+      )
     }
 
     await connectToDatabase()
 
     // Extraction des paramètres de recherche
     const { searchParams } = new URL(request.url)
-    
+
     const filters: TimeEntryFilter = {
       employeeId: searchParams.get('employeeId') || undefined,
-      startDate: searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined,
-      endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
-      status: searchParams.get('status') as 'active' | 'completed' || undefined,
-      shiftNumber: searchParams.get('shiftNumber') ? parseInt(searchParams.get('shiftNumber')!) as 1 | 2 : undefined,
+      startDate: searchParams.get('startDate')
+        ? new Date(searchParams.get('startDate')!)
+        : undefined,
+      endDate: searchParams.get('endDate')
+        ? new Date(searchParams.get('endDate')!)
+        : undefined,
+      status:
+        (searchParams.get('status') as 'active' | 'completed') || undefined,
+      shiftNumber: searchParams.get('shiftNumber')
+        ? (parseInt(searchParams.get('shiftNumber')!) as 1 | 2)
+        : undefined,
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '50'),
     }
@@ -86,39 +101,58 @@ export async function GET(request: NextRequest) {
     // Exécution des requêtes en parallèle
     const [timeEntries, totalCount] = await Promise.all([
       TimeEntry.find(query)
-        .populate('employee', 'firstName lastName role color')
+        .populate('employeeId', 'firstName lastName role color')
         .sort({ date: -1, clockIn: -1 })
         .skip(skip)
         .limit(filters.limit)
         .lean(),
-      TimeEntry.countDocuments(query)
+      TimeEntry.countDocuments(query),
     ])
 
     // Formatage des données
-    const formattedTimeEntries: TimeEntryType[] = timeEntries.map((entry: any) => ({
-      id: entry._id.toString(),
-      employeeId: entry.employeeId.toString(),
-      employee: entry.employee ? {
-        id: entry.employee._id.toString(),
-        firstName: entry.employee.firstName,
-        lastName: entry.employee.lastName,
-        fullName: `${entry.employee.firstName} ${entry.employee.lastName}`,
-        role: entry.employee.role,
-      } : undefined,
-      date: entry.date,
-      clockIn: entry.clockIn,
-      clockOut: entry.clockOut,
-      shiftNumber: entry.shiftNumber,
-      totalHours: entry.totalHours,
-      status: entry.status,
-      isActive: entry.isActive,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      // Calculer la durée actuelle pour les shifts actifs
-      currentDuration: !entry.clockOut && entry.status === 'active' ? 
-        Math.max(0, (new Date().getTime() - new Date(entry.clockIn).getTime()) / (1000 * 60 * 60)) : 
-        entry.totalHours || 0,
-    }))
+    const formattedTimeEntries: TimeEntryType[] = timeEntries.map(
+      (entry: any) => {
+        const populatedEmployee = entry.employeeId
+        const originalEmployeeId =
+          populatedEmployee._id || populatedEmployee.toString()
+
+        return {
+          id: entry._id.toString(),
+          employeeId: originalEmployeeId.toString(),
+          employee:
+            populatedEmployee && populatedEmployee._id
+              ? {
+                  id: populatedEmployee._id.toString(),
+                  firstName: populatedEmployee.firstName,
+                  lastName: populatedEmployee.lastName,
+                  fullName: `${populatedEmployee.firstName} ${populatedEmployee.lastName}`,
+                  role: populatedEmployee.role,
+                }
+              : undefined,
+          date: entry.date,
+          clockIn: entry.clockIn,
+          clockOut: entry.clockOut,
+          shiftNumber: entry.shiftNumber,
+          totalHours: entry.totalHours,
+          status: entry.status,
+          hasError: entry.hasError,
+          errorType: entry.errorType,
+          errorMessage: entry.errorMessage,
+          isActive: entry.isActive,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+          // Calculer la durée actuelle pour les shifts actifs
+          currentDuration:
+            !entry.clockOut && entry.status === 'active'
+              ? Math.max(
+                  0,
+                  (new Date().getTime() - new Date(entry.clockIn).getTime()) /
+                    (1000 * 60 * 60)
+                )
+              : entry.totalHours || 0,
+        }
+      }
+    )
 
     // Calcul de la pagination
     const totalPages = Math.ceil(totalCount / filters.limit)
@@ -140,24 +174,29 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(response)
-
   } catch (error: any) {
     console.error('❌ Erreur API GET time-entries:', error)
 
     // Gestion des erreurs de date invalide
     if (error.message.includes('Invalid Date') || error.name === 'CastError') {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Format de date invalide',
-        details: TIME_ENTRY_ERRORS.VALIDATION_ERROR,
-      }, { status: 400 })
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: 'Format de date invalide',
+          details: TIME_ENTRY_ERRORS.VALIDATION_ERROR,
+        },
+        { status: 400 }
+      )
     }
 
-    return NextResponse.json<ApiResponse<null>>({
-      success: false,
-      error: 'Erreur lors de la récupération des time entries',
-      details: error.message,
-    }, { status: 500 })
+    return NextResponse.json<ApiResponse<null>>(
+      {
+        success: false,
+        error: 'Erreur lors de la récupération des time entries',
+        details: error.message,
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -169,48 +208,54 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Non authentifié',
-        details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
-      }, { status: 401 })
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: 'Non authentifié',
+          details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
+        },
+        { status: 401 }
+      )
     }
 
     // Vérification des permissions (admin ou manager uniquement)
     const userRole = (session?.user as any)?.role
-    if (
-      !['admin', 'manager'].includes(userRole) &&
-      process.env.NODE_ENV !== 'development'
-    ) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Seuls les administrateurs et managers peuvent créer des time entries manuellement',
-        details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
-      }, { status: 403 })
+    if (!['admin', 'manager'].includes(userRole)) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error:
+            'Seuls les administrateurs et managers peuvent créer des time entries manuellement',
+          details: TIME_ENTRY_ERRORS.UNAUTHORIZED,
+        },
+        { status: 403 }
+      )
     }
 
-    const {
-      employeeId,
-      date,
-      clockIn,
-      clockOut,
-      shiftNumber,
-    } = await request.json()
+    const { employeeId, date, clockIn, clockOut, shiftNumber } =
+      await request.json()
 
     // Validation des données obligatoires
     if (!employeeId || !clockIn) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'ID employé et heure d\'arrivée sont obligatoires',
-        details: TIME_ENTRY_ERRORS.VALIDATION_ERROR,
-      }, { status: 400 })
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: "ID employé et heure d'arrivée sont obligatoires",
+          details: TIME_ENTRY_ERRORS.VALIDATION_ERROR,
+        },
+        { status: 400 }
+      )
     }
 
     await connectToDatabase()
 
     // Créer les données du time entry
     const entryDate = date ? new Date(date) : new Date()
-    const startOfDay = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate())
+    const startOfDay = new Date(
+      entryDate.getFullYear(),
+      entryDate.getMonth(),
+      entryDate.getDate()
+    )
 
     const timeEntryData: any = {
       employeeId,
@@ -228,37 +273,47 @@ export async function POST(request: NextRequest) {
     await newTimeEntry.save()
 
     // Populer les données de l'employé
-    await newTimeEntry.populate('employee', 'firstName lastName role')
+    await newTimeEntry.populate('employeeId', 'firstName lastName role')
 
     // Formater la réponse
-    const employee = (newTimeEntry as any).employee
+    const populatedEmployee = (newTimeEntry as any).employeeId
     const formattedTimeEntry: TimeEntryType = {
       id: newTimeEntry._id.toString(),
-      employeeId: newTimeEntry.employeeId.toString(),
-      employee: employee ? {
-        id: employee._id.toString(),
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        fullName: `${employee.firstName} ${employee.lastName}`,
-        role: employee.role,
-      } : undefined,
+      employeeId: populatedEmployee._id
+        ? populatedEmployee._id.toString()
+        : populatedEmployee.toString(),
+      employee:
+        populatedEmployee && populatedEmployee._id
+          ? {
+              id: populatedEmployee._id.toString(),
+              firstName: populatedEmployee.firstName,
+              lastName: populatedEmployee.lastName,
+              fullName: `${populatedEmployee.firstName} ${populatedEmployee.lastName}`,
+              role: populatedEmployee.role,
+            }
+          : undefined,
       date: newTimeEntry.date,
       clockIn: newTimeEntry.clockIn,
       clockOut: newTimeEntry.clockOut,
       shiftNumber: newTimeEntry.shiftNumber,
       totalHours: newTimeEntry.totalHours,
       status: newTimeEntry.status,
+      hasError: newTimeEntry.hasError,
+      errorType: newTimeEntry.errorType,
+      errorMessage: newTimeEntry.errorMessage,
       isActive: newTimeEntry.isActive,
       createdAt: newTimeEntry.createdAt,
       updatedAt: newTimeEntry.updatedAt,
     }
 
-    return NextResponse.json<ApiResponse<TimeEntryType>>({
-      success: true,
-      data: formattedTimeEntry,
-      message: 'Time entry créé avec succès',
-    }, { status: 201 })
-
+    return NextResponse.json<ApiResponse<TimeEntryType>>(
+      {
+        success: true,
+        data: formattedTimeEntry,
+        message: 'Time entry créé avec succès',
+      },
+      { status: 201 }
+    )
   } catch (error: any) {
     console.error('❌ Erreur API POST time-entries:', error)
 
@@ -267,26 +322,36 @@ export async function POST(request: NextRequest) {
       const validationErrors = Object.values(error.errors).map(
         (err: any) => err.message
       )
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Données invalides',
-        details: validationErrors,
-      }, { status: 400 })
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error: 'Données invalides',
+          details: validationErrors,
+        },
+        { status: 400 }
+      )
     }
 
     if (error.code === 11000) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Un shift avec ce numéro existe déjà pour cette date et cet employé',
-        details: TIME_ENTRY_ERRORS.MAX_SHIFTS_EXCEEDED,
-      }, { status: 409 })
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          error:
+            'Un shift avec ce numéro existe déjà pour cette date et cet employé',
+          details: TIME_ENTRY_ERRORS.MAX_SHIFTS_EXCEEDED,
+        },
+        { status: 409 }
+      )
     }
 
-    return NextResponse.json<ApiResponse<null>>({
-      success: false,
-      error: 'Erreur lors de la création du time entry',
-      details: error.message,
-    }, { status: 500 })
+    return NextResponse.json<ApiResponse<null>>(
+      {
+        success: false,
+        error: 'Erreur lors de la création du time entry',
+        details: error.message,
+      },
+      { status: 500 }
+    )
   }
 }
 

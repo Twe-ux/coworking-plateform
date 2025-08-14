@@ -21,7 +21,15 @@ import {
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, User, Mail, Phone, Calendar, Palette } from 'lucide-react'
+import {
+  Loader2,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Palette,
+  Lock,
+} from 'lucide-react'
 import { Employee } from '@/hooks/useEmployees'
 
 interface EditEmployeeModalProps {
@@ -87,6 +95,7 @@ export default function EditEmployeeModal({
     role: '',
     color: 'bg-blue-500',
     startDate: '',
+    pin: '1111',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -104,6 +113,7 @@ export default function EditEmployeeModal({
         startDate: employee.startDate
           ? new Date(employee.startDate).toISOString().split('T')[0]
           : '',
+        pin: employee.pin || '1111',
       })
       setErrors({})
     }
@@ -139,6 +149,10 @@ export default function EditEmployeeModal({
       newErrors.startDate = 'La date de début est requise'
     }
 
+    if (!formData.pin || !/^\d{4}$/.test(formData.pin)) {
+      newErrors.pin = 'Le PIN doit contenir exactement 4 chiffres'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -163,6 +177,7 @@ export default function EditEmployeeModal({
           role: formData.role,
           color: formData.color,
           startDate: formData.startDate,
+          pin: formData.pin,
         }),
       })
 
@@ -200,6 +215,7 @@ export default function EditEmployeeModal({
       role: '',
       color: 'bg-blue-500',
       startDate: '',
+      pin: '1111',
     })
     setErrors({})
     onClose()
@@ -220,7 +236,7 @@ export default function EditEmployeeModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Modifier l'employé
+            Modifier l&apos;employé
           </DialogTitle>
           <DialogDescription>
             Modifiez les informations de {employee.fullName}
@@ -328,6 +344,33 @@ export default function EditEmployeeModal({
                   {errors.phone && (
                     <p className="text-sm text-red-600">{errors.phone}</p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pin" className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Code PIN <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="pin"
+                    type="password"
+                    value={formData.pin}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        pin: e.target.value,
+                      }))
+                    }
+                    placeholder="1111"
+                    maxLength={4}
+                    error={!!errors.pin}
+                  />
+                  {errors.pin && (
+                    <p className="text-sm text-red-600">{errors.pin}</p>
+                  )}
+                  <p className="text-xs text-gray-600">
+                    Code à 4 chiffres pour le pointage
+                  </p>
                 </div>
               </div>
             </CardContent>

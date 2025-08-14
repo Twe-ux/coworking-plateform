@@ -1,17 +1,16 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Clock, Play, Square, User, AlertCircle } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
 import { type Employee } from '@/hooks/useEmployees'
+import { AlertCircle, Clock, Play, Square, User } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import PINKeypad from './PINKeypad'
 
 interface TimeEntry {
@@ -56,14 +55,22 @@ export default function TimeTrackingCard({
   // Fetch active time entries for this employee
   const fetchActiveEntries = useCallback(async () => {
     try {
-      const today = new Date().toISOString().split('T')[0]
-      const response = await fetch(
-        `/api/time-entries?employeeId=${employee.id}&date=${today}&status=active`
-      )
+      // Récupérer les entrées actives sans filtre de date pour éviter les problèmes de timezone
+      const url = `/api/time-entries?employeeId=${employee.id}&status=active&limit=10`
+
+      const response = await fetch(url)
 
       if (response.ok) {
         const data = await response.json()
-        setActiveEntries(data.data || [])
+
+        // Filtrer côté client pour ne garder que les entrées d'aujourd'hui
+        const today = new Date()
+        const todayEntries = (data.data || []).filter((entry: any) => {
+          const entryDate = new Date(entry.clockIn)
+          return entryDate.toDateString() === today.toDateString()
+        })
+
+        setActiveEntries(todayEntries)
       }
     } catch (error) {
       console.error('Error fetching active entries:', error)
@@ -78,6 +85,14 @@ export default function TimeTrackingCard({
     setPinAction(action)
     setShowPINDialog(true)
     setError(null)
+  }
+
+  const handleCardClick = () => {
+    if (hasActiveShift) {
+      handleClockAction('clock-out')
+    } else if (canClockIn) {
+      handleClockAction('clock-in')
+    }
   }
 
   const handlePINSubmit = async (pin: string) => {
@@ -116,6 +131,7 @@ export default function TimeTrackingCard({
         },
         body: JSON.stringify({
           employeeId: employee.id,
+          pin: pin,
         }),
       })
 
@@ -160,7 +176,16 @@ export default function TimeTrackingCard({
 
   return (
     <>
-      <Card className={`transition-shadow hover:shadow-md ${className}`}>
+      <Card
+        className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+          hasActiveShift
+            ? 'bg-green-50 ring-2 ring-green-500'
+            : canClockIn
+              ? 'hover:ring-2 hover:ring-blue-500'
+              : 'cursor-not-allowed opacity-75'
+        } ${className}`}
+        onClick={handleCardClick}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div className={`h-4 w-4 rounded-full ${employee.color}`} />
@@ -168,9 +193,9 @@ export default function TimeTrackingCard({
               <CardTitle className="truncate text-base font-medium">
                 {employee.firstName} {employee.lastName}
               </CardTitle>
-              <Badge variant="secondary" className="mt-1 text-xs">
+              {/* <Badge variant="secondary" className="mt-1 text-xs">
                 {employee.role}
-              </Badge>
+              </Badge> */}
             </div>
             <div className="flex items-center gap-1">
               <User className="h-4 w-4 text-gray-400" />
@@ -186,7 +211,7 @@ export default function TimeTrackingCard({
           {activeEntries.map((entry, index) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-3"
+              className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-5"
             >
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
@@ -211,32 +236,42 @@ export default function TimeTrackingCard({
 
           {/* No Active Shifts */}
           {!hasActiveShift && (
-            <div className="py-6 text-center text-gray-500">
+            <div className="text-center text-gray-500">
               <Clock className="mx-auto mb-2 h-8 w-8 text-gray-400" />
               <p className="text-sm">Aucun pointage actif</p>
+              <p className="mt-1 text-xs text-gray-400">
+                Cliquez pour commencer
+              </p>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button
-              className="flex flex-1 items-center justify-center gap-2"
-              onClick={() => handleClockAction('clock-in')}
-              disabled={!canClockIn}
-              variant={canClockIn ? 'default' : 'outline'}
-            >
-              <Play className="h-4 w-4" />
-              Pointer
-            </Button>
-            <Button
-              className="flex flex-1 items-center justify-center gap-2"
-              onClick={() => handleClockAction('clock-out')}
-              disabled={!hasActiveShift}
-              variant={hasActiveShift ? 'destructive' : 'outline'}
-            >
-              <Square className="h-4 w-4" />
-              Arrêter
-            </Button>
+          {/* Single Action Button */}
+          <div className="flex justify-center">
+            {hasActiveShift ? (
+              <Button
+                className="flex w-full items-center justify-center gap-2"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleClockAction('clock-out')
+                }}
+                variant="destructive"
+              >
+                <Square className="h-4 w-4" />
+                Arrêter le pointage
+              </Button>
+            ) : canClockIn ? (
+              <Button
+                className="flex w-full items-center justify-center gap-2"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleClockAction('clock-in')
+                }}
+                variant="default"
+              >
+                <Play className="h-4 w-4" />
+                Commencer le pointage
+              </Button>
+            ) : null}
           </div>
 
           {/* Status Messages */}

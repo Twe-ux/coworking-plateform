@@ -21,7 +21,15 @@ import {
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, User, Mail, Phone, Calendar, Palette } from 'lucide-react'
+import {
+  Loader2,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Palette,
+  Lock,
+} from 'lucide-react'
 
 interface CreateEmployeeModalProps {
   isOpen: boolean
@@ -84,6 +92,7 @@ export default function CreateEmployeeModal({
     role: '',
     color: 'bg-blue-500',
     startDate: new Date().toISOString().split('T')[0],
+    pin: '1111',
   })
 
   const [isLoading, setIsLoading] = useState(false)
@@ -127,6 +136,10 @@ export default function CreateEmployeeModal({
       !/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(formData.phone)
     ) {
       newErrors.phone = 'Format de téléphone français invalide'
+    }
+
+    if (!formData.pin || !/^\d{4}$/.test(formData.pin)) {
+      newErrors.pin = 'Le PIN doit contenir exactement 4 chiffres'
     }
 
     setErrors(newErrors)
@@ -200,6 +213,7 @@ export default function CreateEmployeeModal({
       role: '',
       color: 'bg-blue-500',
       startDate: new Date().toISOString().split('T')[0],
+      pin: '1111',
     })
     setErrors({})
     onClose()
@@ -221,7 +235,8 @@ export default function CreateEmployeeModal({
             Ajouter un nouvel employé
           </DialogTitle>
           <DialogDescription>
-            Créez un nouveau profil d'employé pour la planification des équipes.
+            Créez un nouveau profil d&apos;employé pour la planification des
+            équipes.
           </DialogDescription>
         </DialogHeader>
 
@@ -311,6 +326,28 @@ export default function CreateEmployeeModal({
                     <p className="text-sm text-red-600">{errors.phone}</p>
                   )}
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pin">Code PIN *</Label>
+                  <div className="relative">
+                    <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                    <Input
+                      id="pin"
+                      type="password"
+                      value={formData.pin}
+                      onChange={(e) => handleInputChange('pin', e.target.value)}
+                      placeholder="1111"
+                      maxLength={4}
+                      className={`pl-10 ${errors.pin ? 'border-red-500' : ''}`}
+                    />
+                  </div>
+                  {errors.pin && (
+                    <p className="text-sm text-red-600">{errors.pin}</p>
+                  )}
+                  <p className="text-xs text-gray-600">
+                    Code à 4 chiffres pour le pointage (par défaut: 1111)
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -381,7 +418,7 @@ export default function CreateEmployeeModal({
             <CardContent className="pt-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-medium">
                 <Palette className="h-5 w-5" />
-                Couleur d'identification
+                Couleur d&apos;identification
               </h3>
 
               <div className="space-y-4">

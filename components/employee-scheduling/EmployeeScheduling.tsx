@@ -5,18 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type Employee } from '@/hooks/useEmployees'
 import { type Shift } from '@/hooks/useShifts'
-import {
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Users,
-  Clock,
-} from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import EmployeeMonthlyCard from './EmployeeMonthlyCard'
-import TimeTrackingCard from './TimeTrackingCard'
 import TimeEntriesList from './TimeEntriesList'
+import TimeTrackingCard from './TimeTrackingCard'
 
 // Types
 
@@ -308,6 +301,36 @@ export default function EmployeeScheduling({
 
     return (
       <div className={`space-y-6 ${className}`}>
+        <CardContent className="pt-0">
+          {/* Time Tracking View */}
+          <div className="space-y-6">
+            {/* Time Tracking Cards */}
+            <div>
+              <h3 className="mb-4 text-lg font-medium">
+                Pointage des Employés
+              </h3>
+              <div
+                className={`grid gap-4 ${employees.length >= 5 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : employees.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : employees.length <= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}
+              >
+                {employees.map((employee) => (
+                  <TimeTrackingCard
+                    key={employee.id}
+                    employee={employee}
+                    onStatusChange={() => {
+                      // Refresh data when status changes
+                      // This could trigger a re-fetch of time entries
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Time Entries List */}
+            {/* <div>
+              <TimeEntriesList employees={employees} />
+            </div> */}
+          </div>
+        </CardContent>
         {/* Header Staff */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mon Planning</h1>
@@ -799,11 +822,13 @@ export default function EmployeeScheduling({
             {/* Time Tracking View */}
             <div className="space-y-6">
               {/* Time Tracking Cards */}
-              <div>
+              {/* <div>
                 <h3 className="mb-4 text-lg font-medium">
                   Pointage des Employés
                 </h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                  className={`grid gap-4 ${employees.length >= 5 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : employees.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : employees.length <= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}
+                >
                   {employees.map((employee) => (
                     <TimeTrackingCard
                       key={employee.id}
@@ -815,11 +840,14 @@ export default function EmployeeScheduling({
                     />
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Time Entries List */}
               <div>
-                <TimeEntriesList employees={employees} />
+                <TimeEntriesList
+                  employees={employees}
+                  currentDate={currentDate}
+                />
               </div>
             </div>
           </CardContent>

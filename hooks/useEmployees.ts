@@ -17,6 +17,7 @@ export interface Employee {
     | 'Staff'
   color: string
   startDate: string
+  pin?: string
   isActive: boolean
   fullName: string
   createdAt: string
@@ -78,6 +79,7 @@ export function useEmployees(options: UseEmployeesOptions = {}) {
       role: string
       color?: string
       startDate?: string
+      pin?: string
     }) => {
       try {
         const response = await fetch('/api/employees', {

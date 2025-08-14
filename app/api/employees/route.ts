@@ -11,20 +11,16 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    // Temporary debug bypass for development
-    if (!session?.user?.id && process.env.NODE_ENV !== 'development') {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
 
-    // Vérifier les permissions (admin, manager ou staff pour lecture seule) - bypass in development
+    // Vérifier les permissions (admin, manager ou staff pour lecture seule)
     const userRole = (session?.user as any)?.role
-    if (
-      !['admin', 'manager', 'staff'].includes(userRole) &&
-      process.env.NODE_ENV !== 'development'
-    ) {
+    if (!['admin', 'manager', 'staff'].includes(userRole)) {
       return NextResponse.json(
         { success: false, error: 'Permissions insuffisantes' },
         { status: 403 }
@@ -72,6 +68,7 @@ export async function GET(request: NextRequest) {
       role: employee.role,
       color: employee.color,
       startDate: employee.startDate,
+      pin: employee.pin,
       isActive: employee.isActive,
       fullName: `${employee.firstName} ${employee.lastName}`,
       createdAt: employee.createdAt,
@@ -110,19 +107,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Vérifier les permissions (admin ou manager) - bypass in development
+    // Vérifier les permissions (admin ou manager)
     const userRole = (session?.user as any)?.role
-    if (
-      !['admin', 'manager'].includes(userRole) &&
-      process.env.NODE_ENV !== 'development'
-    ) {
+    if (!['admin', 'manager'].includes(userRole)) {
       return NextResponse.json(
         { success: false, error: 'Permissions insuffisantes' },
         { status: 403 }
       )
     }
 
-    const { firstName, lastName, email, phone, role, color, startDate } =
+    const { firstName, lastName, email, phone, role, color, startDate, pin } =
       await request.json()
 
     // Validation des données obligatoires
@@ -146,6 +140,7 @@ export async function POST(request: NextRequest) {
     if (phone) employeeData.phone = phone.trim()
     if (color) employeeData.color = color
     if (startDate) employeeData.startDate = new Date(startDate)
+    if (pin) employeeData.pin = pin
 
     const newEmployee = new Employee(employeeData)
     await newEmployee.save()
@@ -160,6 +155,7 @@ export async function POST(request: NextRequest) {
       role: newEmployee.role,
       color: newEmployee.color,
       startDate: newEmployee.startDate,
+      pin: newEmployee.pin,
       isActive: newEmployee.isActive,
       fullName: `${newEmployee.firstName} ${newEmployee.lastName}`,
       createdAt: newEmployee.createdAt,

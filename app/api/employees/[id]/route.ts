@@ -57,6 +57,7 @@ export async function GET(
       role: employee.role,
       color: employee.color,
       startDate: employee.startDate,
+      pin: employee.pin,
       isActive: employee.isActive,
       fullName: `${employee.firstName} ${employee.lastName}`,
       createdAt: employee.createdAt,
@@ -121,6 +122,7 @@ export async function PUT(
       color,
       startDate,
       isActive,
+      pin,
     } = await request.json()
 
     await connectToDatabase()
@@ -136,6 +138,7 @@ export async function PUT(
     if (color !== undefined) updateData.color = color
     if (startDate !== undefined) updateData.startDate = new Date(startDate)
     if (isActive !== undefined) updateData.isActive = isActive
+    if (pin !== undefined) updateData.pin = pin
 
     const updatedEmployee = await Employee.findByIdAndUpdate(
       params.id,
@@ -162,6 +165,7 @@ export async function PUT(
       role: updatedEmployee.role,
       color: updatedEmployee.color,
       startDate: updatedEmployee.startDate,
+      pin: updatedEmployee.pin,
       isActive: updatedEmployee.isActive,
       fullName: `${updatedEmployee.firstName} ${updatedEmployee.lastName}`,
       createdAt: updatedEmployee.createdAt,
