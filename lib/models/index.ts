@@ -7,6 +7,11 @@ export { Space, type ISpace, defaultSpaces, insertDefaultSpaces } from './space'
 export { default as Employee, type IEmployee } from './employee'
 export { default as TimeEntry, type ITimeEntry } from './timeEntry'
 
+// Modèles Blog & CMS
+export { Article, type IArticle, type ISEOMetadata, type IArticleStats } from './Article'
+export { Category, type ICategory, defaultCategories, insertDefaultCategories } from './Category'
+export { Comment, type IComment } from './Comment'
+
 // Réexport des utilitaires MongoDB
 export {
   checkBookingConflicts,
@@ -28,6 +33,12 @@ export type SpaceSpecialty =
   | 'Café coworking'
   | 'Salle privée'
   | 'Zone silencieuse'
+
+// Types Blog & CMS
+export type ArticleStatus = 'draft' | 'published' | 'archived'
+export type ContentType = 'article' | 'news' | 'tutorial' | 'announcement'
+export type CommentStatus = 'pending' | 'approved' | 'rejected' | 'spam'
+export type CommentType = 'comment' | 'reply'
 
 // Interface pour les données de création de réservation
 export interface CreateBookingData {
@@ -60,4 +71,46 @@ export interface CreateSpaceData {
   description?: string
   amenities?: string[]
   isPopular?: boolean
+}
+
+// Interface pour les données de création d'article
+export interface CreateArticleData {
+  title: string
+  slug?: string
+  excerpt: string
+  content: string
+  coverImage?: string
+  status?: ArticleStatus
+  contentType?: ContentType
+  authorId: string
+  categoryId: string
+  tags?: string[]
+  featured?: boolean
+  allowComments?: boolean
+  scheduledPublishAt?: Date
+  seoMetadata?: Partial<ISEOMetadata>
+}
+
+// Interface pour les données de création de catégorie
+export interface CreateCategoryData {
+  name: string
+  slug?: string
+  description?: string
+  color?: string
+  icon?: string
+  parentCategoryId?: string
+  createdBy: string
+}
+
+// Interface pour les données de création de commentaire
+export interface CreateCommentData {
+  content: string
+  authorId: string
+  authorName: string
+  authorEmail: string
+  authorWebsite?: string
+  articleId: string
+  parentCommentId?: string
+  ipAddress: string
+  userAgent: string
 }

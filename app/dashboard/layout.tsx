@@ -59,6 +59,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             users: 'Utilisateurs',
             spaces: 'Espaces',
             analytics: 'Analytics',
+            blog: 'Blog & CMS',
             settings: 'Paramètres',
             calendar: 'Calendrier',
             schedule: 'Plannification',
@@ -187,6 +188,30 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               isActive: pathname.startsWith('/dashboard/admin/analytics'),
             },
             {
+              title: 'Blog & CMS',
+              url: '/dashboard/admin/blog',
+              icon: FileText,
+              isActive: pathname.startsWith('/dashboard/admin/blog'),
+              items: [
+                {
+                  title: 'Vue d\'ensemble',
+                  url: '/dashboard/admin/blog',
+                },
+                {
+                  title: 'Articles',
+                  url: '/dashboard/admin/blog/articles',
+                },
+                {
+                  title: 'Catégories',
+                  url: '/dashboard/admin/blog/categories',
+                },
+                {
+                  title: 'Commentaires',
+                  url: '/dashboard/admin/blog/comments',
+                },
+              ],
+            },
+            {
               title: 'Plannification',
               url: '/dashboard/admin/schedule',
               icon: Users,
@@ -230,9 +255,15 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               isActive: pathname.startsWith('/dashboard/manager/bookings'),
             },
             {
+              title: 'Blog & CMS',
+              url: '/dashboard/admin/blog',
+              icon: FileText,
+              isActive: pathname.startsWith('/dashboard/admin/blog'),
+            },
+            {
               title: 'Rapports',
               url: '/dashboard/manager/reports',
-              icon: FileText,
+              icon: BarChart3,
               isActive: pathname.startsWith('/dashboard/manager/reports'),
             },
           ],

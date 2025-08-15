@@ -26,6 +26,7 @@ export default function Navigation() {
   const navItems = [
     { name: 'Espaces', href: '#espaces' },
     { name: 'Tarifs', href: '#tarifs' },
+    { name: 'Blog', href: '/blog' },
     { name: 'Contact', href: '#contact' },
     { name: 'À propos', href: '#apropos' },
     ...(isAuthenticated ? [{ name: 'Messenger App', href: '/dashboard' }] : []),

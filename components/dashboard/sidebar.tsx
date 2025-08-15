@@ -13,6 +13,7 @@ import {
   BarChart3,
   Shield,
   Building,
+  FileText,
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -64,6 +65,12 @@ const sidebarItems: SidebarItem[] = [
     label: 'Utilisateurs',
     icon: Users,
     roles: ['admin'],
+  },
+  {
+    href: '/dashboard/admin/blog',
+    label: 'Blog & CMS',
+    icon: FileText,
+    roles: ['admin', 'manager'],
   },
   {
     href: '/settings',

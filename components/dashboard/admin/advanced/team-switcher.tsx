@@ -74,14 +74,14 @@ export function TeamSwitcher() {
     return null
   }
 
-  console.log(
-    'TeamSwitcher: selectedTeam',
-    selectedTeam,
-    'availableTeams',
-    availableTeams,
-    'userRole',
-    userRole
-  )
+  // console.log(
+  //   'TeamSwitcher: selectedTeam',
+  //   selectedTeam,
+  //   'availableTeams',
+  //   availableTeams,
+  //   'userRole',
+  //   userRole
+  // )
 
   // For non-admin users, show read-only version
   if (userRole !== 'admin') {

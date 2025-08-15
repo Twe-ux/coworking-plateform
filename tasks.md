@@ -266,26 +266,45 @@
 - [x] Améliorer z-index et collision detection des dropdowns
 - [x] Rollback tentative de restructuration des routes (trop complexe)
 
+### Phase 17 : Système de Pointage Employé Avancé (Complété - 100%) ✅
+
+- [x] Refonte complète interface TimeEntriesList de cartes vers tableau groupé
+- [x] Groupement intelligent des shifts par employé/jour avec colonnes Shift 1/Shift 2
+- [x] Calcul automatique des heures totales par jour (combinées)
+- [x] Édition inline complète avec clics directs sur cellules (clockIn/clockOut)
+- [x] Gestion des raccourcis clavier (Enter/Escape) pour édition
+- [x] Filtres intelligents (employés/mois/dates avec pointages uniquement)
+- [x] Tri chronologique des dates (plus ancien au plus récent)
+- [x] Interface "Ajouter un shift" intégrée
+- [x] Système de réinitialisation automatique à minuit (cron job)
+- [x] Détection et affichage des erreurs shifts (ligne rouge)
+- [x] API endpoints pour reset manuel des shifts (/api/admin/reset-shifts)
+- [x] Extension schéma MongoDB avec tracking d'erreurs (hasError, errorType)
+- [x] Mise à jour temps réel de l'interface après modifications
+- [x] Centrage et optimisation espacement colonnes horaires
+- [x] Architecture complète de gestion des shifts oubliés
+
 ---
 
 ## 📊 État Global du Projet
 
 **🚀 MVP Fonctionnel : 100% ✅**
 
-| Module               | Statut  | Détail                                                  |
-| -------------------- | ------- | ------------------------------------------------------- |
-| **Core Booking**     | 100% ✅ | Réservations complètes avec paiements Stripe            |
-| **Client Interface** | 100% ✅ | Dashboard complet + statistiques temps réel             |
-| **Admin Interface**  | 100% ✅ | CRUD complet + analytics + upload images + export Excel |
-| **Notifications**    | 100% ✅ | Système complet avec Resend + scheduler + templates     |
-| **Mobile UI**        | 95% ✅  | Responsive optimisé, quelques détails à peaufiner       |
-| **E-commerce**       | 0% ⏳   | Module optionnel (extension business)                   |
-| **Testing**          | 25% 🔄  | Tests manuels OK + Cypress configuré                    |
+| Module                    | Statut  | Détail                                                  |
+| ------------------------- | ------- | ------------------------------------------------------- |
+| **Core Booking**          | 100% ✅ | Réservations complètes avec paiements Stripe            |
+| **Client Interface**      | 100% ✅ | Dashboard complet + statistiques temps réel             |
+| **Admin Interface**       | 100% ✅ | CRUD complet + analytics + upload images + export Excel |
+| **Employee Time Tracking**| 100% ✅ | Système avancé + édition inline + reset automatique     |
+| **Notifications**         | 100% ✅ | Système complet avec Resend + scheduler + templates     |
+| **Mobile UI**             | 95% ✅  | Responsive optimisé, quelques détails à peaufiner       |
+| **E-commerce**            | 0% ⏳   | Module optionnel (extension business)                   |
+| **Testing**               | 25% 🔄  | Tests manuels OK + Cypress configuré                    |
 
-**🎯 MVP COMPLET ! Prochaines étapes possibles :**
+**🎯 MVP COMPLET + EMPLOYEE MANAGEMENT ! Prochaines étapes possibles :**
 
-- **Finalisation Mobile** : Derniers ajustements responsive design
-- **Module E-commerce** : Système de commandes et produits
+- **Module E-commerce** : Système de commandes et produits (priorité haute)
 - **Tests automatisés** : Cypress E2E complets, tests unitaires
 - **Performance** : Optimisation, cache Redis, CDN
 - **Sécurité** : Audit OWASP, tests de pénétration
+- **Finalisation Mobile** : Derniers détails responsive design
