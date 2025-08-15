@@ -142,7 +142,8 @@ export default withAuth(
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((route) => {
     if (route.endsWith('*')) {
-      return pathname.startsWith(route.slice(0, -1))
+      const baseRoute = route.slice(0, -1)
+      return pathname.startsWith(baseRoute)
     }
     return pathname === route || pathname.startsWith(route + '/')
   })

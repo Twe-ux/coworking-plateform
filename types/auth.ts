@@ -132,6 +132,8 @@ export const PUBLIC_ROUTES = [
   '/payment/cancel',
   '/api/auth',
   '/api/health',
+  '/blog', // Blog public page
+  '/blog/*', // Blog public accessible à tous
   '/demo/*', // Routes de démonstration publiques
   // Routes de test (développement uniquement)
   ...(process.env.NODE_ENV === 'development'
