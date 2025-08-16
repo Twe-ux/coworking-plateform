@@ -284,22 +284,33 @@
 - [x] Centrage et optimisation espacement colonnes horaires
 - [x] Architecture complète de gestion des shifts oubliés
 
+### Phase 18 : Corrections Système d'Inscription (Complété - 100%) ✅
+
+- [x] Correction critique authentification: ajout du champ 'status: active' manquant
+- [x] Implémentation connexion automatique après création de compte
+- [x] Redirection automatique vers "/" au lieu de "/login" après inscription
+- [x] Gestion d'erreurs robuste pour échecs de connexion automatique
+- [x] Résolution problème "impossible de se connecter après création compte"
+- [x] Tests complets du flux d'inscription bout-en-bout
+- [x] Amélioration UX avec messages informatifs durant le processus
+
 ---
 
 ## 📊 État Global du Projet
 
 **🚀 MVP Fonctionnel : 100% ✅**
 
-| Module                    | Statut  | Détail                                                  |
-| ------------------------- | ------- | ------------------------------------------------------- |
-| **Core Booking**          | 100% ✅ | Réservations complètes avec paiements Stripe            |
-| **Client Interface**      | 100% ✅ | Dashboard complet + statistiques temps réel             |
-| **Admin Interface**       | 100% ✅ | CRUD complet + analytics + upload images + export Excel |
-| **Employee Time Tracking**| 100% ✅ | Système avancé + édition inline + reset automatique     |
-| **Notifications**         | 100% ✅ | Système complet avec Resend + scheduler + templates     |
-| **Mobile UI**             | 95% ✅  | Responsive optimisé, quelques détails à peaufiner       |
-| **E-commerce**            | 0% ⏳   | Module optionnel (extension business)                   |
-| **Testing**               | 25% 🔄  | Tests manuels OK + Cypress configuré                    |
+| Module                     | Statut  | Détail                                                  |
+| -------------------------- | ------- | ------------------------------------------------------- |
+| **Core Booking**           | 100% ✅ | Réservations complètes avec paiements Stripe            |
+| **Client Interface**       | 100% ✅ | Dashboard complet + statistiques temps réel             |
+| **Admin Interface**        | 100% ✅ | CRUD complet + analytics + upload images + export Excel |
+| **Employee Time Tracking** | 100% ✅ | Système avancé + édition inline + reset automatique     |
+| **Notifications**          | 100% ✅ | Système complet avec Resend + scheduler + templates     |
+| **Authentication System**  | 100% ✅ | Inscription + connexion auto + gestion rôles complète   |
+| **Mobile UI**              | 95% ✅  | Responsive optimisé, quelques détails à peaufiner       |
+| **E-commerce**             | 0% ⏳   | Module optionnel (extension business)                   |
+| **Testing**                | 25% 🔄  | Tests manuels OK + Cypress configuré                    |
 
 **🎯 MVP COMPLET + EMPLOYEE MANAGEMENT ! Prochaines étapes possibles :**
 

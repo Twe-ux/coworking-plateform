@@ -104,6 +104,15 @@
 - [x] Édition inline des horaires
 - [x] Gestion automatique des shifts oubliés
 
+### Sprint 5.5 - Authentication System Fixes (Semaine 12.5) ✅ COMPLÉTÉ
+
+- [x] Correction critique authentification: champ 'status: active' manquant
+- [x] Implémentation connexion automatique après création de compte
+- [x] Redirection automatique vers "/" au lieu de "/login" après inscription
+- [x] Gestion d'erreurs robuste pour échecs de connexion automatique
+- [x] Tests complets du flux d'inscription bout-en-bout
+- [x] Amélioration UX avec messages informatifs durant le processus
+
 **Responsables**: Frontend_Agent, Backend_Agent
 
 ### Sprint 6 - Blog & CMS (Semaine 13-14) 🎯 PRIORITÉ IMMÉDIATE
