@@ -333,6 +333,8 @@ export const authOptions: NextAuthOptions = {
       // Handle session updates (when update() is called)
       if (trigger === 'update' && session) {
         if (session.name) token.name = session.name
+        if (session.firstName) token.firstName = session.firstName
+        if (session.lastName) token.lastName = session.lastName
         if (session.image) token.image = session.image
         if (session.avatar) token.avatar = session.avatar
       }

@@ -29,7 +29,8 @@ export default function Navigation() {
     { name: 'Blog', href: '/blog' },
     { name: 'Contact', href: '#contact' },
     { name: 'À propos', href: '#apropos' },
-    ...(isAuthenticated ? [{ name: 'Messenger App', href: '/dashboard' }] : []),
+    { name: 'tchat', href: '/messaging' },
+    ...(isAuthenticated ? [{ name: 'Messenger App', href: '/messaging' }] : []),
   ]
 
   return (

@@ -16,6 +16,10 @@ export { Comment, type IComment } from './Comment'
 export { Product, type IProduct, type ProductCategory, type ProductStatus } from './product'
 export { ProductCategory as ProductCategoryModel, type IProductCategory } from './productCategory'
 
+// Modèles Messagerie
+export { Message, type IMessage } from './message'
+export { Channel, type IChannel } from './channel'
+
 // Réexport des utilitaires MongoDB
 export {
   checkBookingConflicts,
@@ -47,6 +51,12 @@ export type CommentType = 'comment' | 'reply'
 // Types Produits
 export type ProductCategory = 'coffee' | 'tea' | 'pastry' | 'sandwich' | 'snack' | 'beverage' | 'healthy' | 'breakfast'
 export type ProductStatus = 'available' | 'unavailable' | 'coming_soon'
+
+// Types Messagerie
+export type ChannelType = 'public' | 'private' | 'direct' | 'ai_assistant'
+export type MessageType = 'text' | 'image' | 'file' | 'system' | 'ai_response'
+export type MemberRole = 'owner' | 'admin' | 'moderator' | 'member'
+export type UserPresenceStatus = 'online' | 'offline' | 'away' | 'busy'
 
 // Interface pour les données de création de réservation
 export interface CreateBookingData {
@@ -121,4 +131,47 @@ export interface CreateCommentData {
   parentCommentId?: string
   ipAddress: string
   userAgent: string
+}
+
+// Interface pour les données de création de channel
+export interface CreateChannelData {
+  name: string
+  description?: string
+  type: ChannelType
+  members?: string[]
+  settings?: {
+    allowFileUploads?: boolean
+    allowReactions?: boolean
+    maxMembers?: number
+    requireApprovalToJoin?: boolean
+    slowModeSeconds?: number
+  }
+  ipRestriction?: {
+    allowedIPs: string[]
+    isEnabled: boolean
+  }
+  aiSettings?: {
+    provider?: 'openai' | 'anthropic' | 'local'
+    model?: string
+    apiKey?: string
+    systemPrompt?: string
+    maxTokens?: number
+    temperature?: number
+  }
+}
+
+// Interface pour les données de création de message
+export interface CreateMessageData {
+  content: string
+  channelId: string
+  messageType?: MessageType
+  parentMessageId?: string
+  mentions?: string[]
+  attachments?: {
+    url: string
+    type: 'image' | 'file'
+    filename: string
+    size: number
+    mimeType: string
+  }[]
 }

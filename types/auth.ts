@@ -119,6 +119,15 @@ export const PROTECTED_ROUTES: RoutePermission[] = [
       UserRole.CLIENT,
     ],
   },
+  {
+    path: '/messaging',
+    allowedRoles: [
+      UserRole.ADMIN,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+      UserRole.CLIENT,
+    ],
+  },
 ]
 
 // Routes publiques qui ne nécessitent pas d'authentification

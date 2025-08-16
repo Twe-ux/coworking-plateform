@@ -16,7 +16,7 @@ import { redirect } from 'next/navigation'
 
 interface UserProfile {
   id: string
-  name: string
+  name?: string
   email: string
   image?: string
   role: string
@@ -37,22 +37,70 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (session?.user) {
-      setProfile({
-        id: session.user.id,
-        name: session.user.name || '',
-        email: session.user.email || '',
-        image: session.user.image || '',
-        role: (session.user as any).role || 'client',
-        firstName: '',
-        lastName: '',
-        phone: '',
-        bio: '',
-      })
-      setIsLoading(false)
-    } else if (session === null) {
-      redirect('/auth/signin')
+    const loadProfile = async () => {
+      if (session?.user) {
+        try {
+          // Charger le profil depuis l'API pour avoir les données à jour de la BD
+          const response = await fetch('/api/user/profile')
+          const result = await response.json()
+          
+          if (result.success) {
+            setProfile({
+              id: result.data.id,
+              name: result.data.name,
+              email: result.data.email,
+              image: result.data.image,
+              role: result.data.role,
+              firstName: result.data.firstName || '',
+              lastName: result.data.lastName || '',
+              phone: result.data.phone || '',
+              bio: result.data.bio || '',
+              createdAt: result.data.createdAt,
+            })
+          } else {
+            // Fallback vers les données de session en cas d'erreur API
+            const firstName = session.user.firstName || ''
+            const lastName = session.user.lastName || ''
+            const computedName = `${firstName} ${lastName}`.trim() || session.user.name || ''
+            
+            setProfile({
+              id: session.user.id,
+              name: computedName,
+              email: session.user.email || '',
+              image: session.user.image || '',
+              role: (session.user as any).role || 'client',
+              firstName: firstName,
+              lastName: lastName,
+              phone: '',
+              bio: '',
+            })
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du profil:', error)
+          // Fallback vers les données de session en cas d'erreur
+          const firstName = session.user.firstName || ''
+          const lastName = session.user.lastName || ''
+          const computedName = `${firstName} ${lastName}`.trim() || session.user.name || ''
+          
+          setProfile({
+            id: session.user.id,
+            name: computedName,
+            email: session.user.email || '',
+            image: session.user.image || '',
+            role: (session.user as any).role || 'client',
+            firstName: firstName,
+            lastName: lastName,
+            phone: '',
+            bio: '',
+          })
+        }
+        setIsLoading(false)
+      } else if (session === null) {
+        redirect('/auth/signin')
+      }
     }
+
+    loadProfile()
   }, [session])
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,7 +136,8 @@ export default function ProfilePage() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: profile?.name,
+            firstName: profile?.firstName,
+            lastName: profile?.lastName,
             image: avatarUrl,
           }),
         })
@@ -118,11 +167,13 @@ export default function ProfilePage() {
 
     setIsSaving(true)
     try {
+      // Calculer le nom complet à partir de firstName + lastName
+      const fullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+      
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: profile.name,
           firstName: profile.firstName,
           lastName: profile.lastName,
           phone: profile.phone,
@@ -134,9 +185,14 @@ export default function ProfilePage() {
       const result = await response.json()
 
       if (result.success) {
-        // Mettre à jour la session avec le nouveau nom si changé
-        if (profile.name !== session?.user?.name) {
-          await update({ name: profile.name })
+        // Mettre à jour la session avec les nouveaux champs
+        if (profile.firstName !== session?.user?.firstName ||
+            profile.lastName !== session?.user?.lastName) {
+          await update({ 
+            name: fullName,
+            firstName: profile.firstName,
+            lastName: profile.lastName
+          })
         }
         alert('Profil mis à jour avec succès !')
       } else {
@@ -259,17 +315,33 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Nom complet *
+                Prénom *
               </label>
               <input
                 type="text"
                 required
-                value={profile.name}
+                value={profile.firstName || ''}
                 onChange={(e) =>
-                  setProfile({ ...profile, name: e.target.value })
+                  setProfile({ ...profile, firstName: e.target.value })
                 }
                 className="focus:ring-coffee-primary w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
-                placeholder="John Doe"
+                placeholder="John"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Nom *
+              </label>
+              <input
+                type="text"
+                required
+                value={profile.lastName || ''}
+                onChange={(e) =>
+                  setProfile({ ...profile, lastName: e.target.value })
+                }
+                className="focus:ring-coffee-primary w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
+                placeholder="Doe"
               />
             </div>
 
@@ -287,7 +359,7 @@ export default function ProfilePage() {
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                L'email ne peut pas être modifié
+                L&apos;email ne peut pas être modifié
               </p>
             </div>
 

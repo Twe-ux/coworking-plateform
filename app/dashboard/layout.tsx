@@ -121,7 +121,9 @@ function DashboardContent({ children }: DashboardLayoutProps) {
 
     const baseNavigation = {
       user: {
-        name: session?.user?.name || 'Utilisateur',
+        name: (session?.user?.firstName && session?.user?.lastName) 
+          ? `${session.user.firstName} ${session.user.lastName}`
+          : session?.user?.name || 'Utilisateur',
         email: session?.user?.email || 'user@example.com',
         avatar:
           (session?.user as any)?.avatar ||

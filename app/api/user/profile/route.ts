@@ -29,11 +29,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Calculer le nom complet à partir de firstName + lastName
+    const computedName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || ''
+
     return NextResponse.json({
       success: true,
       data: {
         id: user._id,
-        name: user.name,
+        name: computedName,
         email: user.email,
         image: user.image,
         role: user.role,
@@ -67,11 +70,18 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const { name, firstName, lastName, phone, bio, image } =
+    const { firstName, lastName, phone, bio, image } =
       await request.json()
 
     // Validation des données
-    if (!name || name.trim().length === 0) {
+    if (!firstName || firstName.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Le prénom est obligatoire' },
+        { status: 400 }
+      )
+    }
+
+    if (!lastName || lastName.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: 'Le nom est obligatoire' },
         { status: 400 }
@@ -81,10 +91,14 @@ export async function PUT(request: NextRequest) {
     await connectToDatabase()
 
     // Préparer les données à mettre à jour
+    const firstName_clean = firstName.trim()
+    const lastName_clean = lastName.trim()
+    const fullName = `${firstName_clean} ${lastName_clean}`.trim()
+    
     const updateData: any = {
-      name: name.trim(),
-      firstName: firstName?.trim() || '',
-      lastName: lastName?.trim() || '',
+      name: fullName,
+      firstName: firstName_clean,
+      lastName: lastName_clean,
       phone: phone?.trim() || '',
       bio: bio?.trim() || '',
       updatedAt: new Date(),
@@ -108,12 +122,15 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // Calculer le nom complet pour la réponse
+    const responseComputedName = `${updatedUser.firstName || ''} ${updatedUser.lastName || ''}`.trim() || updatedUser.name || ''
+
     return NextResponse.json({
       success: true,
       message: 'Profil mis à jour avec succès',
       data: {
         id: updatedUser._id,
-        name: updatedUser.name,
+        name: responseComputedName,
         email: updatedUser.email,
         image: updatedUser.image,
         role: updatedUser.role,
