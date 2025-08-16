@@ -112,8 +112,14 @@ export default function Footer() {
                     {links.map((link, linkIndex) => (
                       <li key={linkIndex}>
                         <motion.a
-                          href="#"
-                          className="hover:text-coffee-accent group flex items-center gap-1 text-gray-300 transition-colors duration-200"
+                          href={
+                            link === 'CGU'
+                              ? '/cgu'
+                              : link === 'Confidentialité'
+                                ? '/confidentialite'
+                                : '#'
+                          }
+                          className="hover:text-coffee-primary group flex items-center gap-1 text-gray-300 transition-colors duration-200"
                           whileHover={{ x: 5 }}
                         >
                           {link}

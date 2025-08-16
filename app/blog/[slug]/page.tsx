@@ -23,36 +23,38 @@ async function getArticle(slug: string): Promise<SingleArticleResponse | null> {
     const response = await fetch(`${baseUrl}/api/articles/${slug}`, {
       cache: 'no-store', // Toujours récupérer la version la plus récente
     })
-    
+
     if (!response.ok) {
       if (response.status === 404) {
         return null
       }
-      throw new Error('Erreur lors du chargement de l\'article')
+      throw new Error("Erreur lors du chargement de l'article")
     }
-    
+
     const result = await response.json()
     return result.success ? result.data : null
   } catch (error) {
-    console.error('Erreur lors du chargement de l\'article:', error)
+    console.error("Erreur lors du chargement de l'article:", error)
     return null
   }
 }
 
 // Génération des métadonnées SEO
-export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: ArticlePageProps): Promise<Metadata> {
   const article = await getArticle(params.slug)
-  
+
   if (!article) {
     return {
       title: 'Article non trouvé',
-      description: 'L\'article demandé n\'existe pas ou n\'est plus disponible.',
+      description: "L'article demandé n'existe pas ou n'est plus disponible.",
     }
   }
-  
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   const articleUrl = `${baseUrl}/blog/${article.slug}`
-  
+
   // Utiliser les métadonnées SEO personnalisées ou générer des valeurs par défaut
   const seoTitle = article.seoMetadata?.title || article.title
   const seoDescription = article.seoMetadata?.description || article.excerpt
@@ -60,28 +62,33 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const ogDescription = article.seoMetadata?.ogDescription || seoDescription
   const ogImage = article.seoMetadata?.ogImage || article.coverImage
   const twitterTitle = article.seoMetadata?.twitterTitle || ogTitle
-  const twitterDescription = article.seoMetadata?.twitterDescription || ogDescription
+  const twitterDescription =
+    article.seoMetadata?.twitterDescription || ogDescription
   const twitterImage = article.seoMetadata?.twitterImage || ogImage
   const canonicalUrl = article.seoMetadata?.canonicalUrl || articleUrl
   const robots = article.seoMetadata?.robots || 'index,follow'
-  
+
   // Mots-clés combinés
   const keywords = [
     ...(article.seoMetadata?.keywords || []),
     ...article.tags,
     article.category.name,
     'blog',
-    'coworking'
+    'coworking',
   ].filter((v, i, a) => a.indexOf(v) === i) // Dédupliquer
-  
+
   return {
     title: seoTitle,
     description: seoDescription,
     keywords,
-    authors: [{ 
-      name: `${article.author.firstName} ${article.author.lastName}`,
-      url: article.author.bio ? `${baseUrl}/blog?author=${article.author._id}` : undefined
-    }],
+    authors: [
+      {
+        name: `${article.author.firstName} ${article.author.lastName}`,
+        url: article.author.bio
+          ? `${baseUrl}/blog?author=${article.author._id}`
+          : undefined,
+      },
+    ],
     robots,
     openGraph: {
       title: ogTitle,
@@ -95,12 +102,16 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       authors: [`${article.author.firstName} ${article.author.lastName}`],
       section: article.category.name,
       tags: article.tags,
-      images: ogImage ? [{
-        url: ogImage,
-        width: 1200,
-        height: 630,
-        alt: article.title,
-      }] : undefined,
+      images: ogImage
+        ? [
+            {
+              url: ogImage,
+              width: 1200,
+              height: 630,
+              alt: article.title,
+            },
+          ]
+        : undefined,
     },
     twitter: {
       card: 'summary_large_image',
@@ -113,7 +124,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       canonical: canonicalUrl,
     },
     other: {
-      'article:published_time': article.publishedAt?.toString() || article.createdAt.toString(),
+      'article:published_time':
+        article.publishedAt?.toString() || article.createdAt.toString(),
       'article:modified_time': article.updatedAt.toString(),
       'article:author': `${article.author.firstName} ${article.author.lastName}`,
       'article:section': article.category.name,
@@ -124,11 +136,11 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const article = await getArticle(params.slug)
-  
+
   if (!article) {
     notFound()
   }
-  
+
   // Données structurées JSON-LD pour le SEO
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -166,7 +178,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       userInteractionCount: article.stats.views,
     },
   }
-  
+
   return (
     <>
       {/* Données structurées */}
@@ -174,18 +186,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      
-      <div className="min-h-screen bg-background">
+
+      <div className="bg-background min-h-screen">
         {/* Header */}
         <BlogHeader currentPage="article" />
-        
+
         {/* Contenu principal */}
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="container mx-auto mt-[55px] px-4 py-8 sm:px-6 lg:px-8">
           <Suspense fallback={<LoadingArticleDetail />}>
             <ArticleContent article={article} />
           </Suspense>
         </main>
-        
+
         {/* Footer */}
         <BlogFooter />
       </div>
@@ -197,22 +209,28 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 export async function generateStaticParams() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/articles?limit=50&sortBy=stats.views&sortOrder=desc`, {
-      cache: 'no-store'
-    })
-    
+    const response = await fetch(
+      `${baseUrl}/api/articles?limit=50&sortBy=stats.views&sortOrder=desc`,
+      {
+        cache: 'no-store',
+      }
+    )
+
     if (!response.ok) {
       return []
     }
-    
+
     const result = await response.json()
     const articles = result.success ? result.data : []
-    
+
     return articles.map((article: any) => ({
       slug: article.slug,
     }))
   } catch (error) {
-    console.error('Erreur lors de la génération des paramètres statiques:', error)
+    console.error(
+      'Erreur lors de la génération des paramètres statiques:',
+      error
+    )
     return []
   }
 }

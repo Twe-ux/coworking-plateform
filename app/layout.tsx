@@ -5,6 +5,7 @@ import ConditionalNavigation from '@/components/ConditionalNavigation'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ToastProvider } from '@/components/ui/toast'
+import { CookieBanner } from '@/components/legal/CookieBanner'
 import { Nunito } from 'next/font/google'
 import './globals.css'
 
@@ -47,6 +48,7 @@ export default function RootLayout({
               <ConditionalNavigation />
               {children}
               <ConditionalFooter />
+              <CookieBanner />
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

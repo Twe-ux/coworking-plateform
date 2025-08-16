@@ -12,6 +12,10 @@ export { Article, type IArticle, type ISEOMetadata, type IArticleStats } from '.
 export { Category, type ICategory, defaultCategories, insertDefaultCategories } from './Category'
 export { Comment, type IComment } from './Comment'
 
+// Modèles Produits & Commandes
+export { Product, type IProduct, type ProductCategory, type ProductStatus } from './product'
+export { ProductCategory as ProductCategoryModel, type IProductCategory } from './productCategory'
+
 // Réexport des utilitaires MongoDB
 export {
   checkBookingConflicts,
@@ -39,6 +43,10 @@ export type ArticleStatus = 'draft' | 'published' | 'archived'
 export type ContentType = 'article' | 'news' | 'tutorial' | 'announcement'
 export type CommentStatus = 'pending' | 'approved' | 'rejected' | 'spam'
 export type CommentType = 'comment' | 'reply'
+
+// Types Produits
+export type ProductCategory = 'coffee' | 'tea' | 'pastry' | 'sandwich' | 'snack' | 'beverage' | 'healthy' | 'breakfast'
+export type ProductStatus = 'available' | 'unavailable' | 'coming_soon'
 
 // Interface pour les données de création de réservation
 export interface CreateBookingData {

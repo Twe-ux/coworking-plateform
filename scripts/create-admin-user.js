@@ -2,7 +2,7 @@ const { MongoClient } = require('mongodb')
 const bcrypt = require('bcryptjs')
 
 async function createAdminUser() {
-  const uri = 'mongodb+srv://user:password@cluster.mongodb.net/database'
+  const uri = process.env.MONGODB_URI || 'mongodb+srv://dev:3mEKdYmohYa4oCjZ@coworking.jhxdixz.mongodb.net/coworking-platform'
   const client = new MongoClient(uri)
 
   try {

@@ -36,6 +36,7 @@
     "clear-auth-cache": "node scripts/clear-auth-cache.js"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.10",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.4",

@@ -2,6 +2,7 @@
 
 import ClientOnly from '@/components/ClientOnly'
 import DynamicStats from '@/components/home/DynamicStats'
+import { EnhancedCTA } from '@/components/home/EnhancedCTA'
 import SpaceCarousel from '@/components/home/SpaceCarousel'
 import Logo from '@/components/Logo'
 import { motion, useScroll, useTransform } from 'framer-motion'
@@ -18,11 +19,7 @@ import {
   Flame,
   Gift,
   Heart,
-  Mail,
   MapPin,
-  MessageCircle,
-  Phone,
-  Send,
   Shield,
   Snowflake,
   Star,
@@ -1045,7 +1042,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.6 }}
             viewport={{ once: true }}
           >
-            <Link href="#contact">
+            <Link href="/boissons">
               <motion.button
                 className="from-coffee-primary to-coffee-accent rounded-full bg-gradient-to-r px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl"
                 whileHover={{ scale: 1.05, y: -2 }}
@@ -1057,257 +1054,108 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </section>
-
-      {/* Contact Section */}
+      {/* Section Contact améliorée */}
       <section
         id="contact"
-        className="from-coffee-accent relative overflow-hidden bg-gradient-to-br to-black px-2 py-16 text-white sm:px-4 sm:py-24"
+        className="relative bg-gray-900 px-4 py-20 sm:px-6 lg:px-8"
       >
-        {/* Background Elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="bg-coffee-primary absolute top-20 left-20 h-64 w-64 animate-pulse rounded-full blur-3xl" />
-          <div
-            className="bg-coffee-secondary absolute right-20 bottom-20 h-80 w-80 animate-pulse rounded-full blur-3xl"
-            style={{ animationDelay: '1s' }}
-          />
-        </div>
-
-        <motion.div
-          className="relative z-10 mx-auto max-w-6xl"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-          viewport={{ once: true }}
-        >
-          <div className="mb-12 text-center sm:mb-20">
-            <motion.h2
-              className="mb-4 px-2 text-3xl leading-tight font-bold sm:mb-6 sm:text-5xl md:text-6xl"
-              initial={{ y: 30, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <span className="from-coffee-secondary bg-gradient-to-r to-white bg-clip-text text-transparent">
-                Prêt à commencer ?
-              </span>
-            </motion.h2>
-            <motion.p
-              className="mx-auto max-w-3xl px-4 text-lg text-gray-300 sm:text-xl"
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              Rejoignez Cow or King Café et découvrez une nouvelle façon de
-              travailler à Strasbourg. Notre équipe est là pour vous
-              accompagner.
-            </motion.p>
-          </div>
-
-          <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
-            {/* Contact Form */}
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+            {/* Informations */}
             <motion.div
-              className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-md sm:p-8"
-              initial={{ opacity: 0, x: -50 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h3 className="mb-4 flex items-center gap-2 text-xl font-bold sm:mb-6 sm:gap-3 sm:text-2xl">
-                <MessageCircle className="text-coffee-secondary h-6 w-6 sm:h-8 sm:w-8" />
-                Envoyez-nous un message
-              </h3>
+              <h2 className="mb-6 text-4xl font-bold text-white">
+                Prêt à rejoindre notre{' '}
+                <span className="from-coffee-accent to-coffee-primary bg-gradient-to-r bg-clip-text text-transparent">
+                  communauté ?
+                </span>
+              </h2>
+              <p className="mb-8 text-xl text-gray-300">
+                Venez découvrir l&apos;espace de coworking qui va révolutionner
+                votre façon de travailler.
+              </p>
 
-              <form className="space-y-4 sm:space-y-6">
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-300">
-                      Prénom
-                    </label>
-                    <input
-                      type="text"
-                      className="focus:ring-coffee-secondary w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:outline-none"
-                      placeholder="John"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-300">
-                      Nom
-                    </label>
-                    <input
-                      type="text"
-                      className="focus:ring-coffee-secondary w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:outline-none"
-                      placeholder="Doe"
-                    />
-                  </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 text-gray-300">
+                  <MapPin className="text-coffee-primary h-5 w-5" />
+                  <span>1 Rue de la Division Leclerc, 67000 Strasbourg</span>
                 </div>
+                <div className="flex items-center gap-4 text-gray-300">
+                  <Clock className="text-coffee-primary h-5 w-5" />
+                  <span>Lun-Ven: 9h-20h | Sam-Dim & Jours fériés: 10h-20h</span>
+                </div>
+              </div>
 
+              <div className="mt-8">
+                <EnhancedCTA variant="secondary" />
+              </div>
+            </motion.div>
+
+            {/* Formulaire de contact */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="rounded-2xl bg-white/10 p-8 backdrop-blur-sm"
+            >
+              <h3 className="mb-6 text-2xl font-bold text-white">
+                Contactez-nous
+              </h3>
+              <form className="space-y-4">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-300">
-                    Email
-                  </label>
+                  <input
+                    type="text"
+                    placeholder="Votre nom"
+                    className="focus:border-coffee-accent w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:outline-none"
+                  />
+                </div>
+                <div>
                   <input
                     type="email"
-                    className="focus:ring-coffee-secondary w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:outline-none"
-                    placeholder="john@example.com"
+                    placeholder="Votre email"
+                    className="focus:border-coffee-accent w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-300">
-                    Sujet
-                  </label>
-                  <div className="relative">
-                    <select className="focus:ring-coffee-secondary w-full appearance-none rounded-xl border border-white/20 bg-white/10 px-4 py-3 pr-12 text-white backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:outline-none">
-                      <option value="" className="bg-coffee-accent">
-                        Choisir un sujet
-                      </option>
-                      <option value="info" className="bg-coffee-accent">
-                        Informations générales
-                      </option>
-                      <option value="booking" className="bg-coffee-accent">
-                        Réservation
-                      </option>
-                      <option value="partnership" className="bg-coffee-accent">
-                        Partenariat café
-                      </option>
-                      <option value="support" className="bg-coffee-accent">
-                        Support technique
-                      </option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
-                      <ChevronDown className="h-5 w-5 text-white/70" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-300">
-                    Message
-                  </label>
                   <textarea
                     rows={4}
-                    className="focus:ring-coffee-secondary w-full resize-none rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:outline-none"
-                    placeholder="Décrivez votre projet ou vos besoins..."
+                    placeholder="Votre message"
+                    className="focus:border-coffee-accent w-full resize-none rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:outline-none"
                   />
                 </div>
-
-                <motion.button
+                <button
                   type="submit"
-                  className="from-coffee-primary to-coffee-secondary flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r py-4 font-semibold text-white transition-all duration-300 hover:shadow-xl"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="from-coffee-primary to-coffee-accent w-full rounded-xl bg-gradient-to-r px-6 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   Envoyer le message
-                  <Send className="h-5 w-5" />
-                </motion.button>
+                </button>
               </form>
             </motion.div>
-
-            {/* Contact Info */}
-            <motion.div
-              className="space-y-8"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <div>
-                {/* <h3 className="mb-6 text-2xl font-bold">
-                  Contactez-nous directement
-                </h3> */}
-
-                <div className="space-y-6">
-                  <motion.div
-                    className="flex cursor-pointer items-center gap-4 rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20"
-                    whileHover={{ scale: 1.02, x: 5 }}
-                  >
-                    <div className="from-coffee-primary to-coffee-secondary flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br">
-                      <Phone className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Téléphone</p>
-                      <p className="text-gray-300">03 88 XX XX XX</p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="flex cursor-pointer items-center gap-4 rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20"
-                    whileHover={{ scale: 1.02, x: 5 }}
-                  >
-                    <div className="from-coffee-primary to-coffee-secondary flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br">
-                      <Mail className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Email</p>
-                      <p className="text-gray-300">
-                        strasbourg@coworkingcafe.fr
-                      </p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="flex cursor-pointer items-center gap-4 rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20"
-                    whileHover={{ scale: 1.02, x: 5 }}
-                  >
-                    <div className="from-coffee-primary to-coffee-secondary flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br">
-                      <MapPin className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Adresse</p>
-                      <p className="text-gray-300">
-                        1 rue de la Division Leclerc
-                        <br />
-                        67000 Strasbourg
-                      </p>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4">
-                <motion.div
-                  className="from-coffee-primary/20 to-coffee-secondary/20 border-coffee-primary/30 rounded-xl border bg-gradient-to-br p-6 text-center backdrop-blur-sm"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div className="text-coffee-secondary mb-1 text-3xl font-bold">
-                    24h
-                  </div>
-                  <div className="text-sm text-gray-300">Réponse moyenne</div>
-                </motion.div>
-                <motion.div
-                  className="from-coffee-primary/20 to-coffee-secondary/20 border-coffee-primary/30 rounded-xl border bg-gradient-to-br p-6 text-center backdrop-blur-sm"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div className="text-coffee-secondary mb-1 text-3xl font-bold">
-                    98%
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    Satisfaction client
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Call to Action */}
-              <motion.div
-                className="from-coffee-primary to-coffee-secondary rounded-xl bg-gradient-to-r p-6"
-                whileHover={{ scale: 1.02 }}
-              >
-                <h4 className="mb-2 text-lg font-bold">
-                  Besoin d&apos;aide immédiate ?
-                </h4>
-                <p className="text-coffee-primary mb-4 text-sm">
-                  Notre équipe est disponible pour vous aider
-                </p>
-                <button className="text-coffee-primary w-full rounded-lg bg-white py-3 font-semibold transition-colors hover:bg-gray-100">
-                  Chat en direct
-                </button>
-              </motion.div>
-            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </section>
+
+      {/* Scroll indicator */}
+      <motion.div
+        className="fixed right-8 bottom-8 z-50"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 2 }}
+      >
+        <motion.button
+          className="bg-coffee-primary rounded-full p-3 text-white shadow-lg"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <ChevronDown className="h-6 w-6 rotate-180" />
+        </motion.button>
+      </motion.div>
     </main>
   )
 }

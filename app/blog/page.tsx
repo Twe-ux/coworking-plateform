@@ -71,7 +71,7 @@ export default function BlogPage({ searchParams }: BlogPageProps) {
       <BlogHeader currentPage="home" />
 
       {/* Contenu principal */}
-      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="container mx-auto mt-[55px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Contenu principal */}
           <div className="flex-1">

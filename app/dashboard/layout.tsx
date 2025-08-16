@@ -22,6 +22,7 @@ import {
   BarChart3,
   Building,
   Calendar,
+  Coffee,
   FileText,
   Home,
   Settings,
@@ -62,6 +63,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             blog: 'Blog & CMS',
             settings: 'Paramètres',
             calendar: 'Calendrier',
+            products: 'Produits',
             schedule: 'Plannification',
           }
           breadcrumbs.push({
@@ -194,7 +196,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               isActive: pathname.startsWith('/dashboard/admin/blog'),
               items: [
                 {
-                  title: 'Vue d\'ensemble',
+                  title: "Vue d'ensemble",
                   url: '/dashboard/admin/blog',
                 },
                 {
@@ -216,6 +218,18 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               url: '/dashboard/admin/schedule',
               icon: Users,
               isActive: pathname.startsWith('/dashboard/admin/schedule'),
+            },
+            {
+              title: 'Produits',
+              url: '/dashboard/admin/products',
+              icon: Coffee,
+              isActive: pathname.startsWith('/dashboard/admin/products'),
+              items: [
+                {
+                  title: 'Categories',
+                  url: '/dashboard/admin/products/categories',
+                },
+              ],
             },
             {
               title: 'Paramètres',
