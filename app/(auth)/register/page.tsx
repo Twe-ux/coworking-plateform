@@ -19,6 +19,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -98,11 +99,39 @@ export default function RegisterPage() {
 
       if (response.ok) {
         setSuccess(
-          'Compte créé avec succès ! Vous allez être redirigé vers la page de connexion.'
+          'Compte créé avec succès ! Connexion automatique en cours...'
         )
-        setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+
+        // Connexion automatique après création de compte
+        try {
+          const loginResult = await signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            callbackUrl: '/',
+            redirect: false,
+          })
+
+          if (loginResult?.error) {
+            // Si la connexion automatique échoue, rediriger vers la page de login
+            setError(
+              'Compte créé mais erreur de connexion automatique. Veuillez vous connecter manuellement.'
+            )
+            setTimeout(() => {
+              router.push('/login')
+            }, 2000)
+          } else {
+            // Connexion réussie, rediriger vers l'accueil
+            router.push('/')
+          }
+        } catch (loginError) {
+          // En cas d'erreur, rediriger vers la page de login
+          setError(
+            'Compte créé mais erreur de connexion automatique. Veuillez vous connecter manuellement.'
+          )
+          setTimeout(() => {
+            router.push('/login')
+          }, 2000)
+        }
       } else {
         const errorData = await response.json()
         setError(

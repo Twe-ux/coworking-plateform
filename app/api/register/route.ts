@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       role: UserRole.CLIENT, // Rôle par défaut
       permissions: [],
       isActive: true,
+      status: 'active', // Ajout du champ status nécessaire pour l'authentification
       emailVerified: false, // À implémenter plus tard
       createdAt: new Date(),
       updatedAt: new Date(),
