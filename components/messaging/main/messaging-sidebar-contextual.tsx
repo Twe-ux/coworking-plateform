@@ -468,7 +468,7 @@ export function MessagingSidebarContextual({
 
   return (
     <div
-      className={`border-coffee-primary bg-background w-80 flex-shrink-0 border-r ${className}`}
+      className={`border-coffee-primary bg-background h-full border-r ${className}`}
     >
       <ScrollArea className="h-full">
         <div className="p-4">{getContent()}</div>
