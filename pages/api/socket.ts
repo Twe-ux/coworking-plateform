@@ -148,12 +148,18 @@ export default async function handler(
       try {
         const userChannels = await Channel.find({
           'members.user': user.userId,
-          isActive: true
+          $or: [
+            { isActive: true },
+            { isActive: { $exists: false } },
+            { type: { $in: ['dm', 'direct'] } }
+          ]
         }).select('_id name type')
 
+        console.log(`🔍 Channels trouvés pour ${user.userName}:`, userChannels.map(ch => `${ch.name} (${ch.type})`))
+        
         for (const channel of userChannels) {
           socket.join(`channel:${channel._id}`)
-          console.log(`📺 ${user.userName} a rejoint le channel: ${channel.name}`)
+          console.log(`📺 ${user.userName} a rejoint le channel: ${channel.name} (${channel.type})`)
         }
 
         // Notifier la présence en ligne
