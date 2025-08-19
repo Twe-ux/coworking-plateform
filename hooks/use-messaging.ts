@@ -172,7 +172,7 @@ export function useMessaging(): UseMessagingReturn {
     return () => {
       disconnect()
     }
-  }, [session, connect, disconnect])
+  }, [session?.user?.id]) // Only depend on user ID to avoid reconnection loops
 
   // Send message
   const sendMessage = useCallback(async (channelId: string, content: string, type: 'text' | 'image' | 'file' = 'text') => {

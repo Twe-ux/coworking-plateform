@@ -1,11 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { AlertTriangle, Shield, Wifi, WifiOff, Menu, X } from 'lucide-react'
+import { AlertTriangle, Menu, Shield, X } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -17,13 +17,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { SidebarProvider } from '@/components/ui/sidebar'
 
 import { RouteGuard } from '@/components/auth/route-guard'
 import Logo from '@/components/Logo'
 import { ChatList } from '@/components/messaging/test/chat-list'
 import { ChatWindow } from '@/components/messaging/test/chat-window'
 import { TestAppSidebar } from '@/components/messaging/test/test-app-sidebar'
+import { SidebarProvider } from '@/components/messaging/test/ui/sidebar'
 import { useMessaging } from '@/hooks/use-messaging'
 import { UserRole } from '@/types/auth'
 
@@ -59,7 +59,7 @@ export default function MessagingPage() {
   const [error, setError] = useState<string | null>(null)
   const [ipRestricted, setIpRestricted] = useState(false)
   const [clientIP, setClientIP] = useState<string>('')
-  
+
   // États pour la nouvelle interface
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -329,7 +329,7 @@ export default function MessagingPage() {
 
               {/* Status Badge */}
               <div className="flex items-center gap-2">
-                <Badge variant={isConnected ? "default" : "destructive"}>
+                <Badge variant={isConnected ? 'default' : 'destructive'}>
                   {isConnected ? '🟢 En ligne' : '🔴 Déconnecté'}
                 </Badge>
                 <div className="text-xs text-white/70">
@@ -345,6 +345,7 @@ export default function MessagingPage() {
           <SidebarProvider defaultOpen={false}>
             <div className="flex h-[calc(90vh-50px)] w-full gap-2">
               <TestAppSidebar
+                className="relative overflow-hidden"
                 collapsible="icon"
                 onViewChange={setCurrentView}
               />
@@ -362,6 +363,7 @@ export default function MessagingPage() {
                   currentView={currentView}
                 />
               </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

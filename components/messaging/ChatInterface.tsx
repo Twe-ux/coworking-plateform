@@ -2,15 +2,35 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Smile, Paperclip, MoreVertical, Users, Settings, Hash, Lock, Bot } from 'lucide-react'
+import {
+  Send,
+  Smile,
+  Paperclip,
+  MoreVertical,
+  Users,
+  Settings,
+  Hash,
+  Lock,
+  Bot,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useToast } from '@/components/ui/use-toast'
 
 import { MessageList } from './MessageList'
@@ -21,7 +41,12 @@ import { MessageInput } from './MessageInput'
 import { EmojiPicker } from './EmojiPicker'
 import { AttachmentUpload } from './AttachmentUpload'
 
-import { getWebSocketClient, ClientMessage, UserPresence, TypingIndicator as TypingData } from '@/lib/websocket/client'
+import {
+  getWebSocketClient,
+  ClientMessage,
+  UserPresence,
+  TypingIndicator as TypingData,
+} from '@/lib/websocket/client'
 import { useSession } from 'next-auth/react'
 
 interface Channel {
@@ -53,7 +78,10 @@ export interface ChatInterfaceProps {
   onChannelChange?: (channelId: string) => void
 }
 
-export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInterfaceProps) {
+export function ChatInterface({
+  initialChannels = [],
+  onChannelChange,
+}: ChatInterfaceProps) {
   const { data: session } = useSession()
   const wsClient = getWebSocketClient()
   const { toast } = useToast()
@@ -64,8 +92,12 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
   const [messages, setMessages] = useState<ClientMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
-  const [userPresence, setUserPresence] = useState<Map<string, UserPresence>>(new Map())
-  const [typingUsers, setTypingUsers] = useState<Map<string, TypingData>>(new Map())
+  const [userPresence, setUserPresence] = useState<Map<string, UserPresence>>(
+    new Map()
+  )
+  const [typingUsers, setTypingUsers] = useState<Map<string, TypingData>>(
+    new Map()
+  )
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false)
 
@@ -89,7 +121,7 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
         toast({
           title: 'Erreur de connexion',
           description: 'Impossible de se connecter au chat en temps réel',
-          variant: 'destructive'
+          variant: 'destructive',
         })
       }
     }
@@ -107,8 +139,8 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
   useEffect(() => {
     const handleNewMessage = (message: ClientMessage) => {
       if (activeChannel && message.channel === activeChannel._id) {
-        setMessages(prev => [...prev, message])
-        
+        setMessages((prev) => [...prev, message])
+
         // Marquer comme lu si l'utilisateur est actif
         if (document.visibilityState === 'visible') {
           setTimeout(() => {
@@ -116,37 +148,42 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
           }, 1000)
         }
       }
-      
+
       // Mettre à jour le compteur non lu
-      setChannels(prev => prev.map(channel => 
-        channel._id === message.channel
-          ? { 
-              ...channel, 
-              unreadCount: activeChannel?._id === message.channel ? 0 : channel.unreadCount + 1,
-              lastActivity: message.createdAt
-            }
-          : channel
-      ))
+      setChannels((prev) =>
+        prev.map((channel) =>
+          channel._id === message.channel
+            ? {
+                ...channel,
+                unreadCount:
+                  activeChannel?._id === message.channel
+                    ? 0
+                    : channel.unreadCount + 1,
+                lastActivity: message.createdAt,
+              }
+            : channel
+        )
+      )
     }
 
     const handleUserPresence = (presence: UserPresence) => {
-      setUserPresence(prev => new Map(prev).set(presence.userId, presence))
+      setUserPresence((prev) => new Map(prev).set(presence.userId, presence))
     }
 
     const handleUserTyping = (typing: TypingData) => {
       if (typing.isTyping && typing.userId !== session?.user?.id) {
-        setTypingUsers(prev => new Map(prev).set(typing.userId, typing))
-        
+        setTypingUsers((prev) => new Map(prev).set(typing.userId, typing))
+
         // Supprimer après 3 secondes
         setTimeout(() => {
-          setTypingUsers(prev => {
+          setTypingUsers((prev) => {
             const newMap = new Map(prev)
             newMap.delete(typing.userId)
             return newMap
           })
         }, 3000)
       } else {
-        setTypingUsers(prev => {
+        setTypingUsers((prev) => {
           const newMap = new Map(prev)
           newMap.delete(typing.userId)
           return newMap
@@ -154,26 +191,37 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
       }
     }
 
-    const handleChannelHistory = (data: { channelId: string; messages: ClientMessage[]; hasMore: boolean }) => {
+    const handleChannelHistory = (data: {
+      channelId: string
+      messages: ClientMessage[]
+      hasMore: boolean
+    }) => {
       if (activeChannel && data.channelId === activeChannel._id) {
         setMessages(data.messages)
         setTimeout(scrollToBottom, 100)
       }
     }
 
-    const handleReactionAdded = (data: { messageId: string; emoji: string; userId: string; reactions: any[] }) => {
-      setMessages(prev => prev.map(msg => 
-        msg._id === data.messageId 
-          ? { ...msg, reactions: data.reactions }
-          : msg
-      ))
+    const handleReactionAdded = (data: {
+      messageId: string
+      emoji: string
+      userId: string
+      reactions: any[]
+    }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === data.messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        )
+      )
     }
 
     const handleError = (error: { message: string }) => {
       toast({
         title: 'Erreur',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       })
     }
 
@@ -202,20 +250,22 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
     if (activeChannel && isConnected) {
       setIsLoading(true)
       setMessages([])
-      
+
       // Rejoindre le channel
       wsClient.joinChannel(activeChannel._id)
-      
+
       // Demander l'historique
       wsClient.requestChannelHistory(activeChannel._id, { limit: 50 })
-      
+
       // Marquer les messages comme lus
       setTimeout(() => {
-        setChannels(prev => prev.map(channel => 
-          channel._id === activeChannel._id
-            ? { ...channel, unreadCount: 0 }
-            : channel
-        ))
+        setChannels((prev) =>
+          prev.map((channel) =>
+            channel._id === activeChannel._id
+              ? { ...channel, unreadCount: 0 }
+              : channel
+          )
+        )
       }, 1000)
 
       setIsLoading(false)
@@ -232,7 +282,7 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
     if (activeChannel) {
       wsClient.leaveChannel(activeChannel._id)
     }
-    
+
     setActiveChannel(channel)
     onChannelChange?.(channel._id)
   }
@@ -242,7 +292,7 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
 
     wsClient.sendMessage(activeChannel._id, content, {
       messageType: attachments && attachments.length > 0 ? 'file' : 'text',
-      attachments
+      attachments,
     })
   }
 
@@ -250,12 +300,12 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
     if (!activeChannel) return
 
     wsClient.startTyping(activeChannel._id)
-    
+
     // Arrêter de taper après 3 secondes
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
-    
+
     typingTimeoutRef.current = setTimeout(() => {
       wsClient.stopTyping(activeChannel._id)
     }, 3000)
@@ -280,21 +330,26 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
   }
 
   const getOnlineMembers = (channel: Channel) => {
-    return channel.members.filter(member => {
+    return channel.members.filter((member) => {
       const presence = userPresence.get(member.user._id)
       return presence?.status === 'online'
     })
   }
 
-  const currentTypingUsers = Array.from(typingUsers.values())
-    .filter(typing => typing.channelId === activeChannel?._id)
+  const currentTypingUsers = Array.from(typingUsers.values()).filter(
+    (typing) => typing.channelId === activeChannel?._id
+  )
 
   if (!session?.user) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h3 className="text-lg font-semibold mb-2">Authentification requise</h3>
-          <p className="text-gray-600">Veuillez vous connecter pour accéder au chat.</p>
+          <h3 className="mb-2 text-lg font-semibold">
+            Authentification requise
+          </h3>
+          <p className="text-gray-600">
+            Veuillez vous connecter pour accéder au chat.
+          </p>
         </div>
       </div>
     )
@@ -302,17 +357,17 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
 
   return (
     <TooltipProvider>
-      <div className="flex h-full bg-white border rounded-lg overflow-hidden">
+      <div className="flex h-full overflow-hidden rounded-lg border bg-white">
         {/* Sidebar - Liste des channels */}
-        <div className="w-80 border-r bg-gray-50 flex flex-col">
+        <div className="flex w-80 flex-col border-r bg-gray-50">
           {/* Header */}
-          <div className="p-4 border-b bg-white">
+          <div className="border-b bg-white p-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Messagerie</h2>
               <div className="flex items-center gap-2">
-                <UserPresenceIndicator 
-                  status={isConnected ? 'online' : 'offline'} 
-                  size="sm" 
+                <UserPresenceIndicator
+                  status={isConnected ? 'online' : 'offline'}
+                  size="sm"
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -322,11 +377,11 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <Users className="h-4 w-4 mr-2" />
+                      <Users className="mr-2 h-4 w-4" />
                       Créer un channel
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Settings className="h-4 w-4 mr-2" />
+                      <Settings className="mr-2 h-4 w-4" />
                       Paramètres
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -347,41 +402,50 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
         </div>
 
         {/* Zone de chat principale */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-1 flex-col">
           {activeChannel ? (
             <>
               {/* Header du channel */}
-              <div className="p-4 border-b bg-white">
+              <div className="border-b bg-white p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {getChannelIcon(activeChannel)}
                     <div>
-                      <h3 className="text-lg font-semibold">{activeChannel.name}</h3>
+                      <h3 className="text-lg font-semibold">
+                        {activeChannel.name}
+                      </h3>
                       {activeChannel.description && (
-                        <p className="text-sm text-gray-600">{activeChannel.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {activeChannel.description}
+                        </p>
                       )}
                     </div>
                     {activeChannel.type === 'ai_assistant' && (
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                        <Bot className="h-3 w-3 mr-1" />
+                      <Badge
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-800"
+                      >
+                        <Bot className="mr-1 h-3 w-3" />
                         IA
                       </Badge>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Tooltip>
                       <TooltipTrigger>
                         <Badge variant="outline">
-                          <Users className="h-3 w-3 mr-1" />
-                          {getOnlineMembers(activeChannel).length}/{activeChannel.members.length}
+                          <Users className="mr-1 h-3 w-3" />
+                          {getOnlineMembers(activeChannel).length}/
+                          {activeChannel.members.length}
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {getOnlineMembers(activeChannel).length} membres en ligne
+                        {getOnlineMembers(activeChannel).length} membres en
+                        ligne
                       </TooltipContent>
                     </Tooltip>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -390,11 +454,11 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
-                          <Users className="h-4 w-4 mr-2" />
+                          <Users className="mr-2 h-4 w-4" />
                           Membres
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Settings className="h-4 w-4 mr-2" />
+                          <Settings className="mr-2 h-4 w-4" />
                           Paramètres du channel
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -404,11 +468,11 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
               </div>
 
               {/* Zone des messages */}
-              <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex flex-1 flex-col overflow-hidden">
                 <ScrollArea className="flex-1 p-4">
                   {isLoading ? (
-                    <div className="flex items-center justify-center h-32">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="flex h-32 items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
                     </div>
                   ) : (
                     <MessageList
@@ -418,7 +482,7 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
                       userPresence={userPresence}
                     />
                   )}
-                  
+
                   {/* Indicateur de frappe */}
                   <AnimatePresence>
                     {currentTypingUsers.length > 0 && (
@@ -432,7 +496,7 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  
+
                   <div ref={messagesEndRef} />
                 </ScrollArea>
 
@@ -445,7 +509,7 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
                       </Badge>
                     </div>
                   )}
-                  
+
                   <MessageInput
                     onSendMessage={handleSendMessage}
                     onTyping={handleTyping}
@@ -459,10 +523,10 @@ export function ChatInterface({ initialChannels = [], onChannelChange }: ChatInt
             </>
           ) : (
             /* État vide - aucun channel sélectionné */
-            <div className="flex-1 flex items-center justify-center bg-gray-50">
+            <div className="flex flex-1 items-center justify-center bg-gray-50">
               <div className="text-center">
-                <Hash className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <Hash className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+                <h3 className="mb-2 text-lg font-semibold text-gray-900">
                   Sélectionnez un channel
                 </h3>
                 <p className="text-gray-600">
