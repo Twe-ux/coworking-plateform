@@ -26,7 +26,7 @@ interface AuthenticatedSocket {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponseServerIO,
+  res: NextApiResponseServerIO
 ) {
   if (!res.socket.server.io) {
     console.log('🚀 Initialisation du serveur Socket.IO...')
@@ -38,34 +38,37 @@ export default async function handler(
         origin: [
           'http://localhost:3000',
           'http://localhost:3001',
-          process.env.NEXTAUTH_URL || 'http://localhost:3000'
+          process.env.NEXTAUTH_URL || 'http://localhost:3000',
         ],
         methods: ['GET', 'POST'],
-        credentials: true
-      }
+        credentials: true,
+      },
     })
 
     // Middleware d'authentification Socket.IO utilisant la vraie session
     io.use(async (socket, next) => {
       try {
-        const { sessionToken, userId, userRole, userName, userEmail } = socket.handshake.auth
-        console.log('🔐 Authentification Socket.IO avec données:', { 
-          hasToken: !!sessionToken, 
+        const { sessionToken, userId, userRole, userName, userEmail } =
+          socket.handshake.auth
+        console.log('🔐 Authentification Socket.IO avec données:', {
+          hasToken: !!sessionToken,
           userId: userId?.substring(0, 8) + '...',
           userRole,
-          userName 
+          userName,
         })
-        
+
         // Connecter à la DB pour récupérer l'utilisateur
         await connectToDatabase()
-        
+
         // Utiliser les données de session passées par le client
         if (!userId) {
           return next(new Error('ID utilisateur manquant'))
         }
 
         // Vérifier que l'utilisateur existe en base
-        const user = await User.findById(userId).select('_id name firstName lastName role email isActive')
+        const user = await User.findById(userId).select(
+          '_id name firstName lastName role email isActive'
+        )
         if (!user) {
           return next(new Error('Utilisateur non trouvé'))
         }
@@ -75,61 +78,62 @@ export default async function handler(
         }
 
         // Calculer le nom d'affichage
-        const displayName = user.firstName && user.lastName 
-          ? `${user.firstName} ${user.lastName}`
-          : user.name || userName || 'Utilisateur'
+        const displayName =
+          user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.name || userName || 'Utilisateur'
 
         // Attacher les données utilisateur au socket
         ;(socket as any).user = {
           userId: user._id.toString(),
           userRole: user.role,
           userName: displayName,
-          userEmail: user.email
+          userEmail: user.email,
         } as AuthenticatedSocket
-        
+
         console.log('👤 Socket.IO user configuré:', {
           userId: user._id.toString().substring(0, 8) + '...',
           userName: displayName,
-          role: user.role
+          role: user.role,
         })
 
         next()
       } catch (error) {
         console.error('Erreur auth Socket.IO:', error)
-        next(new Error('Erreur d\'authentification'))
+        next(new Error("Erreur d'authentification"))
       }
     })
 
     // Gestionnaires d'événements Socket.IO
     io.on('connection', async (socket) => {
       const user = (socket as any).user as AuthenticatedSocket
-      
+
       console.log(`👤 Utilisateur connecté: ${user.userName} (${user.userId})`)
 
       // Vérification IP pour l'accès à la messagerie
       try {
         await connectToDatabase()
-        
+
         // Simuler une requête pour la vérification IP
         const mockRequest = {
           headers: {
             'x-forwarded-for': socket.handshake.address,
-            'x-real-ip': socket.handshake.address
+            'x-real-ip': socket.handshake.address,
           },
           ip: socket.handshake.address,
-          connection: { remoteAddress: socket.handshake.address }
+          connection: { remoteAddress: socket.handshake.address },
         } as any
 
         // Pour le moment, on autorise toutes les connexions localhost
-        const ipCheck = { 
-          allowed: true, 
-          reason: 'Test localhost autorisé'
+        const ipCheck = {
+          allowed: true,
+          reason: 'Test localhost autorisé',
         }
 
         if (!ipCheck.allowed) {
           socket.emit('error', {
             message: 'Accès refusé depuis cette adresse IP',
-            code: 'IP_RESTRICTED'
+            code: 'IP_RESTRICTED',
           })
           socket.disconnect()
           return
@@ -137,8 +141,8 @@ export default async function handler(
       } catch (error) {
         console.error('Erreur vérification IP:', error)
         socket.emit('error', {
-          message: 'Erreur de vérification d\'accès',
-          code: 'ACCESS_CHECK_FAILED'
+          message: "Erreur de vérification d'accès",
+          code: 'ACCESS_CHECK_FAILED',
         })
         socket.disconnect()
         return
@@ -151,22 +155,27 @@ export default async function handler(
           $or: [
             { isActive: true },
             { isActive: { $exists: false } },
-            { type: { $in: ['dm', 'direct'] } }
-          ]
+            { type: { $in: ['dm', 'direct'] } },
+          ],
         }).select('_id name type')
 
-        console.log(`🔍 Channels trouvés pour ${user.userName}:`, userChannels.map(ch => `${ch.name} (${ch.type})`))
-        
+        console.log(
+          `🔍 Channels trouvés pour ${user.userName}:`,
+          userChannels.map((ch) => `${ch.name} (${ch.type})`)
+        )
+
         for (const channel of userChannels) {
           socket.join(`channel:${channel._id}`)
-          console.log(`📺 ${user.userName} a rejoint le channel: ${channel.name} (${channel.type})`)
+          console.log(
+            `📺 ${user.userName} a rejoint le channel: ${channel.name} (${channel.type})`
+          )
         }
 
         // Notifier la présence en ligne
         socket.broadcast.emit('user_presence', {
           userId: user.userId,
           status: 'online',
-          lastSeen: new Date()
+          lastSeen: new Date(),
         })
       } catch (error) {
         console.error('Erreur lors du chargement des channels:', error)
@@ -175,8 +184,13 @@ export default async function handler(
       // Écouter les nouveaux messages
       socket.on('send_message', async (data) => {
         try {
-          console.log('📤 Tentative d\'envoi message:', data)
-          const { channelId, content, messageType = 'text', attachments = [] } = data
+          console.log("📤 Tentative d'envoi message:", data)
+          const {
+            channelId,
+            content,
+            messageType = 'text',
+            attachments = [],
+          } = data
 
           // Vérifier l'accès au channel
           console.log('🔍 Recherche channel:', channelId)
@@ -189,10 +203,15 @@ export default async function handler(
           console.log('✅ Channel trouvé:', channel.name)
 
           const isMember = channel.members.some(
-            member => member.user.toString() === user.userId
+            (member) => member.user.toString() === user.userId
           )
           if (!isMember) {
-            console.log('❌ Utilisateur pas membre du channel:', user.userName, 'dans', channel.name)
+            console.log(
+              '❌ Utilisateur pas membre du channel:',
+              user.userName,
+              'dans',
+              channel.name
+            )
             socket.emit('error', { message: 'Accès refusé au channel' })
             return
           }
@@ -207,12 +226,12 @@ export default async function handler(
             channel: channelId,
             attachments,
             createdAt: new Date(),
-            readBy: [{ user: user.userId, readAt: new Date() }]
+            readBy: [{ user: user.userId, readAt: new Date() }],
           })
 
           await message.save()
           console.log('✅ Message sauvegardé:', message._id)
-          
+
           await message.populate('sender', 'name avatar role')
           console.log('✅ Message peuplé avec sender')
 
@@ -225,19 +244,21 @@ export default async function handler(
               _id: message.sender._id,
               name: message.sender.name,
               avatar: message.sender.avatar,
-              role: message.sender.role
+              role: message.sender.role,
             },
             channel: channelId,
             attachments: message.attachments,
             reactions: message.reactions,
             createdAt: message.createdAt,
-            editedAt: message.editedAt
+            editedAt: message.editedAt,
           })
 
-          console.log(`💬 Message envoyé par ${user.userName} dans ${channel.name}`)
+          console.log(
+            `💬 Message envoyé par ${user.userName} dans ${channel.name}`
+          )
         } catch (error) {
           console.error('Erreur envoi message:', error)
-          socket.emit('error', { message: 'Erreur lors de l\'envoi du message' })
+          socket.emit('error', { message: "Erreur lors de l'envoi du message" })
         }
       })
 
@@ -248,7 +269,7 @@ export default async function handler(
           userId: user.userId,
           userName: user.userName,
           channelId,
-          isTyping: true
+          isTyping: true,
         })
       })
 
@@ -258,7 +279,7 @@ export default async function handler(
           userId: user.userId,
           userName: user.userName,
           channelId,
-          isTyping: false
+          isTyping: false,
         })
       })
 
@@ -266,7 +287,7 @@ export default async function handler(
       socket.on('join_channel', async (data) => {
         try {
           const { channelId } = data
-          
+
           const channel = await Channel.findById(channelId)
           if (!channel) {
             socket.emit('error', { message: 'Channel non trouvé' })
@@ -274,7 +295,7 @@ export default async function handler(
           }
 
           const isMember = channel.members.some(
-            member => member.user.toString() === user.userId
+            (member) => member.user.toString() === user.userId
           )
           if (!isMember) {
             socket.emit('error', { message: 'Accès refusé au channel' })
@@ -282,7 +303,7 @@ export default async function handler(
           }
 
           socket.join(`channel:${channelId}`)
-          
+
           // Charger l'historique des messages
           const messages = await Message.find({ channel: channelId })
             .populate('sender', 'name avatar role')
@@ -291,7 +312,7 @@ export default async function handler(
 
           socket.emit('channel_history', {
             channelId,
-            messages: messages.reverse().map(msg => ({
+            messages: messages.reverse().map((msg) => ({
               _id: msg._id,
               content: msg.content,
               messageType: msg.messageType,
@@ -299,21 +320,25 @@ export default async function handler(
                 _id: msg.sender._id,
                 name: msg.sender.name,
                 avatar: msg.sender.avatar,
-                role: msg.sender.role
+                role: msg.sender.role,
               },
               channel: msg.channel,
               attachments: msg.attachments,
               reactions: msg.reactions,
               createdAt: msg.createdAt,
-              editedAt: msg.editedAt
+              editedAt: msg.editedAt,
             })),
-            hasMore: false
+            hasMore: false,
           })
 
-          console.log(`📺 ${user.userName} a rejoint le channel: ${channel.name}`)
+          console.log(
+            `📺 ${user.userName} a rejoint le channel: ${channel.name}`
+          )
         } catch (error) {
           console.error('Erreur join channel:', error)
-          socket.emit('error', { message: 'Erreur lors de la connexion au channel' })
+          socket.emit('error', {
+            message: 'Erreur lors de la connexion au channel',
+          })
         }
       })
 
@@ -337,25 +362,34 @@ export default async function handler(
 
           // Vérifier l'accès au channel
           const channel = await Channel.findById(message.channel)
-          if (!channel || !channel.members.some(m => m.user.toString() === user.userId)) {
+          if (
+            !channel ||
+            !channel.members.some((m) => m.user.toString() === user.userId)
+          ) {
             socket.emit('error', { message: 'Accès refusé' })
             return
           }
 
           // Ajouter ou retirer la réaction
-          const existingReaction = message.reactions.find(r => 
-            r.emoji === emoji && r.users.includes(user.userId)
+          const existingReaction = message.reactions.find(
+            (r) => r.emoji === emoji && r.users.includes(user.userId)
           )
 
           if (existingReaction) {
             // Retirer la réaction
-            existingReaction.users = existingReaction.users.filter(id => id !== user.userId)
+            existingReaction.users = existingReaction.users.filter(
+              (id) => id !== user.userId
+            )
             if (existingReaction.users.length === 0) {
-              message.reactions = message.reactions.filter(r => r.emoji !== emoji)
+              message.reactions = message.reactions.filter(
+                (r) => r.emoji !== emoji
+              )
             }
           } else {
             // Ajouter la réaction
-            const reactionIndex = message.reactions.findIndex(r => r.emoji === emoji)
+            const reactionIndex = message.reactions.findIndex(
+              (r) => r.emoji === emoji
+            )
             if (reactionIndex >= 0) {
               message.reactions[reactionIndex].users.push(user.userId)
             } else {
@@ -368,11 +402,13 @@ export default async function handler(
           // Diffuser la mise à jour
           io.to(`channel:${message.channel}`).emit('reaction_updated', {
             messageId,
-            reactions: message.reactions
+            reactions: message.reactions,
           })
         } catch (error) {
           console.error('Erreur réaction:', error)
-          socket.emit('error', { message: 'Erreur lors de l\'ajout de la réaction' })
+          socket.emit('error', {
+            message: "Erreur lors de l'ajout de la réaction",
+          })
         }
       })
 
@@ -382,22 +418,22 @@ export default async function handler(
           const { channelId, messageIds } = data
 
           await Message.updateMany(
-            { 
+            {
               _id: { $in: messageIds },
               channel: channelId,
-              'readBy.user': { $ne: user.userId }
+              'readBy.user': { $ne: user.userId },
             },
-            { 
-              $push: { 
-                readBy: { user: user.userId, readAt: new Date() }
-              }
+            {
+              $push: {
+                readBy: { user: user.userId, readAt: new Date() },
+              },
             }
           )
 
           socket.to(`channel:${channelId}`).emit('messages_read', {
             userId: user.userId,
             messageIds,
-            readAt: new Date()
+            readAt: new Date(),
           })
         } catch (error) {
           console.error('Erreur mark read:', error)
@@ -407,12 +443,12 @@ export default async function handler(
       // Déconnexion
       socket.on('disconnect', () => {
         console.log(`👋 ${user.userName} s'est déconnecté`)
-        
+
         // Notifier la déconnexion
         socket.broadcast.emit('user_presence', {
           userId: user.userId,
           status: 'offline',
-          lastSeen: new Date()
+          lastSeen: new Date(),
         })
       })
     })
@@ -420,7 +456,7 @@ export default async function handler(
     res.socket.server.io = io
     console.log('✅ Serveur Socket.IO initialisé')
   } else {
-    console.log('♻️  Serveur Socket.IO déjà en cours d\'exécution')
+    console.log("♻️  Serveur Socket.IO déjà en cours d'exécution")
   }
 
   res.end()
