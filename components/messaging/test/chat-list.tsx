@@ -18,6 +18,8 @@ import {
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
+import { useMessaging } from '@/hooks/use-messaging'
+import { useNotifications } from '@/hooks/use-notifications'
 
 interface Channel {
   _id: string
@@ -55,13 +57,22 @@ export function ChatList({
   currentView,
 }: ChatListProps) {
   const { data: session } = useSession()
+  const {
+    onlineUsers,
+    userStatuses,
+    getUserOnlineStatus,
+    socket,
+    isConnected,
+  } = useMessaging()
+  const { notificationCounts, markChannelAsRead } = useNotifications()
   const [searchQuery, setSearchQuery] = useState('')
   const [channels, setChannels] = useState<Channel[]>([])
   const [directChannels, setDirectChannels] = useState<Channel[]>([])
+  const [directMessages, setDirectMessages] = useState<Channel[]>([])
   const [availableUsers, setAvailableUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Charger les channels
+  // Charger les channels (pas les DMs)
   const loadChannels = async () => {
     try {
       const response = await fetch('/api/messaging/simple-channels')
@@ -71,15 +82,27 @@ export function ChatList({
         const publicChannels = data.channels.filter(
           (ch: Channel) => ch.type !== 'direct' && ch.type !== 'dm'
         )
-        const directChats = data.channels.filter(
-          (ch: Channel) => ch.type === 'direct' || ch.type === 'dm'
-        )
-
         setChannels(publicChannels)
-        setDirectChannels(directChats)
       }
     } catch (error) {
       console.error('Erreur chargement channels:', error)
+    }
+  }
+
+  // Charger les messages directs pour la vue Messages
+  const loadDirectMessages = async () => {
+    try {
+      const response = await fetch('/api/messaging/simple-channels')
+      const data = await response.json()
+
+      if (data.success) {
+        const directChats = data.channels.filter(
+          (ch: Channel) => ch.type === 'direct' || ch.type === 'dm'
+        )
+        setDirectMessages(directChats)
+      }
+    } catch (error) {
+      console.error('Erreur chargement DMs:', error)
     }
   }
 
@@ -90,11 +113,20 @@ export function ChatList({
       const data = await response.json()
 
       if (data.success) {
-        // Filtrer l'utilisateur actuel
-        const users = data.users.filter(
-          (user: User) => user._id !== session?.user?.id
-        )
+        // Filtrer l'utilisateur actuel et synchroniser avec les statuts en ligne
+        const users = data.users
+          .filter((user: User) => user._id !== session?.user?.id)
+          .map((user: User) => ({
+            ...user,
+            isOnline: getUserOnlineStatus(user._id) || user.isOnline || false,
+          }))
         setAvailableUsers(users)
+        console.log(
+          '👥 Utilisateurs chargés avec statuts:',
+          users.map(
+            (u) => `${u.name}: ${u.isOnline ? 'en ligne' : 'hors ligne'}`
+          )
+        )
       }
     } catch (error) {
       console.error('Erreur chargement utilisateurs:', error)
@@ -106,9 +138,38 @@ export function ChatList({
   useEffect(() => {
     if (session?.user) {
       loadChannels()
+      loadDirectMessages()
       loadUsers()
     }
   }, [session?.user?.id])
+
+  // Forcer la resynchronisation quand on passe à la vue contacts
+  useEffect(() => {
+    if (currentView === 'contacts' && socket && isConnected) {
+      console.log(
+        '🔄 Switching to contacts view, requesting fresh online users list'
+      )
+      socket.emit('request_online_users')
+    }
+  }, [currentView, socket, isConnected])
+
+  // Rafraîchir les statuts des utilisateurs quand les statuts en ligne changent
+  useEffect(() => {
+    if (availableUsers.length > 0) {
+      console.log('🔄 Mise à jour des statuts utilisateurs:', {
+        onlineUsers: Array.from(onlineUsers),
+        totalUsers: availableUsers.length,
+      })
+
+      // Mettre à jour les statuts sans recharger depuis l'API
+      setAvailableUsers((prevUsers) =>
+        prevUsers.map((user) => ({
+          ...user,
+          isOnline: getUserOnlineStatus(user._id),
+        }))
+      )
+    }
+  }, [onlineUsers, getUserOnlineStatus])
 
   const getChannelIcon = (channel: Channel) => {
     switch (channel.type) {
@@ -148,6 +209,32 @@ export function ChatList({
     return user.name || user.email || 'Utilisateur'
   }
 
+  // Synchroniser les statuts en ligne avec les utilisateurs disponibles
+  useEffect(() => {
+    if (availableUsers.length > 0) {
+      console.log('🔄 ChatList: Synchronizing user statuses', {
+        onlineUsers: Array.from(onlineUsers),
+        userStatuses: userStatuses,
+        availableUsers: availableUsers.length,
+      })
+
+      setAvailableUsers((prevUsers) =>
+        prevUsers.map((user) => {
+          const newOnlineStatus = getUserOnlineStatus(user._id)
+          if (user.isOnline !== newOnlineStatus) {
+            console.log(
+              `👤 User ${user._id} (${getUserDisplayName(user)}) status changed: ${user.isOnline} -> ${newOnlineStatus}`
+            )
+          }
+          return {
+            ...user,
+            isOnline: newOnlineStatus,
+          }
+        })
+      )
+    }
+  }, [onlineUsers, userStatuses]) // Re-synchroniser quand les statuts changent
+
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -156,13 +243,24 @@ export function ChatList({
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredUsers = availableUsers.filter(
-    (user) =>
-      getUserDisplayName(user)
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDirectMessages = directMessages.filter((dm) =>
+    dm.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const filteredUsers = availableUsers
+    .filter(
+      (user) =>
+        // Seulement les utilisateurs en ligne
+        getUserOnlineStatus(user._id) &&
+        (getUserDisplayName(user)
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+    .sort((a, b) => {
+      // Tri par nom alphabétique (tous sont en ligne)
+      return getUserDisplayName(a).localeCompare(getUserDisplayName(b))
+    })
 
   if (loading) {
     return (
@@ -199,6 +297,80 @@ export function ChatList({
 
       <ScrollArea className="flex-1">
         {/* Vue Messages */}
+        {currentView === 'messages' && (
+          <div className="p-2">
+            {/* Messages directs */}
+            {filteredDirectMessages.length > 0 && (
+              <div className="mb-4">
+                <div className="px-2 py-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                  Messages directs
+                </div>
+                <div className="space-y-1">
+                  {filteredDirectMessages.map((dm) => (
+                    <Card key={dm._id}>
+                      <button
+                        onClick={() => {
+                          markChannelAsRead(dm._id, dm.type) // Marquer comme lu avec type
+                          onChatSelect({
+                            id: dm._id,
+                            name: dm.name,
+                            type: dm.type,
+                            isDirect: true,
+                          })
+                        }}
+                        className={cn(
+                          'w-full rounded-lg p-3 text-left transition-colors hover:bg-gray-100',
+                          selectedChatId === dm._id &&
+                            'border border-green-200 bg-green-50'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <MessageCircle className="h-4 w-4 text-green-600" />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="truncate font-medium">
+                                {dm.name}
+                              </span>
+                              {notificationCounts.channelBreakdown[dm._id] >
+                                0 && (
+                                <Badge
+                                  variant="default"
+                                  className="ml-2 bg-blue-500"
+                                >
+                                  {notificationCounts.channelBreakdown[dm._id]}
+                                </Badge>
+                              )}
+                            </div>
+                            {dm.lastActivity && (
+                              <p className="mt-1 text-xs text-gray-500">
+                                {new Date(dm.lastActivity).toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* État vide */}
+            {filteredDirectMessages.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                <MessageCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                <p>Aucun message direct</p>
+                {searchQuery && (
+                  <p className="mt-2 text-sm">
+                    Aucun résultat pour &quot;{searchQuery}&quot;
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Vue Channels */}
         {currentView === 'channels' && (
           <div className="p-2">
             {/* Channels publics */}
@@ -211,14 +383,15 @@ export function ChatList({
                   {filteredChannels.map((channel) => (
                     <Card key={channel._id}>
                       <button
-                        onClick={() =>
+                        onClick={() => {
+                          markChannelAsRead(channel._id, channel.type) // Marquer comme lu avec type
                           onChatSelect({
                             id: channel._id,
                             name: channel.name,
                             type: channel.type,
                             description: channel.description,
                           })
-                        }
+                        }}
                         className={cn(
                           'rounded-lg p-3 text-left transition-colors hover:bg-gray-100',
                           selectedChatId === channel._id &&
@@ -232,12 +405,20 @@ export function ChatList({
                               <span className="truncate font-medium">
                                 {channel.name}
                               </span>
-                              {channel.unreadCount &&
-                                channel.unreadCount > 0 && (
-                                  <Badge variant="secondary" className="ml-2">
-                                    {channel.unreadCount}
-                                  </Badge>
-                                )}
+                              {notificationCounts.channelBreakdown[
+                                channel._id
+                              ] > 0 && (
+                                <Badge
+                                  variant="default"
+                                  className="ml-2 bg-orange-500"
+                                >
+                                  {
+                                    notificationCounts.channelBreakdown[
+                                      channel._id
+                                    ]
+                                  }
+                                </Badge>
+                              )}
                             </div>
                             {channel.description && (
                               <p className="mt-1 w-62 truncate text-xs text-gray-500">
@@ -253,57 +434,18 @@ export function ChatList({
               </div>
             )}
 
-            {/* Messages directs */}
-            {filteredDirectChannels.length > 0 && (
-              <div className="mb-4">
-                <div className="px-2 py-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                  Messages directs
-                </div>
-                <div className="space-y-1">
-                  {filteredDirectChannels.map((channel) => (
-                    <button
-                      key={channel._id}
-                      onClick={() =>
-                        onChatSelect({
-                          id: channel._id,
-                          name: channel.name,
-                          type: channel.type,
-                          isDirect: true,
-                        })
-                      }
-                      className={cn(
-                        'w-full rounded-lg p-3 text-left transition-colors hover:bg-gray-100',
-                        selectedChatId === channel._id &&
-                          'border border-green-200 bg-green-50'
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <MessageCircle className="h-4 w-4 text-green-600" />
-                        <div className="min-w-0 flex-1">
-                          <span className="truncate font-medium">
-                            {channel.name}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+            {/* État vide */}
+            {filteredChannels.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                <MessageCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                <p>Aucune conversation</p>
+                {searchQuery && (
+                  <p className="mt-2 text-sm">
+                    Aucun résultat pour &quot;{searchQuery}&quot;
+                  </p>
+                )}
               </div>
             )}
-
-            {/* État vide */}
-            {filteredChannels.length === 0 &&
-              filteredDirectChannels.length === 0 && (
-                <div className="p-8 text-center text-gray-500">
-                  <MessageCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                  <p>Aucune conversation</p>
-                  {searchQuery && (
-                    <p className="mt-2 text-sm">
-                      Aucun résultat pour &quot;{searchQuery}&quot;
-                    </p>
-                  )}
-                </div>
-              )}
           </div>
         )}
 
@@ -311,7 +453,7 @@ export function ChatList({
         {currentView === 'contacts' && (
           <div className="p-2">
             <div className="mb-2 px-2 py-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Contacts disponibles
+              Contacts en ligne
             </div>
 
             <div className="space-y-1">
@@ -322,28 +464,36 @@ export function ChatList({
                     className="w-full rounded-lg p-3 text-left transition-colors hover:bg-gray-100"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={user.avatar}
-                          alt={getUserDisplayName(user)}
-                        />
-                        <AvatarFallback>
-                          {getUserDisplayName(user)
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={user.avatar}
+                            alt={getUserDisplayName(user)}
+                          />
+                          <AvatarFallback>
+                            {getUserDisplayName(user)
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {getUserOnlineStatus(user._id) && (
+                          <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 animate-pulse rounded-full border-2 border-white bg-green-500"></div>
+                        )}
+                      </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="truncate font-medium">
                             {getUserDisplayName(user)}
                           </span>
-                          {user.isOnline && (
-                            <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                          )}
+                          <div className="flex items-center gap-1">
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+                            <span className="text-xs font-medium text-green-600">
+                              En ligne
+                            </span>
+                          </div>
                         </div>
                         <p className="truncate text-xs text-gray-500">
                           {user.email}
@@ -364,7 +514,7 @@ export function ChatList({
             {filteredUsers.length === 0 && (
               <div className="p-8 text-center text-gray-500">
                 <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <p>Aucun contact</p>
+                <p>Aucun contact en ligne</p>
                 {searchQuery && (
                   <p className="mt-2 text-sm">
                     Aucun résultat pour &quot;{searchQuery}&quot;

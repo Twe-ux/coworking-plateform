@@ -28,6 +28,11 @@ interface DirectMessage {
   unreadCount?: number
 }
 
+interface UserStatus {
+  isOnline: boolean
+  lastSeen: Date
+}
+
 interface UseMessagingReturn {
   // Socket connection
   socket: Socket | null
@@ -54,6 +59,13 @@ interface UseMessagingReturn {
   startTyping: (channelId: string) => void
   stopTyping: (channelId: string) => void
 
+  // User status (online/offline)
+  userStatuses: UserStatus[]
+  onlineUsers: Set<string>
+
+  // Message status
+  markMessagesAsRead: (channelId: string, messageIds: string[]) => void
+
   // Connection management
   connect: () => void
   disconnect: () => void
@@ -65,6 +77,10 @@ export function useMessaging(): UseMessagingReturn {
   const [isConnected, setIsConnected] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([])
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
+  const [userStatuses, setUserStatuses] = useState<Record<string, UserStatus>>(
+    {}
+  )
 
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
@@ -105,6 +121,9 @@ export function useMessaging(): UseMessagingReturn {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = undefined
       }
+
+      // Demander les utilisateurs en ligne au serveur
+      newSocket.emit('request_online_users')
     })
 
     newSocket.on('disconnect', (reason) => {
@@ -127,6 +146,131 @@ export function useMessaging(): UseMessagingReturn {
       setIsConnected(false)
     })
 
+    // Liste complète des utilisateurs en ligne
+    newSocket.on(
+      'online_users_list',
+      (data: { users: any[]; timestamp: Date }) => {
+        const timestamp = new Date().toLocaleTimeString()
+        console.log(`📋 [${timestamp}] Online users list received:`, {
+          count: data.users.length,
+          users: data.users.map((u) => `${u.userName} (${u.userRole})`),
+          currentUser: session?.user?.email,
+          currentRole: (session?.user as any)?.role,
+        })
+
+        // FUSION au lieu de remplacement complet pour éviter les conflits
+        if (data.users && data.users.length >= 0) {
+          setOnlineUsers((prev) => {
+            const newOnlineUsers = new Set(prev) // Commencer avec l'état existant
+
+            // Ajouter les nouveaux utilisateurs en ligne
+            data.users.forEach((u) => {
+              newOnlineUsers.add(u.userId)
+            })
+
+            console.log(
+              `🔄 [${timestamp}] Merging onlineUsers: from ${prev.size} to ${newOnlineUsers.size} users`
+            )
+            console.log(`📊 [${timestamp}] Previous:`, Array.from(prev))
+            console.log(`📊 [${timestamp}] Merged:`, Array.from(newOnlineUsers))
+            return newOnlineUsers
+          })
+
+          // Mettre à jour les statuts (fusion aussi)
+          setUserStatuses((prev) => {
+            const newUserStatuses = { ...prev } // Conserver les statuts existants
+            data.users.forEach((u) => {
+              newUserStatuses[u.userId] = {
+                isOnline: true,
+                lastSeen: u.lastSeen,
+              }
+            })
+            console.log(
+              `📊 [${timestamp}] Merging userStatuses:`,
+              newUserStatuses
+            )
+            return newUserStatuses
+          })
+        } else {
+          console.warn(
+            `⚠️ [${timestamp}] Received empty or invalid users list, not updating`
+          )
+        }
+      }
+    )
+
+    // Presence events individuels (synchroniser avec le serveur)
+    newSocket.on(
+      'user_presence',
+      (data: {
+        userId: string
+        status: 'online' | 'offline'
+        lastSeen: Date
+      }) => {
+        const timestamp = new Date().toLocaleTimeString()
+        console.log(`👤 [${timestamp}] User presence update received:`, {
+          userId: data.userId,
+          status: data.status,
+          currentUser: session?.user?.email,
+          currentRole: (session?.user as any)?.role,
+          lastSeen: data.lastSeen,
+        })
+
+        if (data.status === 'online') {
+          setOnlineUsers((prev) => {
+            const newSet = new Set([...prev, data.userId])
+            console.log(
+              `🟢 [${timestamp}] Added to onlineUsers:`,
+              data.userId,
+              'Total online:',
+              newSet.size,
+              'All:',
+              Array.from(newSet)
+            )
+            return newSet
+          })
+          setUserStatuses((prev) => ({
+            ...prev,
+            [data.userId]: { isOnline: true, lastSeen: data.lastSeen },
+          }))
+        } else {
+          // PROTECTION: Retarder la suppression d'utilisateurs offline pour éviter les faux positifs
+          console.log(
+            `🔴 [${timestamp}] User ${data.userId} marked offline - scheduling delayed removal`
+          )
+
+          setTimeout(() => {
+            setOnlineUsers((prev) => {
+              const newSet = new Set(prev)
+              const wasOnline = newSet.has(data.userId)
+
+              // Double check si l'utilisateur est toujours supposé être offline
+              if (wasOnline) {
+                newSet.delete(data.userId)
+                console.log(
+                  `🔴 [${timestamp}] Delayed removal of ${data.userId} from onlineUsers after verification`
+                )
+                console.warn(
+                  `⚠️ [${timestamp}] CONTACT DISAPPEARED! User ${data.userId} was marked offline after delay. This might be the issue!`
+                )
+              } else {
+                console.log(
+                  `✅ [${timestamp}] User ${data.userId} already removed or came back online`
+                )
+              }
+
+              return newSet
+            })
+
+            setUserStatuses((prev) => ({
+              ...prev,
+              [data.userId]: { isOnline: false, lastSeen: data.lastSeen },
+            }))
+          }, 3000) // Délai de 3 secondes pour vérifier la persistance
+        }
+      }
+    )
+
     // Message events
     newSocket.on('new_message', (message: Message) => {
       console.log('📨 New message received:', message)
@@ -137,6 +281,36 @@ export function useMessaging(): UseMessagingReturn {
         return [...prev, message]
       })
     })
+
+    // Événements de statuts de lecture
+    newSocket.on(
+      'messages_read',
+      (data: { userId: string; messageIds: string[]; readAt: string }) => {
+        console.log('👁️ Messages read event:', data)
+        setMessages((prev) =>
+          prev.map((message) => {
+            if (data.messageIds.includes(message._id)) {
+              // Ajouter le statut de lecture s'il n'existe pas déjà
+              const readBy = message.readBy || []
+              const alreadyRead = readBy.some(
+                (read) => read.user === data.userId
+              )
+
+              if (!alreadyRead) {
+                return {
+                  ...message,
+                  readBy: [
+                    ...readBy,
+                    { user: data.userId, readAt: data.readAt },
+                  ],
+                }
+              }
+            }
+            return message
+          })
+        )
+      }
+    )
 
     newSocket.on(
       'channel_history',
@@ -150,6 +324,48 @@ export function useMessaging(): UseMessagingReturn {
 
     newSocket.on('error', (error) => {
       console.error('❌ Socket error:', error)
+    })
+
+    // User status events
+    newSocket.on('user_online', (data: { userId: string; user?: any }) => {
+      console.log('👤 User came online:', data)
+      setOnlineUsers((prev) => new Set(prev).add(data.userId))
+      setUserStatuses((prev) => {
+        const existing = prev.find((u) => u._id === data.userId)
+        if (existing) {
+          return prev.map((u) =>
+            u._id === data.userId ? { ...u, isOnline: true } : u
+          )
+        }
+        return [...prev, { _id: data.userId, isOnline: true }]
+      })
+    })
+
+    newSocket.on(
+      'user_offline',
+      (data: { userId: string; lastSeen?: string }) => {
+        console.log('👤 User went offline:', data)
+        setOnlineUsers((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(data.userId)
+          return newSet
+        })
+        setUserStatuses((prev) =>
+          prev.map((u) =>
+            u._id === data.userId
+              ? { ...u, isOnline: false, lastSeen: data.lastSeen }
+              : u
+          )
+        )
+      }
+    )
+
+    newSocket.on('users_status_update', (data: { users: UserStatus[] }) => {
+      console.log('👥 Users status batch update:', data.users.length, 'users')
+      setUserStatuses(data.users)
+      setOnlineUsers(
+        new Set(data.users.filter((u) => u.isOnline).map((u) => u._id))
+      )
     })
 
     setSocket(newSocket)
@@ -183,6 +399,32 @@ export function useMessaging(): UseMessagingReturn {
       disconnect()
     }
   }, [session?.user?.id]) // Only depend on user ID to avoid reconnection loops
+
+  // Resynchronisation périodique et sur focus
+  useEffect(() => {
+    if (!socket || !isConnected) return
+
+    // Resync sur focus de la fenêtre
+    const handleFocus = () => {
+      console.log('🔄 Window focused, requesting online users refresh')
+      socket.emit('request_online_users')
+    }
+
+    // Resync périodique (toutes les 5 minutes pour minimiser les conflits)
+    const interval = setInterval(() => {
+      if (socket && isConnected) {
+        console.log('🔄 Periodic resync, requesting online users')
+        socket.emit('request_online_users')
+      }
+    }, 300000) // 5 minutes pour réduire drastiquement les interférences
+
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      clearInterval(interval)
+    }
+  }, [socket, isConnected])
 
   // Send message
   const sendMessage = useCallback(
@@ -339,6 +581,25 @@ export function useMessaging(): UseMessagingReturn {
     [socket, isConnected]
   )
 
+  // Mark messages as read
+  const markMessagesAsRead = useCallback(
+    (channelId: string, messageIds: string[]) => {
+      if (!socket || !isConnected || messageIds.length === 0) return
+
+      console.log('👁️ Marking messages as read:', { channelId, messageIds })
+      socket.emit('mark_read', { channelId, messageIds })
+    },
+    [socket, isConnected]
+  )
+
+  // Helper function to check online status
+  const getUserOnlineStatus = useCallback(
+    (userId: string): boolean => {
+      return onlineUsers.has(userId)
+    },
+    [onlineUsers]
+  )
+
   return {
     // Socket connection
     socket,
@@ -360,6 +621,14 @@ export function useMessaging(): UseMessagingReturn {
     // Typing indicators
     startTyping,
     stopTyping,
+
+    // User presence
+    onlineUsers,
+    userStatuses,
+    getUserOnlineStatus,
+
+    // Message status
+    markMessagesAsRead,
 
     // Connection management
     connect,

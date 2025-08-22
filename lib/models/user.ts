@@ -41,6 +41,8 @@ export interface IUser extends Document {
   emailVerificationExpires?: Date
   twoFactorSecret?: string
   twoFactorEnabled: boolean
+  isOnline: boolean
+  lastActive?: Date
   createdAt: Date
   updatedAt: Date
   // Virtual properties
@@ -192,6 +194,16 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    isOnline: {
+      type: Boolean,
+      default: false,
+      index: true, // Index pour les requêtes de présence
+    },
+    lastActive: {
+      type: Date,
+      default: null,
+      index: true, // Index pour le nettoyage des sessions
+    },
   },
   {
     timestamps: true, // Ajoute automatiquement createdAt et updatedAt
@@ -235,6 +247,7 @@ userSchema.index({ email: 1 }, { unique: true, name: 'email_unique' })
 userSchema.index({ role: 1, isActive: 1 }, { name: 'role_active' })
 userSchema.index({ status: 1, createdAt: -1 }, { name: 'status_created' })
 userSchema.index({ lastLoginAt: -1 }, { name: 'last_login' })
+userSchema.index({ isOnline: 1, lastActive: -1 }, { name: 'online_presence' })
 
 // Index de texte pour la recherche
 userSchema.index(

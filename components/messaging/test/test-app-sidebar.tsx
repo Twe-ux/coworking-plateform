@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  Bot,
   ChevronLeft,
   ChevronRight,
   Hash,
@@ -29,29 +30,44 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
+import { useNotifications } from '@/hooks/use-notifications'
 
 interface TestAppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onViewChange?: (
-    view: 'messages' | 'channels' | 'contacts' | 'settings'
+    view: 'messages' | 'channels' | 'contacts' | 'ai' | 'settings'
   ) => void
+  activeView?: 'messages' | 'channels' | 'contacts' | 'ai' | 'settings'
 }
 
 export function TestAppSidebar({
   onViewChange,
+  activeView: externalActiveView,
   ...props
 }: TestAppSidebarProps) {
   const { data: session } = useSession()
   const { state } = useSidebar()
-  const [activeView, setActiveView] = React.useState<
-    'messages' | 'channels' | 'contacts' | 'settings'
+  const { notificationCounts } = useNotifications()
+
+  // Debug: Log des notifications
+  React.useEffect(() => {
+    console.log(
+      '🔔 TestAppSidebar: notificationCounts updated:',
+      notificationCounts
+    )
+  }, [notificationCounts])
+  const [internalActiveView, setInternalActiveView] = React.useState<
+    'messages' | 'channels' | 'contacts' | 'ai' | 'settings'
   >('messages')
+
+  // Utiliser la prop externe si fournie, sinon l'état interne
+  const activeView = externalActiveView || internalActiveView
 
   const isExpanded = state === 'expanded'
 
   const handleViewChange = (
-    view: 'messages' | 'channels' | 'contacts' | 'settings'
+    view: 'messages' | 'channels' | 'contacts' | 'ai' | 'settings'
   ) => {
-    setActiveView(view)
+    setInternalActiveView(view)
     onViewChange?.(view)
   }
 
@@ -78,7 +94,7 @@ export function TestAppSidebar({
       icon: MessageCircle,
       isActive: activeView === 'messages',
       onClick: () => handleViewChange('messages'),
-      badge: 3, // Exemple de badge pour messages non lus
+      badge: notificationCounts.messagesDMs,
     },
     {
       title: 'Contacts',
@@ -93,6 +109,14 @@ export function TestAppSidebar({
       icon: Hash,
       isActive: activeView === 'channels',
       onClick: () => handleViewChange('channels'),
+      badge: notificationCounts.channels,
+    },
+    {
+      title: 'Assistant IA',
+      url: '#',
+      icon: Bot,
+      isActive: activeView === 'ai',
+      onClick: () => handleViewChange('ai'),
     },
   ]
 
@@ -114,7 +138,7 @@ export function TestAppSidebar({
       url: '#',
       icon: Bell,
       onClick: () => {},
-      badge: 1,
+      badge: notificationCounts.totalUnread,
     },
   ]
 
@@ -197,10 +221,13 @@ export function TestAppSidebar({
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {isExpanded && <span>{item.title}</span>}
-                {item.badge && item.badge > 0 && isExpanded && (
+                {item.badge && item.badge > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-auto flex h-5 w-5 items-center justify-center bg-blue-500 p-0 text-xs text-white"
+                    className={cn(
+                      'flex h-5 w-5 items-center justify-center bg-blue-500 p-0 text-xs text-white',
+                      isExpanded ? 'ml-auto' : 'absolute -top-1 -right-1 z-10'
+                    )}
                   >
                     {item.badge}
                   </Badge>
@@ -228,10 +255,13 @@ export function TestAppSidebar({
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {isExpanded && <span>{item.title}</span>}
-                {item.badge && item.badge > 0 && isExpanded && (
+                {item.badge && item.badge > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-auto flex h-5 w-5 items-center justify-center bg-red-500 p-0 text-xs text-white"
+                    className={cn(
+                      'flex h-5 w-5 items-center justify-center bg-red-500 p-0 text-xs text-white',
+                      isExpanded ? 'ml-auto' : 'absolute -top-1 -right-1 z-10'
+                    )}
                   >
                     {item.badge}
                   </Badge>

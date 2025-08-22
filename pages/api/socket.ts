@@ -110,6 +110,9 @@ export default async function handler(
 
       console.log(`👤 Utilisateur connecté: ${user.userName} (${user.userId})`)
 
+      // Rejoindre la room de l'utilisateur pour le tracking
+      socket.join(`user:${user.userId}`)
+
       // Vérification IP pour l'accès à la messagerie
       try {
         await connectToDatabase()
@@ -171,12 +174,79 @@ export default async function handler(
           )
         }
 
-        // Notifier la présence en ligne
-        socket.broadcast.emit('user_presence', {
-          userId: user.userId,
-          status: 'online',
-          lastSeen: new Date(),
-        })
+        // Vérifier s'il s'agit de la première connexion de cet utilisateur
+        const userSockets = await io.in(`user:${user.userId}`).fetchSockets()
+        const isFirstConnection = userSockets.length === 1 // Seule cette socket existe
+
+        // Mise à jour du statut en ligne avec gestion d'erreurs améliorée
+        try {
+          const updateResult = await User.findByIdAndUpdate(
+            user.userId,
+            {
+              isOnline: true,
+              lastActive: new Date(),
+            },
+            { new: true } // Retourner le document mis à jour
+          )
+
+          if (updateResult) {
+            console.log(
+              `✅ ${user.userName} marqué comme en ligne dans la DB (connexion: ${isFirstConnection ? 'première' : 'additionnelle'})`
+            )
+          } else {
+            console.error(
+              `❌ Utilisateur ${user.userId} non trouvé lors de la mise à jour du statut`
+            )
+          }
+        } catch (error) {
+          console.error('❌ Erreur mise à jour statut online:', error)
+        }
+
+        // Notifier la présence en ligne seulement pour la première connexion
+        if (isFirstConnection) {
+          console.log(
+            `📢 Broadcasting ONLINE status for ${user.userName} (first connection)`
+          )
+          socket.broadcast.emit('user_presence', {
+            userId: user.userId,
+            status: 'online',
+            lastSeen: new Date(),
+          })
+        } else {
+          console.log(
+            `🔄 ${user.userName} connexion additionnelle (déjà en ligne)`
+          )
+        }
+
+        // Envoyer la liste des utilisateurs actuellement en ligne à ce nouvel utilisateur
+        try {
+          const onlineUsers = await User.find({ isOnline: true }).select(
+            '_id name firstName lastName'
+          )
+          const onlineUsersList = onlineUsers
+            .filter((u) => u._id.toString() !== user.userId) // Exclure l'utilisateur actuel
+            .map((u) => ({
+              userId: u._id.toString(),
+              userName:
+                u.firstName && u.lastName
+                  ? `${u.firstName} ${u.lastName}`
+                  : u.name,
+              status: 'online',
+              lastSeen: new Date(),
+            }))
+
+          console.log(
+            `📋 Envoi de la liste des utilisateurs en ligne à ${user.userName}:`,
+            onlineUsersList.map((u) => u.userName)
+          )
+
+          // Envoyer les statuts existants au nouvel utilisateur
+          onlineUsersList.forEach((onlineUser) => {
+            socket.emit('user_presence', onlineUser)
+          })
+        } catch (error) {
+          console.error('Erreur envoi liste utilisateurs en ligne:', error)
+        }
       } catch (error) {
         console.error('Erreur lors du chargement des channels:', error)
       }
@@ -249,8 +319,24 @@ export default async function handler(
             channel: channelId,
             attachments: message.attachments,
             reactions: message.reactions,
+            readBy: message.readBy || [], // Ajouter le champ readBy
             createdAt: message.createdAt,
             editedAt: message.editedAt,
+          })
+
+          // Émettre notification d'incrémentation pour les autres utilisateurs
+          const channelType = channel.type
+          channel.members.forEach((member) => {
+            const memberId = member.user.toString()
+            if (memberId !== user.userId) {
+              // Pas pour l'expéditeur
+              io.to(`user:${memberId}`).emit('notification_increment', {
+                userId: memberId,
+                channelId: channelId,
+                channelType: channelType,
+                increment: 1,
+              })
+            }
           })
 
           console.log(
@@ -325,6 +411,7 @@ export default async function handler(
               channel: msg.channel,
               attachments: msg.attachments,
               reactions: msg.reactions,
+              readBy: msg.readBy || [], // Ajouter le champ readBy
               createdAt: msg.createdAt,
               editedAt: msg.editedAt,
             })),
@@ -412,12 +499,56 @@ export default async function handler(
         }
       })
 
+      // Demande de la liste des utilisateurs en ligne
+      socket.on('request_online_users', async () => {
+        try {
+          console.log(
+            `📋 ${user.userName} (${user.userRole}) demande la liste des utilisateurs en ligne`
+          )
+
+          const onlineUsers = await User.find({ isOnline: true }).select(
+            '_id name firstName lastName role'
+          )
+          const onlineUsersList = onlineUsers
+            .filter((u) => u._id.toString() !== user.userId) // Exclure l'utilisateur actuel
+            .map((u) => ({
+              userId: u._id.toString(),
+              userName:
+                u.firstName && u.lastName
+                  ? `${u.firstName} ${u.lastName}`
+                  : u.name,
+              userRole: u.role,
+              status: 'online',
+              lastSeen: new Date(),
+            }))
+
+          console.log(
+            `📋 Envoi à ${user.userName} (${user.userRole}):`,
+            onlineUsersList.map((u) => `${u.userName} (${u.userRole})`)
+          )
+
+          // ENVOI GROUPÉ pour éviter les conflits avec les événements individuels
+          socket.emit('online_users_list', {
+            users: onlineUsersList,
+            timestamp: new Date(),
+          })
+
+          // NE PLUS envoyer individuellement pour éviter les doublons et conflits
+          // Les événements user_presence individuels seront uniquement pour les changements en temps réel
+        } catch (error) {
+          console.error('Erreur demande liste utilisateurs en ligne:', error)
+        }
+      })
+
       // Marquer les messages comme lus
       socket.on('mark_read', async (data) => {
         try {
           const { channelId, messageIds } = data
+          console.log(
+            `👁️ ${user.userName} marque ${messageIds.length} messages comme lus dans channel ${channelId}`
+          )
 
-          await Message.updateMany(
+          const updateResult = await Message.updateMany(
             {
               _id: { $in: messageIds },
               channel: channelId,
@@ -430,26 +561,118 @@ export default async function handler(
             }
           )
 
-          socket.to(`channel:${channelId}`).emit('messages_read', {
+          console.log(
+            `✅ ${updateResult.modifiedCount} messages mis à jour en base`
+          )
+
+          // Diffuser à tous les autres utilisateurs du channel
+          const readEvent = {
             userId: user.userId,
             messageIds,
-            readAt: new Date(),
+            readAt: new Date().toISOString(),
+          }
+
+          socket.to(`channel:${channelId}`).emit('messages_read', readEvent)
+          console.log(
+            `📢 Événement messages_read diffusé pour channel ${channelId}:`,
+            readEvent
+          )
+
+          // Récupérer le type de channel pour l'événement
+          const channel = await Channel.findById(channelId).select('type')
+
+          // Émettre notification de lecture à TOUTES les sessions de l'utilisateur
+          io.to(`user:${user.userId}`).emit('notifications_read', {
+            userId: user.userId,
+            channelId: channelId,
+            channelType: channel?.type || 'public',
           })
+
+          console.log(
+            `📢 Notification 'notifications_read' diffusée à user:${user.userId} pour channel ${channelId}`
+          )
         } catch (error) {
           console.error('Erreur mark read:', error)
         }
       })
 
-      // Déconnexion
-      socket.on('disconnect', () => {
-        console.log(`👋 ${user.userName} s'est déconnecté`)
+      // Déconnexion - Logique simplifiée et robuste
+      socket.on('disconnect', async (reason) => {
+        console.log(`👋 ${user.userName} s'est déconnecté (raison: ${reason})`)
 
-        // Notifier la déconnexion
-        socket.broadcast.emit('user_presence', {
-          userId: user.userId,
-          status: 'offline',
-          lastSeen: new Date(),
-        })
+        // Délai réduit pour une meilleure réactivité
+        const DISCONNECT_DELAY = 2000 // 2 secondes au lieu de 5
+
+        // Délai avant de marquer hors ligne (gérer les reconnexions rapides)
+        setTimeout(async () => {
+          try {
+            const timestamp = new Date().toLocaleTimeString()
+            console.log(
+              `⏰ [${timestamp}] Vérification déconnexion pour ${user.userName}...`
+            )
+
+            // Vérifier si l'utilisateur a d'autres sockets actives
+            const userSockets = await io
+              .in(`user:${user.userId}`)
+              .fetchSockets()
+            console.log(
+              `🔍 [${timestamp}] Sockets actives pour ${user.userName}:`,
+              userSockets.length
+            )
+
+            if (userSockets.length === 0) {
+              // Vraiment déconnecté - Mise à jour DB avec gestion d'erreurs
+              try {
+                const updateResult = await User.findByIdAndUpdate(
+                  user.userId,
+                  {
+                    isOnline: false,
+                    lastActive: new Date(),
+                  },
+                  { new: true } // Retourner le document mis à jour
+                )
+
+                if (updateResult) {
+                  console.log(
+                    `✅ [${timestamp}] ${user.userName} marqué comme hors ligne dans la DB`
+                  )
+
+                  // Broadcast uniquement si la DB a été mise à jour avec succès
+                  io.emit('user_presence', {
+                    userId: user.userId,
+                    status: 'offline',
+                    lastSeen: new Date(),
+                  })
+                  console.log(
+                    `📢 [${timestamp}] Statut OFFLINE diffusé pour ${user.userName}`
+                  )
+                } else {
+                  console.error(
+                    `❌ [${timestamp}] Utilisateur ${user.userId} non trouvé en DB`
+                  )
+                }
+              } catch (dbError) {
+                console.error(
+                  `❌ [${timestamp}] Erreur mise à jour DB pour ${user.userName}:`,
+                  dbError
+                )
+              }
+            } else {
+              console.log(
+                `🔄 [${timestamp}] ${user.userName} a d'autres connexions actives, statut en ligne maintenu`
+              )
+            }
+          } catch (error) {
+            console.error(
+              `❌ Erreur lors de la vérification de déconnexion:`,
+              error
+            )
+          }
+        }, DISCONNECT_DELAY)
+
+        console.log(
+          `⏰ Vérification de déconnexion programmée pour ${user.userName} dans ${DISCONNECT_DELAY}ms`
+        )
       })
     })
 

@@ -11,6 +11,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bot,
   Building,
+  Check,
+  CheckCheck,
   ExternalLink,
   Globe,
   Hash,
@@ -35,6 +37,10 @@ interface Message {
   createdAt: string
   reactions?: any[]
   attachments?: any[]
+  readBy?: {
+    user: string
+    readAt: string
+  }[]
 }
 
 interface UserProfile {
@@ -78,6 +84,7 @@ export function ChatWindow({
   const [typingUsers, setTypingUsers] = useState<string[]>([])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
   const {
@@ -86,12 +93,26 @@ export function ChatWindow({
     sendMessage: sendSocketMessage,
     loadMessages,
     joinChannel,
+    markMessagesAsRead,
   } = useMessaging()
 
-  // Supprimé le scroll automatique
-  // const scrollToBottom = useCallback(() => {
-  //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  // }, [])
+  // Scroll automatique vers le dernier message (zone de chat seulement)
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      // Méthode 1: Scroll direct du conteneur
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
+    } else if (messagesEndRef.current) {
+      // Méthode 2: scrollIntoView avec options restrictives
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    }
+  }, [])
 
   // Charger les messages quand on sélectionne un chat
   useEffect(() => {
@@ -105,11 +126,38 @@ export function ChatWindow({
       // Charger l'historique
       loadMessages(chatId).then((msgs) => {
         setMessages(msgs || [])
-        // setTimeout(scrollToBottom, 100) // Supprimé le scroll automatique
+
+        // Marquer les messages des autres comme lus
+        if (msgs && msgs.length > 0) {
+          const unreadMessageIds = msgs
+            .filter(
+              (msg) =>
+                msg.sender._id !== session?.user?.id &&
+                !msg.readBy?.some((read) => read.user === session?.user?.id)
+            )
+            .map((msg) => msg._id)
+
+          if (unreadMessageIds.length > 0) {
+            setTimeout(() => {
+              markMessagesAsRead(chatId, unreadMessageIds)
+            }, 1500) // Délai pour simuler la lecture
+          }
+        }
+
+        setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
         setIsLoading(false)
       })
     }
-  }, [chatId, socket, isConnected, joinChannel, loadMessages])
+  }, [
+    chatId,
+    socket,
+    isConnected,
+    joinChannel,
+    loadMessages,
+    markMessagesAsRead,
+    session?.user?.id,
+    scrollToBottom,
+  ])
 
   // Écouter les nouveaux messages
   useEffect(() => {
@@ -121,9 +169,18 @@ export function ChatWindow({
           // Éviter les doublons
           const exists = prev.find((m) => m._id === message._id)
           if (exists) return prev
-          return [...prev, message]
+          const newMessages = [...prev, message]
+
+          // Marquer automatiquement comme lu si ce n'est pas mon message
+          if (message.sender._id !== session?.user?.id && chatId) {
+            setTimeout(() => {
+              markMessagesAsRead(chatId, [message._id])
+            }, 1000) // Délai d'1 seconde pour simuler la lecture
+          }
+
+          return newMessages
         })
-        // setTimeout(scrollToBottom, 100) // Supprimé le scroll automatique
+        setTimeout(scrollToBottom, 100) // Scroll vers le nouveau message
       }
     }
 
@@ -133,8 +190,36 @@ export function ChatWindow({
     }) => {
       if (data.channelId === chatId) {
         setMessages(data.messages || [])
-        // setTimeout(scrollToBottom, 100) // Supprimé le scroll automatique
+        setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
       }
+    }
+
+    const handleMessagesRead = (data: {
+      userId: string
+      messageIds: string[]
+      readAt: string
+    }) => {
+      console.log('👁️ ChatWindow: Messages read event received:', data)
+      setMessages((prev) =>
+        prev.map((message) => {
+          if (data.messageIds.includes(message._id)) {
+            // Ajouter le statut de lecture s'il n'existe pas déjà
+            const readBy = message.readBy || []
+            const alreadyRead = readBy.some((read) => read.user === data.userId)
+
+            if (!alreadyRead) {
+              console.log(
+                `👁️ Marking message ${message._id} as read by ${data.userId}`
+              )
+              return {
+                ...message,
+                readBy: [...readBy, { user: data.userId, readAt: data.readAt }],
+              }
+            }
+          }
+          return message
+        })
+      )
     }
 
     const handleTyping = (data: {
@@ -155,13 +240,15 @@ export function ChatWindow({
     socket.on('new_message', handleNewMessage)
     socket.on('channel_history', handleChannelHistory)
     socket.on('user_typing', handleTyping)
+    socket.on('messages_read', handleMessagesRead)
 
     return () => {
       socket.off('new_message', handleNewMessage)
       socket.off('channel_history', handleChannelHistory)
       socket.off('user_typing', handleTyping)
+      socket.off('messages_read', handleMessagesRead)
     }
-  }, [socket, chatId])
+  }, [socket, chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatId || !socket || !isConnected) return
@@ -179,6 +266,7 @@ export function ChatWindow({
 
     try {
       await sendSocketMessage(chatId, messageContent)
+      setTimeout(scrollToBottom, 100) // Scroll après envoi
     } catch (error) {
       console.error('Erreur envoi message:', error)
     }
@@ -216,19 +304,69 @@ export function ChatWindow({
     return message.sender._id === session?.user?.id
   }
 
+  const isLastMyMessage = (message: Message, index: number) => {
+    if (!isMyMessage(message)) return false
+
+    // Chercher s'il y a un message plus récent de moi après celui-ci
+    for (let i = index + 1; i < messages.length; i++) {
+      if (isMyMessage(messages[i])) {
+        return false // Il y a un message plus récent de moi
+      }
+    }
+    return true // C'est le dernier message que j'ai envoyé
+  }
+
+  const getMessageStatus = (message: Message) => {
+    if (!isMyMessage(message)) return null // Pas de statut pour les messages d'autres utilisateurs
+
+    // Si pas de readBy, le message est envoyé mais pas lu
+    if (!message.readBy || message.readBy.length === 0) {
+      return 'sent' // Une seule coche
+    }
+
+    // Si l'autre utilisateur a lu le message (dans un DM)
+    const otherUserHasRead = message.readBy.some(
+      (read) => read.user !== session?.user?.id
+    )
+    return otherUserHasRead ? 'read' : 'sent'
+  }
+
+  const renderMessageStatus = (message: Message) => {
+    const status = getMessageStatus(message)
+
+    if (status === 'sent') {
+      return (
+        <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+          <Check className="h-3 w-3" />
+          <span>Envoyé</span>
+        </div>
+      )
+    } else if (status === 'read') {
+      return (
+        <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+          <CheckCheck className="h-3 w-3" />
+          <span>Lu</span>
+        </div>
+      )
+    }
+
+    return null
+  }
+
   // Vue profil utilisateur
   if (userProfile) {
+    console.log('👤 UserProfile data:', userProfile)
     return (
       <div className="flex h-full flex-col">
-        {/* Header profil */}
-        <div className="border-b p-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
+        {/* Header profil centré */}
+        <div className="border-b p-6 text-center">
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="h-20 w-20">
               <AvatarImage
                 src={userProfile.avatar}
                 alt={getUserDisplayName(userProfile)}
               />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="text-xl">
                 {getUserDisplayName(userProfile)
                   .split(' ')
                   .map((n) => n[0])
@@ -237,11 +375,24 @@ export function ChatWindow({
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold">
-                {getUserDisplayName(userProfile)}
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">
+                {userProfile.firstName && userProfile.lastName
+                  ? `${userProfile.firstName} ${userProfile.lastName}`
+                  : getUserDisplayName(userProfile)}
               </h2>
-              <div className="mt-1 flex items-center gap-2">
+
+              {userProfile.bio ? (
+                <p className="mx-auto max-w-md leading-relaxed text-gray-600">
+                  {userProfile.bio}
+                </p>
+              ) : (
+                <p className="mx-auto max-w-md text-sm text-gray-400 italic">
+                  Aucune bio disponible
+                </p>
+              )}
+
+              <div className="flex items-center justify-center gap-2">
                 <Badge variant={userProfile.isOnline ? 'default' : 'secondary'}>
                   {userProfile.isOnline ? '🟢 En ligne' : '⚫ Hors ligne'}
                 </Badge>
@@ -256,87 +407,90 @@ export function ChatWindow({
         {/* Contenu profil */}
         <ScrollArea className="flex-1 p-6">
           <div className="space-y-6">
-            {/* Informations de base */}
+            {/* Informations professionnelles */}
             <div>
-              <h3 className="mb-3 text-lg font-semibold">Informations</h3>
+              <h3 className="mb-3 text-lg font-semibold">
+                Informations professionnelles
+              </h3>
               <div className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-gray-600">
-                    Email
+                    Travail
                   </label>
-                  <p className="text-sm">{userProfile.email}</p>
+                  <p className="text-sm">
+                    {userProfile.profession || 'Non renseigné'}
+                  </p>
                 </div>
 
-                {userProfile.profession && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600">
+                    Entreprise
+                  </label>
+                  <p className="flex items-center gap-2 text-sm">
+                    <Building className="h-4 w-4" />
+                    {userProfile.company || 'Non renseigné'}
+                  </p>
+                </div>
+
+                {userProfile.website && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">
-                      Profession
+                      Site web
                     </label>
-                    <p className="text-sm">{userProfile.profession}</p>
+                    <a
+                      href={userProfile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-blue-600 transition-colors hover:text-blue-800"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      {userProfile.website}
+                    </a>
                   </div>
                 )}
 
-                {userProfile.company && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">
-                      Entreprise
-                    </label>
-                    <p className="flex items-center gap-2 text-sm">
-                      <Building className="h-4 w-4" />
-                      {userProfile.company}
-                    </p>
-                  </div>
-                )}
-
-                {userProfile.location && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">
-                      Localisation
-                    </label>
-                    <p className="flex items-center gap-2 text-sm">
-                      <Globe className="h-4 w-4" />
-                      {userProfile.location}
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <label className="text-sm font-medium text-gray-600">
+                    Localisation
+                  </label>
+                  <p className="flex items-center gap-2 text-sm">
+                    <Globe className="h-4 w-4" />
+                    {userProfile.location || 'Non renseigné'}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Bio */}
-            {userProfile.bio && (
+            {/* Contact */}
+            {userProfile.phone && (
               <div>
-                <h3 className="mb-3 text-lg font-semibold">À propos</h3>
-                <p className="text-sm leading-relaxed text-gray-700">
-                  {userProfile.bio}
-                </p>
+                <h3 className="mb-3 text-lg font-semibold">Contact</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Téléphone
+                    </label>
+                    <p className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4" />
+                      {userProfile.phone}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Liens et contact */}
-            <div className="space-y-3">
-              {userProfile.website && (
-                <a
-                  href={userProfile.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Visiter le site web
-                </a>
-              )}
-
-              {userProfile.phone && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4" />
-                  {userProfile.phone}
-                </p>
-              )}
-            </div>
-
             {/* Action */}
             <div className="pt-4">
-              <Button onClick={onStartChatWithUser} className="w-full">
+              <Button
+                onClick={() => {
+                  console.log(
+                    '🔥 Button clicked! UserProfile:',
+                    userProfile?._id
+                  )
+                  onStartChatWithUser?.()
+                }}
+                className="w-full"
+              >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Envoyer un message
               </Button>
@@ -401,13 +555,16 @@ export function ChatWindow({
 
       {/* Zone des messages */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <ScrollArea className="flex-1 overflow-y-scroll p-4">
+        <ScrollArea
+          ref={scrollAreaRef}
+          className="flex-1 overflow-y-scroll p-4"
+        >
           {isLoading ? (
             <div className="flex h-32 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 pb-4">
               <AnimatePresence>
                 {messages.map((message, index) => {
                   const isMe = isMyMessage(message)
@@ -462,21 +619,30 @@ export function ChatWindow({
                           </div>
                         )}
 
-                        <div
-                          className={cn(
-                            'relative max-w-md px-4 py-2 break-words shadow-sm',
-                            isMe
-                              ? 'rounded-2xl rounded-br-md bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-                              : 'rounded-2xl rounded-bl-md border border-gray-200 bg-white text-gray-900'
-                          )}
-                        >
-                          <p className="text-sm whitespace-pre-wrap">
-                            {message.content}
-                          </p>
-                          {isMe && (
-                            <span className="mt-1 block text-xs text-blue-100">
-                              {formatTime(message.createdAt)}
-                            </span>
+                        <div className="flex flex-col">
+                          <div
+                            className={cn(
+                              'relative max-w-md px-4 py-2 break-words shadow-sm',
+                              isMe
+                                ? 'rounded-2xl rounded-br-md bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                                : 'rounded-2xl rounded-bl-md border border-gray-200 bg-white text-gray-900'
+                            )}
+                          >
+                            <p className="text-sm whitespace-pre-wrap">
+                              {message.content}
+                            </p>
+                            {isMe && (
+                              <span className="mt-1 block text-xs text-blue-100">
+                                {formatTime(message.createdAt)}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Statut sous la bulle - seulement sur le dernier message que j'ai envoyé */}
+                          {isLastMyMessage(message, index) && (
+                            <div className="mt-1 flex justify-end">
+                              {renderMessageStatus(message)}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -488,29 +654,38 @@ export function ChatWindow({
               {/* Indicateur de frappe */}
               {typingUsers.length > 0 && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-2 text-sm text-gray-500"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mr-auto mb-2 flex max-w-[80%] items-end gap-3"
                 >
-                  <div className="flex gap-1">
-                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" />
-                    <div
-                      className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                      style={{ animationDelay: '0.1s' }}
-                    />
-                    <div
-                      className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                      style={{ animationDelay: '0.2s' }}
-                    />
+                  <div className="flex flex-col items-center">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
+                        {typingUsers[0]
+                          ?.split(' ')
+                          .map((n) => n[0])
+                          .join('') || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
-                  <span>
-                    {typingUsers.join(', ')}{' '}
-                    {typingUsers.length === 1 ? 'tape' : 'tapent'}...
-                  </span>
+                  <div className="flex min-h-[48px] items-center rounded-2xl rounded-bl-md border border-blue-200 bg-blue-50 px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500" />
+                      <div
+                        className="h-2 w-2 animate-bounce rounded-full bg-blue-600"
+                        style={{ animationDelay: '0.1s' }}
+                      />
+                      <div
+                        className="h-2 w-2 animate-bounce rounded-full bg-blue-700"
+                        style={{ animationDelay: '0.2s' }}
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
         </ScrollArea>

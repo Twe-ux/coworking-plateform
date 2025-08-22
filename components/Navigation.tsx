@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@/lib/hooks/use-auth'
+import { useNotifications } from '@/hooks/use-notifications'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
@@ -9,11 +10,13 @@ import ClientOnly from './ClientOnly'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 import AuthButtons from './auth/auth-buttons'
+import { Badge } from './ui/badge'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { isAuthenticated } = useAuth()
+  const { notificationCounts } = useNotifications()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,9 +32,34 @@ export default function Navigation() {
     { name: 'Blog', href: '/blog' },
     { name: 'Contact', href: '#contact' },
     { name: 'À propos', href: '#apropos' },
-    { name: 'tchat', href: '/messaging' },
-    ...(isAuthenticated ? [{ name: 'Messenger App', href: '/messaging' }] : []),
+    { name: 'tchat', href: '/messaging', hasNotification: true },
+    ...(isAuthenticated
+      ? [{ name: 'Messenger App', href: '/messaging', hasNotification: true }]
+      : []),
   ]
+
+  // Helper component for messaging links with notification badge
+  const MessagingLinkWithBadge = ({
+    children,
+    className,
+  }: {
+    children: React.ReactNode
+    className?: string
+  }) => (
+    <div className="relative inline-flex items-center">
+      {children}
+      {isAuthenticated && notificationCounts.totalUnread > 0 && (
+        <Badge
+          variant="destructive"
+          className="absolute -top-2 -right-2 flex h-5 w-5 animate-pulse items-center justify-center bg-red-500 p-0 text-xs text-white"
+        >
+          {notificationCounts.totalUnread > 99
+            ? '99+'
+            : notificationCounts.totalUnread}
+        </Badge>
+      )}
+    </div>
+  )
 
   return (
     <motion.nav
@@ -93,7 +121,13 @@ export default function Navigation() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
-                      {item.name}
+                      {item.hasNotification ? (
+                        <MessagingLinkWithBadge>
+                          {item.name}
+                        </MessagingLinkWithBadge>
+                      ) : (
+                        item.name
+                      )}
                     </motion.span>
                   </Link>
                 )
@@ -150,7 +184,13 @@ export default function Navigation() {
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                       onClick={() => setIsOpen(false)}
                     >
-                      {item.name}
+                      {item.hasNotification ? (
+                        <MessagingLinkWithBadge>
+                          {item.name}
+                        </MessagingLinkWithBadge>
+                      ) : (
+                        item.name
+                      )}
                     </motion.span>
                   </Link>
                 )

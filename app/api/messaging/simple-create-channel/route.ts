@@ -7,11 +7,11 @@ import mongoose from 'mongoose'
 export async function POST(request: NextRequest) {
   try {
     console.log('🔄 API création channel simple...')
-    
+
     // Vérification de session
     const session = await getServerSession(authOptions)
     console.log('📋 Session:', session?.user?.email || 'Aucune session')
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Non authentifié', message: 'Session requise' },
@@ -52,36 +52,65 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Vérifier que le channel n'existe pas déjà
-    const existingChannel = await channelsCollection.findOne({ 
-      name: name.trim(),
-      isDeleted: { $ne: true }
-    })
+    // Pour les DMs, vérifier si une conversation existe déjà entre ces utilisateurs
+    if (type === 'direct' && targetUserId) {
+      const targetObjectId = new mongoose.Types.ObjectId(targetUserId)
+      const userObjectId = user._id
 
-    if (existingChannel) {
-      return NextResponse.json(
-        { error: 'Conflit', message: 'Un channel avec ce nom existe déjà' },
-        { status: 409 }
-      )
+      const existingDM = await channelsCollection.findOne({
+        type: 'direct',
+        isDeleted: { $ne: true },
+        $and: [
+          { 'members.user': userObjectId },
+          { 'members.user': targetObjectId },
+        ],
+      })
+
+      if (existingDM) {
+        console.log('📨 DM existant trouvé:', existingDM._id)
+        return NextResponse.json({
+          success: true,
+          channel: existingDM,
+          message: 'Conversation directe récupérée',
+        })
+      }
+    } else {
+      // Pour les autres types de channels, vérifier par nom
+      const existingChannel = await channelsCollection.findOne({
+        name: name.trim(),
+        isDeleted: { $ne: true },
+      })
+
+      if (existingChannel) {
+        return NextResponse.json(
+          { error: 'Conflit', message: 'Un channel avec ce nom existe déjà' },
+          { status: 409 }
+        )
+      }
     }
 
     // Pour les chats directs, ajouter l'utilisateur cible
-    let members = [{
-      user: user._id,
-      role: type === 'direct' ? 'member' : 'admin',
-      joinedAt: new Date(),
-      isMuted: false,
-      permissions: {
-        canWrite: true,
-        canAddMembers: type !== 'direct',
-        canDeleteMessages: type !== 'direct',
-        canModerate: type !== 'direct'
-      }
-    }]
+    let members = [
+      {
+        user: user._id,
+        role: type === 'direct' ? 'member' : 'admin',
+        joinedAt: new Date(),
+        isMuted: false,
+        permissions: {
+          canWrite: true,
+          canAddMembers: type !== 'direct',
+          canDeleteMessages: type !== 'direct',
+          canModerate: type !== 'direct',
+        },
+      },
+    ]
 
     // Si c'est un chat direct, ajouter l'utilisateur cible
+    let finalName = name.trim()
     if (type === 'direct' && targetUserId) {
-      const targetUser = await usersCollection.findOne({ _id: new mongoose.Types.ObjectId(targetUserId) })
+      const targetUser = await usersCollection.findOne({
+        _id: new mongoose.Types.ObjectId(targetUserId),
+      })
       if (targetUser) {
         members.push({
           user: targetUser._id,
@@ -92,83 +121,92 @@ export async function POST(request: NextRequest) {
             canWrite: true,
             canAddMembers: false,
             canDeleteMessages: false,
-            canModerate: false
-          }
+            canModerate: false,
+          },
         })
+
+        // Créer un nom unique basé sur les IDs des utilisateurs (toujours dans le même ordre)
+        const sortedIds = [user._id.toString(), targetUserId].sort()
+        finalName = `DM_${sortedIds[0]}_${sortedIds[1]}`
       }
     }
 
     // Créer le channel
     const newChannel = {
-      name: name.trim(),
-      slug: name.trim().toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      description: description || `Channel ${name.trim()}`,
+      name: finalName,
+      slug: finalName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      description: description || `Channel ${finalName}`,
       type: type,
       isArchived: false,
       isDeleted: false,
       isActive: true,
-      
+
       members: members,
-      
+
       settings: {
         allowFileUploads: true,
         allowReactions: true,
         slowModeSeconds: 0,
         requireApproval: false,
         isReadOnly: false,
-        maxMembers: 1000
+        maxMembers: 1000,
       },
-      
+
       ipRestrictions: {
         enabled: false,
         allowedIPs: [],
         blockedIPs: [],
-        whitelist: []
+        whitelist: [],
       },
-      
+
       aiSettings: {
         enabled: type === 'ai_assistant',
         provider: 'openai',
         model: 'gpt-4',
         temperature: 0.7,
         maxTokens: 1000,
-        systemPrompt: type === 'ai_assistant' ? 
-          'Tu es un assistant IA spécialisé dans les espaces de coworking.' : undefined
+        systemPrompt:
+          type === 'ai_assistant'
+            ? 'Tu es un assistant IA spécialisé dans les espaces de coworking.'
+            : undefined,
       },
-      
+
       createdBy: user._id,
       lastActivity: new Date(),
       messageCount: 0,
       tags: [type],
-      
+
       audit: {
         createdAt: new Date(),
         updatedAt: new Date(),
-        lastModifiedBy: user._id
-      }
+        lastModifiedBy: user._id,
+      },
     }
 
     const result = await channelsCollection.insertOne(newChannel)
     console.log('✅ Channel créé avec ID:', result.insertedId)
 
-    return NextResponse.json({
-      success: true,
-      channel: {
-        _id: result.insertedId,
-        name: newChannel.name,
-        type: newChannel.type,
-        description: newChannel.description,
-        createdAt: newChannel.audit.createdAt
-      }
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        success: true,
+        channel: {
+          _id: result.insertedId,
+          name: newChannel.name,
+          type: newChannel.type,
+          description: newChannel.description,
+          createdAt: newChannel.audit.createdAt,
+        },
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('❌ Erreur création channel:', error)
     return NextResponse.json(
-      { 
-        error: 'Erreur serveur', 
+      {
+        error: 'Erreur serveur',
         message: error.message,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        details:
+          process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 }
     )

@@ -20,11 +20,13 @@ import {
 
 import { RouteGuard } from '@/components/auth/route-guard'
 import Logo from '@/components/Logo'
+import { AiChat } from '@/components/messaging/test/ai-chat'
 import { ChatList } from '@/components/messaging/test/chat-list'
 import { ChatWindow } from '@/components/messaging/test/chat-window'
 import { TestAppSidebar } from '@/components/messaging/test/test-app-sidebar'
 import { SidebarProvider } from '@/components/messaging/test/ui/sidebar'
 import { useMessaging } from '@/hooks/use-messaging'
+import { useNotifications } from '@/hooks/use-notifications'
 import { UserRole } from '@/types/auth'
 
 interface Channel {
@@ -67,6 +69,22 @@ export default function MessagingPage() {
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
   const [currentView, setCurrentView] = useState('messages')
   const { createDirectMessage, directMessages, isConnected } = useMessaging()
+  const { notificationCounts } = useNotifications()
+
+  // Fonction pour gérer le changement de vue avec nettoyage des états
+  const handleViewChange = (newView: string) => {
+    console.log('🔄 Changing view from', currentView, 'to', newView)
+
+    // Nettoyer les sélections selon la vue
+    if (newView !== 'contacts') {
+      setSelectedUserProfile(null) // Effacer le profil utilisateur si on quitte les contacts
+    }
+    if (newView === 'ai') {
+      setSelectedChat(null) // Effacer le chat sélectionné si on va vers l'IA
+    }
+
+    setCurrentView(newView)
+  }
 
   // Redirection si non authentifié
   useEffect(() => {
@@ -110,29 +128,43 @@ export default function MessagingPage() {
 
   const handleStartChatWithUser = async (userId: string) => {
     try {
-      console.log('Starting chat with user:', userId, selectedUserProfile?.name)
+      console.log(
+        '🚀 Starting chat with user:',
+        userId,
+        selectedUserProfile?.name
+      )
+      console.log('📧 Selected user profile:', selectedUserProfile)
 
       // Create DM with user
+      console.log('📝 Calling createDirectMessage...')
       const result = await createDirectMessage(userId)
-      console.log('DM creation result:', result)
+      console.log('✅ DM creation result:', result)
 
       if (result && result.id) {
         // Directly select the chat with the returned ID
         const chatData = {
           id: result.id,
-          name: selectedUserProfile?.name || 'Unknown User',
+          name:
+            selectedUserProfile?.firstName && selectedUserProfile?.lastName
+              ? `${selectedUserProfile.firstName} ${selectedUserProfile.lastName}`
+              : selectedUserProfile?.name || 'Unknown User',
           avatar: selectedUserProfile?.avatar,
           isOnline: selectedUserProfile?.isOnline,
+          isDirect: true,
         }
-        console.log('Setting selectedChat:', chatData)
+        console.log('🎯 Setting selectedChat:', chatData)
+        console.log('🔄 Changing view from', currentView, 'to messages')
+
         setSelectedChat(chatData)
-        setCurrentView('messages') // Switch to messages view
+        setCurrentView('messages') // Switch to messages view to see DMs
         setSelectedUserProfile(null) // Hide profile
+
+        console.log('✅ All state updated successfully')
       } else {
-        console.error('No DM ID returned from creation')
+        console.error('❌ No DM ID returned from creation')
       }
     } catch (error) {
-      console.error('Error starting chat:', error)
+      console.error('💥 Error starting chat:', error)
     }
   }
 
@@ -328,7 +360,21 @@ export default function MessagingPage() {
               </div>
 
               {/* Status Badge */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {/* Badge de notifications */}
+                {notificationCounts.totalUnread > 0 && (
+                  <div className="relative">
+                    <Badge
+                      variant="destructive"
+                      className="animate-pulse bg-red-500"
+                    >
+                      📧 {notificationCounts.totalUnread} nouveau
+                      {notificationCounts.totalUnread > 1 ? 'x' : ''} message
+                      {notificationCounts.totalUnread > 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                )}
+
                 <Badge variant={isConnected ? 'default' : 'destructive'}>
                   {isConnected ? '🟢 En ligne' : '🔴 Déconnecté'}
                 </Badge>
@@ -347,7 +393,8 @@ export default function MessagingPage() {
               <TestAppSidebar
                 className="relative overflow-hidden"
                 collapsible="icon"
-                onViewChange={setCurrentView}
+                onViewChange={handleViewChange}
+                activeView={currentView}
               />
 
               <motion.div
@@ -370,18 +417,22 @@ export default function MessagingPage() {
                 transition={{ duration: 0.8 }}
                 className="flex-1 overflow-hidden rounded-2xl border-2 border-white bg-white/95 text-black backdrop-blur-sm"
               >
-                <ChatWindow
-                  chatId={selectedChat?.id}
-                  chatName={selectedChat?.name}
-                  chatAvatar={selectedChat?.avatar}
-                  isOnline={selectedChat?.isOnline}
-                  userProfile={selectedUserProfile}
-                  onStartChatWithUser={() => {
-                    if (selectedUserProfile) {
-                      handleStartChatWithUser(selectedUserProfile._id)
-                    }
-                  }}
-                />
+                {currentView === 'ai' ? (
+                  <AiChat />
+                ) : (
+                  <ChatWindow
+                    chatId={selectedChat?.id}
+                    chatName={selectedChat?.name}
+                    chatAvatar={selectedChat?.avatar}
+                    isOnline={selectedChat?.isOnline}
+                    userProfile={selectedUserProfile}
+                    onStartChatWithUser={() => {
+                      if (selectedUserProfile) {
+                        handleStartChatWithUser(selectedUserProfile._id)
+                      }
+                    }}
+                  />
+                )}
               </motion.div>
             </div>
           </SidebarProvider>
