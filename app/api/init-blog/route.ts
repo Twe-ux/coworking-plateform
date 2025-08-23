@@ -3,11 +3,12 @@
  * Crée des articles de test pour démonstration
  */
 
-import { NextRequest } from 'next/server'
-import dbConnect from '@/lib/mongodb'
 import Article from '@/lib/models/Article'
 import Category from '@/lib/models/Category'
-import User from '@/lib/models/User'
+import dbConnect from '@/lib/mongodb'
+import { NextRequest } from 'next/server'
+
+import User from '@/lib/models/user'
 import { generateSlug } from '@/lib/validation/blog'
 
 export async function POST(request: NextRequest) {
@@ -17,40 +18,52 @@ export async function POST(request: NextRequest) {
     // Vérifier si des articles existent déjà
     const existingArticles = await Article.countDocuments()
     if (existingArticles > 0) {
-      return Response.json({
-        success: false,
-        error: 'Des articles existent déjà dans la base de données',
-        message: 'Utilisez DELETE pour réinitialiser avant de créer de nouveaux articles'
-      }, { status: 400 })
+      return Response.json(
+        {
+          success: false,
+          error: 'Des articles existent déjà dans la base de données',
+          message:
+            'Utilisez DELETE pour réinitialiser avant de créer de nouveaux articles',
+        },
+        { status: 400 }
+      )
     }
 
     // Récupérer les catégories existantes
     const categories = await Category.find({ isActive: true }).limit(3)
     if (categories.length === 0) {
-      return Response.json({
-        success: false,
-        error: 'Aucune catégorie trouvée',
-        message: 'Veuillez d\'abord créer des catégories avec /api/categories'
-      }, { status: 400 })
+      return Response.json(
+        {
+          success: false,
+          error: 'Aucune catégorie trouvée',
+          message: "Veuillez d'abord créer des catégories avec /api/categories",
+        },
+        { status: 400 }
+      )
     }
 
     // Récupérer un utilisateur admin/manager pour être l'auteur
-    const author = await User.findOne({ 
-      $or: [{ role: 'admin' }, { role: 'manager' }] 
+    const author = await User.findOne({
+      $or: [{ role: 'admin' }, { role: 'manager' }],
     })
     if (!author) {
-      return Response.json({
-        success: false,
-        error: 'Aucun utilisateur admin/manager trouvé',
-        message: 'Veuillez créer un utilisateur admin pour être l\'auteur des articles'
-      }, { status: 400 })
+      return Response.json(
+        {
+          success: false,
+          error: 'Aucun utilisateur admin/manager trouvé',
+          message:
+            "Veuillez créer un utilisateur admin pour être l'auteur des articles",
+        },
+        { status: 400 }
+      )
     }
 
     // Articles de test à créer
     const testArticles = [
       {
         title: 'Bienvenue dans notre espace de coworking',
-        excerpt: 'Découvrez tous les avantages de travailler dans un environnement collaboratif et inspirant.',
+        excerpt:
+          'Découvrez tous les avantages de travailler dans un environnement collaboratif et inspirant.',
         content: `# Bienvenue dans notre espace de coworking
 
 Notre espace de coworking a été conçu pour offrir un environnement de travail optimal aux entrepreneurs, freelances et équipes de toutes tailles.
@@ -89,12 +102,13 @@ Rejoignez notre communauté dès aujourd'hui !`,
           views: 156,
           comments: 8,
           likes: 23,
-          shares: 5
-        }
+          shares: 5,
+        },
       },
       {
         title: 'Guide des bonnes pratiques en coworking',
-        excerpt: 'Les règles essentielles pour une cohabitation harmonieuse dans un espace partagé.',
+        excerpt:
+          'Les règles essentielles pour une cohabitation harmonieuse dans un espace partagé.',
         content: `# Guide des bonnes pratiques en coworking
 
 Le coworking repose sur le respect mutuel et la collaboration. Voici nos conseils pour une expérience optimale.
@@ -143,12 +157,13 @@ Ensemble, créons un environnement de travail exceptionnel !`,
           views: 89,
           comments: 12,
           likes: 34,
-          shares: 8
-        }
+          shares: 8,
+        },
       },
       {
         title: 'Les avantages du travail flexible',
-        excerpt: 'Comment le coworking révolutionne notre façon de travailler et améliore notre productivité.',
+        excerpt:
+          'Comment le coworking révolutionne notre façon de travailler et améliore notre productivité.',
         content: `# Les avantages du travail flexible
 
 Le monde du travail évolue et le coworking s'impose comme une solution d'avenir.
@@ -203,9 +218,9 @@ Le futur du travail est flexible, collaboratif et humain !`,
           views: 45,
           comments: 3,
           likes: 12,
-          shares: 2
-        }
-      }
+          shares: 2,
+        },
+      },
     ]
 
     const createdArticles = []
@@ -214,13 +229,13 @@ Le futur du travail est flexible, collaboratif et humain !`,
     for (const articleData of testArticles) {
       // Générer le slug
       const slug = generateSlug(articleData.title)
-      
+
       // Créer l'article
       const article = new Article({
         ...articleData,
         slug,
         category: articleData.categoryId,
-        version: 1
+        version: 1,
       })
 
       await article.save()
@@ -228,19 +243,16 @@ Le futur du travail est flexible, collaboratif et humain !`,
       // Populer pour la réponse
       await article.populate([
         { path: 'author', select: 'firstName lastName email' },
-        { path: 'category', select: 'name slug color' }
+        { path: 'category', select: 'name slug color' },
       ])
 
       createdArticles.push(article)
 
       // Mettre à jour les stats de la catégorie
-      await Category.findByIdAndUpdate(
-        articleData.categoryId,
-        { 
-          $inc: { 'stats.articleCount': 1 },
-          $set: { 'stats.lastArticleAt': new Date() }
-        }
-      )
+      await Category.findByIdAndUpdate(articleData.categoryId, {
+        $inc: { 'stats.articleCount': 1 },
+        $set: { 'stats.lastArticleAt': new Date() },
+      })
     }
 
     return Response.json({
@@ -250,18 +262,21 @@ Le futur du travail est flexible, collaboratif et humain !`,
       meta: {
         created: createdArticles.length,
         author: `${author.firstName} ${author.lastName}`,
-        categories: categories.map(cat => cat.name)
-      }
+        categories: categories.map((cat) => cat.name),
+      },
     })
-
   } catch (error: any) {
-    console.error('Erreur lors de l\'initialisation du blog:', error)
-    return Response.json({
-      success: false,
-      error: 'Erreur lors de l\'initialisation du blog',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      timestamp: new Date().toISOString()
-    }, { status: 500 })
+    console.error("Erreur lors de l'initialisation du blog:", error)
+    return Response.json(
+      {
+        success: false,
+        error: "Erreur lors de l'initialisation du blog",
+        details:
+          process.env.NODE_ENV === 'development' ? error.message : undefined,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -278,26 +293,29 @@ export async function DELETE(request: NextRequest) {
     // Remettre à zéro les stats des catégories
     await Category.updateMany(
       {},
-      { 
-        $set: { 
+      {
+        $set: {
           'stats.articleCount': 0,
-          'stats.lastArticleAt': null
-        }
+          'stats.lastArticleAt': null,
+        },
       }
     )
 
     return Response.json({
       success: true,
       message: `${deletedArticles.deletedCount} articles supprimés`,
-      data: { deletedCount: deletedArticles.deletedCount }
+      data: { deletedCount: deletedArticles.deletedCount },
     })
-
   } catch (error: any) {
     console.error('Erreur lors de la suppression des articles:', error)
-    return Response.json({
-      success: false,
-      error: 'Erreur lors de la suppression',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    }, { status: 500 })
+    return Response.json(
+      {
+        success: false,
+        error: 'Erreur lors de la suppression',
+        details:
+          process.env.NODE_ENV === 'development' ? error.message : undefined,
+      },
+      { status: 500 }
+    )
   }
 }
