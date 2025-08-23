@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { useMessaging } from '@/hooks/use-messaging'
+import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging'
 import { useNotifications } from '@/hooks/use-notifications'
 
 interface Channel {
