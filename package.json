@@ -75,7 +75,7 @@
     "critters": "^0.0.23",
     "crypto-js": "^4.2.0",
     "date-fns": "^2.30.0",
-    "framer-motion": "11.11.7",
+    "framer-motion": "12.23.12",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
