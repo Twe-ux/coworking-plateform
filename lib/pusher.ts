@@ -18,7 +18,7 @@ export const pusherClient = new PusherClient(
     authEndpoint: '/api/pusher/auth',
     auth: {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     },
   }

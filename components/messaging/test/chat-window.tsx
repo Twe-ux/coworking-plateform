@@ -21,7 +21,7 @@ import {
   Send,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface Message {
   _id: string
@@ -79,22 +79,31 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const { data: session } = useSession()
   const [newMessage, setNewMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [typingUsers, setTypingUsers] = useState<string[]>([])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
   const {
-    socket,
     isConnected,
+    messages: globalMessages,
     sendMessage: sendSocketMessage,
     loadMessages,
     joinChannel,
     markMessagesAsRead,
+    startTyping,
+    stopTyping,
+    typingUsers: globalTypingUsers,
   } = useMessaging()
+
+  // Get typing users for current channel
+  const typingUsers = globalTypingUsers[chatId] || []
+
+  // Filter global messages for current channel
+  const messages = useMemo(() => {
+    return globalMessages.filter(msg => msg.channel === chatId)
+  }, [globalMessages, chatId])
 
   // Scroll automatique vers le dernier message (zone de chat seulement)
   const scrollToBottom = useCallback(() => {
@@ -114,19 +123,39 @@ export function ChatWindow({
     }
   }, [])
 
+  // Auto-marquer les messages non lus comme lus quand ils apparaissent
+  useEffect(() => {
+    if (!session?.user?.id || !chatId || messages.length === 0) return
+
+    const unreadMessages = messages.filter(msg => {
+      // Si c'est mon propre message, pas besoin de le marquer comme lu
+      if (msg.sender._id === session.user.id) return false
+      // Si le message n'est pas encore lu par moi
+      const readByMe = msg.readBy?.some(read => read.user === session.user.id)
+      return !readByMe
+    })
+
+    if (unreadMessages.length > 0) {
+      const messageIds = unreadMessages.map(msg => msg._id)
+      console.log('👁️ Auto-marking messages as read:', messageIds)
+      // Attendre un peu pour simuler que l'utilisateur "voit" le message
+      setTimeout(() => {
+        markMessagesAsRead(chatId, messageIds)
+      }, 2000)
+    }
+  }, [messages, chatId, session?.user?.id, markMessagesAsRead])
+
   // Charger les messages quand on sélectionne un chat
   useEffect(() => {
-    if (chatId && socket && isConnected) {
+    if (chatId && isConnected) {
       setIsLoading(true)
-      setMessages([])
 
       // Rejoindre le channel
       joinChannel(chatId)
 
       // Charger l'historique
       loadMessages(chatId).then((msgs) => {
-        setMessages(msgs || [])
-
+        // Messages are now handled by global hook state
         // Marquer les messages des autres comme lus
         if (msgs && msgs.length > 0) {
           const unreadMessageIds = msgs
@@ -150,7 +179,6 @@ export function ChatWindow({
     }
   }, [
     chatId,
-    socket,
     isConnected,
     joinChannel,
     loadMessages,
@@ -161,7 +189,7 @@ export function ChatWindow({
 
   // Écouter les nouveaux messages
   useEffect(() => {
-    if (!socket) return
+    if (!isConnected) return
 
     const handleNewMessage = (message: Message) => {
       if (message.channel === chatId) {
@@ -237,31 +265,31 @@ export function ChatWindow({
       }
     }
 
-    socket.on('new_message', handleNewMessage)
-    socket.on('channel_history', handleChannelHistory)
-    socket.on('user_typing', handleTyping)
-    socket.on('messages_read', handleMessagesRead)
+    // Les events Pusher sont gérés dans le hook usePusherMessaging
+    // socket.on('new_message', handleNewMessage) - Pusher gère automatiquement
+    // socket.on('channel_history', handleChannelHistory) - Chargé via loadMessages
+    // socket.on('user_typing', handleTyping) - À implémenter avec Pusher
+    // socket.on('messages_read', handleMessagesRead) - À implémenter avec Pusher
 
+    // Pas de cleanup nécessaire avec Pusher
     return () => {
-      socket.off('new_message', handleNewMessage)
-      socket.off('channel_history', handleChannelHistory)
-      socket.off('user_typing', handleTyping)
-      socket.off('messages_read', handleMessagesRead)
+      // Cleanup si nécessaire
     }
-  }, [socket, chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
+  }, [chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !chatId || !socket || !isConnected) return
+    if (!newMessage.trim() || !chatId || !isConnected) return
+
+    console.log('📤 Sending message:', newMessage.trim(), 'to channel:', chatId)
 
     const messageContent = newMessage.trim()
     setNewMessage('')
 
     // Arrêter l'indicateur de frappe
+    stopTyping(chatId)
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
-    }
-    if (socket) {
-      socket.emit('typing_stop', { channelId: chatId })
+      typingTimeoutRef.current = undefined
     }
 
     try {
@@ -273,18 +301,25 @@ export function ChatWindow({
   }
 
   const handleTyping = () => {
-    if (!socket || !chatId) return
+    if (!chatId || !isConnected) return
 
-    socket.emit('typing_start', { channelId: chatId })
-
+    console.log('⌨️ User typing in channel:', chatId)
+    
+    // Démarrer l'indicateur de frappe via Pusher
+    startTyping(chatId)
+    
+    // Nettoyer le timeout précédent
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
 
+    // Auto-arrêt après 3 secondes d'inactivité
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing_stop', { channelId: chatId })
-    }, 2000)
+      stopTyping(chatId)
+    }, 3000)
   }
+
+  // Typing events are now handled in the global hook
 
   const getUserDisplayName = (user: UserProfile) => {
     if (user.firstName && user.lastName) {
@@ -651,44 +686,33 @@ export function ChatWindow({
                 })}
               </AnimatePresence>
 
-              {/* Indicateur de frappe */}
-              {typingUsers.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="mr-auto mb-2 flex max-w-[80%] items-end gap-3"
-                >
-                  <div className="flex flex-col items-center">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
-                        {typingUsers[0]
-                          ?.split(' ')
-                          .map((n) => n[0])
-                          .join('') || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <div className="flex min-h-[48px] items-center rounded-2xl rounded-bl-md border border-blue-200 bg-blue-50 px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500" />
-                      <div
-                        className="h-2 w-2 animate-bounce rounded-full bg-blue-600"
-                        style={{ animationDelay: '0.1s' }}
-                      />
-                      <div
-                        className="h-2 w-2 animate-bounce rounded-full bg-blue-700"
-                        style={{ animationDelay: '0.2s' }}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              {/* Typing indicator moved to input area for better UX */}
 
               <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
         </ScrollArea>
+
+        {/* Indicateur de frappe */}
+        {typingUsers.length > 0 && (
+          <div className="border-t px-4 py-2 bg-gray-50">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              </div>
+              <span>
+                {typingUsers.length === 1 
+                  ? `${typingUsers[0].userName} est en train d'écrire...`
+                  : typingUsers.length === 2
+                  ? `${typingUsers[0].userName} et ${typingUsers[1].userName} sont en train d'écrire...`
+                  : `${typingUsers.length} personnes sont en train d'écrire...`
+                }
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Zone de saisie */}
         <div className="border-t p-4">

@@ -17,7 +17,7 @@ import {
   Users,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging'
 import { useNotifications } from '@/hooks/use-notifications'
 
@@ -61,7 +61,6 @@ export function ChatList({
     onlineUsers,
     userStatuses,
     getUserOnlineStatus,
-    socket,
     isConnected,
   } = useMessaging()
   const { notificationCounts, markChannelAsRead } = useNotifications()
@@ -114,12 +113,19 @@ export function ChatList({
 
       if (data.success) {
         // Filtrer l'utilisateur actuel et synchroniser avec les statuts en ligne
+        console.log('👥 OnlineUsers from hook:', Array.from(onlineUsers))
         const users = data.users
           .filter((user: User) => user._id !== session?.user?.id)
-          .map((user: User) => ({
-            ...user,
-            isOnline: getUserOnlineStatus(user._id) || user.isOnline || false,
-          }))
+          .map((user: User) => {
+            const isOnlineFromHook = getUserOnlineStatus(user._id)
+            const isOnlineFromDB = user.isOnline
+            const finalOnlineStatus = isOnlineFromHook || isOnlineFromDB || false
+            console.log(`👤 ${user.name}: hook=${isOnlineFromHook}, db=${isOnlineFromDB}, final=${finalOnlineStatus}`)
+            return {
+              ...user,
+              isOnline: finalOnlineStatus,
+            }
+          })
         setAvailableUsers(users)
         console.log(
           '👥 Utilisateurs chargés avec statuts:',
@@ -145,31 +151,19 @@ export function ChatList({
 
   // Forcer la resynchronisation quand on passe à la vue contacts
   useEffect(() => {
-    if (currentView === 'contacts' && socket && isConnected) {
+    if (currentView === 'contacts' && isConnected) {
       console.log(
         '🔄 Switching to contacts view, requesting fresh online users list'
       )
-      socket.emit('request_online_users')
+      // Avec Pusher, on recharge les utilisateurs via API
+      setTimeout(() => {
+        loadUsers()
+      }, 500) // Petit délai pour s'assurer que Pusher est synchronisé
     }
-  }, [currentView, socket, isConnected])
+  }, [currentView, isConnected])
 
   // Rafraîchir les statuts des utilisateurs quand les statuts en ligne changent
-  useEffect(() => {
-    if (availableUsers.length > 0) {
-      console.log('🔄 Mise à jour des statuts utilisateurs:', {
-        onlineUsers: Array.from(onlineUsers),
-        totalUsers: availableUsers.length,
-      })
-
-      // Mettre à jour les statuts sans recharger depuis l'API
-      setAvailableUsers((prevUsers) =>
-        prevUsers.map((user) => ({
-          ...user,
-          isOnline: getUserOnlineStatus(user._id),
-        }))
-      )
-    }
-  }, [onlineUsers, getUserOnlineStatus])
+  // ✅ Supprimé - remplacé par displayUsers avec useMemo pour éviter les boucles infinies
 
   const getChannelIcon = (channel: Channel) => {
     switch (channel.type) {
@@ -209,31 +203,13 @@ export function ChatList({
     return user.name || user.email || 'Utilisateur'
   }
 
-  // Synchroniser les statuts en ligne avec les utilisateurs disponibles
-  useEffect(() => {
-    if (availableUsers.length > 0) {
-      console.log('🔄 ChatList: Synchronizing user statuses', {
-        onlineUsers: Array.from(onlineUsers),
-        userStatuses: userStatuses,
-        availableUsers: availableUsers.length,
-      })
-
-      setAvailableUsers((prevUsers) =>
-        prevUsers.map((user) => {
-          const newOnlineStatus = getUserOnlineStatus(user._id)
-          if (user.isOnline !== newOnlineStatus) {
-            console.log(
-              `👤 User ${user._id} (${getUserDisplayName(user)}) status changed: ${user.isOnline} -> ${newOnlineStatus}`
-            )
-          }
-          return {
-            ...user,
-            isOnline: newOnlineStatus,
-          }
-        })
-      )
-    }
-  }, [onlineUsers, userStatuses]) // Re-synchroniser quand les statuts changent
+  // Créer une version stable des utilisateurs avec leur statut en ligne
+  const displayUsers = useMemo(() => {
+    return availableUsers.map((user) => ({
+      ...user,
+      isOnline: getUserOnlineStatus(user._id)
+    }))
+  }, [availableUsers, onlineUsers, userStatuses])
 
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -247,11 +223,11 @@ export function ChatList({
     dm.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredUsers = availableUsers
+  const filteredUsers = displayUsers
     .filter(
       (user) =>
         // Seulement les utilisateurs en ligne
-        getUserOnlineStatus(user._id) &&
+        user.isOnline &&
         (getUserDisplayName(user)
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||

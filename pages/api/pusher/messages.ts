@@ -112,7 +112,10 @@ async function handleSendMessage(
 
     // Diffuser via Pusher
     const channelName = PUSHER_CHANNELS.PUBLIC(channelId)
+    console.log('📢 Sending Pusher message event to channel:', channelName, 'Event:', PUSHER_EVENTS.MESSAGE_SENT)
+    console.log('📢 Message data:', messageData)
     await triggerPusherEvent(channelName, PUSHER_EVENTS.MESSAGE_SENT, messageData)
+    console.log('✅ Pusher message event sent successfully')
 
     // Notifier les membres du channel (sauf l'expéditeur)
     const notifications = channel.members
