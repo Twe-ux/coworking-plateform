@@ -14,6 +14,7 @@ interface NotificationCounts {
 export function useNotifications() {
   const { data: session } = useSession()
   const { isConnected, markMessagesAsRead, messages } = usePusherMessaging()
+  const [isClient, setIsClient] = useState(false)
 
   const [notificationCounts, setNotificationCounts] =
     useState<NotificationCounts>({
@@ -22,6 +23,11 @@ export function useNotifications() {
       channels: 0,
       channelBreakdown: {},
     })
+    
+  // SSR Safety
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Charger les compteurs initiaux
   const loadNotificationCounts = useCallback(async () => {
@@ -39,9 +45,9 @@ export function useNotifications() {
     }
   }, [session?.user?.id])
 
-  // FIXME: Calculer les notifications en temps réel (seulement côté client)
+  // FIXME: Calculer les notifications en temps réel (seulement après hydration)
   useEffect(() => {
-    if (typeof window === 'undefined') return // Skip during SSR
+    if (!isClient) return // Wait for client hydration
     if (!session?.user?.id) return
     
     // Toujours calculer même si pas connecté (utiliser les messages en cache)
@@ -104,7 +110,7 @@ export function useNotifications() {
       return prevCounts
     })
     
-  }, [messages, session?.user?.id])
+  }, [isClient, messages, session?.user?.id])
 
   // Charger les compteurs au démarrage
   useEffect(() => {

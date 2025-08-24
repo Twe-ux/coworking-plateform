@@ -124,19 +124,31 @@ const saveMessagesToStorage = (messages: Message[]) => {
 export function usePusherMessaging(): UsePusherMessagingReturn {
   const { data: session } = useSession()
   const [isConnected, setIsConnected] = useState(false)
-  const [messages, setMessages] = useState<Message[]>(() => loadMessagesFromStorage())
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // SSR-safe initialization
+    if (typeof window === 'undefined') return []
+    return loadMessagesFromStorage()
+  })
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([])
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
   const [userStatuses, setUserStatuses] = useState<Record<string, UserStatus>>({})
   const [typingUsers, setTypingUsers] = useState<Record<string, {userId: string, userName: string}[]>>({})
+  const [isClient, setIsClient] = useState(false)
   
   const activeChannelsRef = useRef<Set<string>>(new Set())
   const channelInstancesRef = useRef<Map<string, Channel>>(new Map())
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  
+  // SSR Safety: Only run client-side code after hydration
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
-  // Initialize Pusher connection
+  // Initialize Pusher connection (only on client with null checks)
   const connect = useCallback(() => {
-    if (!session?.user) return
+    if (!isClient || !session?.user) return
+    if (typeof window === 'undefined') return // Double check for SSR
+    if (!pusherClient) return // Check if pusherClient is available
 
     console.log('🔌 Connecting to Pusher...')
     console.log('🔑 Pusher config:', {
@@ -313,9 +325,9 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     }
   }, [session])
 
-  // Auto connect/disconnect based on session (only in browser)
+  // Auto connect/disconnect based on session (only in browser after hydration)
   useEffect(() => {
-    if (typeof window === 'undefined') return // Skip during SSR
+    if (!isClient) return // Wait for client hydration
     
     if (session?.user) {
       connect()
@@ -331,7 +343,7 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     } else {
       disconnect()
     }
-  }, [session?.user?.id, connect, disconnect])
+  }, [isClient, session?.user?.id, connect, disconnect, loadOnlineUsers])
 
   // Send message avec vérification que le channel est prêt
   const sendMessage = useCallback(

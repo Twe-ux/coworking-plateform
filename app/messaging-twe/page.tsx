@@ -1,8 +1,11 @@
 'use client'
 
+// Force dynamic rendering for this page to avoid SSR issues
+export const dynamic = 'force-dynamic'
+
 import { RouteGuard } from '@/components/auth/route-guard'
 import Logo from '@/components/Logo'
-import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging'
+import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging-safe'
 import { UserRole } from '@/types/auth'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'

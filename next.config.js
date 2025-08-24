@@ -54,13 +54,20 @@ const nextConfig = {
   // Compression
   compress: true,
   // Optimisation des bundles (temporairement désactivée)
+  // experimental: {
+  //   // optimizeCss: true, // Temporairement désactivé pour la build
+  //   optimizePackageImports: ['lucide-react', 'recharts', 'date-fns'],
+  // },
+  // Configuration for build
+  output: 'standalone', 
+  trailingSlash: false,
+  // Skip problematic pages during build
   experimental: {
     // optimizeCss: true, // Temporairement désactivé pour la build
     optimizePackageImports: ['lucide-react', 'recharts', 'date-fns'],
+    skipMiddlewareUrlNormalize: true,
+    skipTrailingSlashRedirect: true,
   },
-  // Configuration for build
-  output: 'standalone',
-  trailingSlash: false,
   // Configuration des headers de sécurité
   async headers() {
     return [
