@@ -38,12 +38,9 @@ export function MessagingInterfaceComplete({
     return (
       <MessagingMobileOptimizations activeNav={activeNav}>
         <div className="border-coffee-primary bg-background h-full border-r">
-          <ChatArea
-            activeChannelId="general"
-            onSendMessage={(message) => {
-              console.log('Message envoyé:', message)
-            }}
-          />
+          <div className="flex items-center justify-center h-full">
+            <p className="text-muted-foreground">Interface de chat mobile (en développement)</p>
+          </div>
         </div>
       </MessagingMobileOptimizations>
     )
@@ -74,12 +71,9 @@ export function MessagingInterfaceComplete({
       {/* Chat Area (droite) - Grande fenêtre pour le tchat */}
       <div className="min-w-0 flex-1">
         <div className="border-coffee-primary bg-background h-full rounded-lg border">
-          <ChatArea
-            activeChannelId="general"
-            onSendMessage={(message) => {
-              console.log('Message envoyé:', message)
-            }}
-          />
+          <div className="flex items-center justify-center h-full">
+            <p className="text-muted-foreground">Interface de chat (en développement avec Pusher)</p>
+          </div>
         </div>
       </div>
     </div>
