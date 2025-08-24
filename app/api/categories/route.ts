@@ -121,19 +121,16 @@ export async function GET(request: NextRequest) {
             .lean()
 
           // Transform _id to id for frontend compatibility
+          const { _id, parentCategory, ...cleanCategory } = category
           const transformedCategory = {
-            ...category,
-            id: category._id.toString(),
-            parentCategoryId: category.parentCategory?.toString(),
+            ...cleanCategory,
+            id: _id.toString(),
+            parentCategoryId: parentCategory?.toString(),
             subCategoriesCount,
             recentArticles,
             hasSubCategories: subCategoriesCount > 0,
             articlesCount: category.stats?.articleCount || 0,
           }
-          
-          // Remove the original _id and parentCategory fields to avoid confusion
-          delete transformedCategory._id
-          delete transformedCategory.parentCategory
           
           return transformedCategory
         })
@@ -159,18 +156,15 @@ export async function GET(request: NextRequest) {
         })
 
         // Transform _id to id for frontend compatibility
+        const { _id, parentCategory, ...cleanCategory } = category
         const transformedCategory = {
-          ...category,
-          id: category._id.toString(),
-          parentCategoryId: category.parentCategory?.toString(),
+          ...cleanCategory,
+          id: _id.toString(),
+          parentCategoryId: parentCategory?.toString(),
           subCategoriesCount,
           hasSubCategories: subCategoriesCount > 0,
           articlesCount: category.stats?.articleCount || 0,
         }
-        
-        // Remove the original _id and parentCategory fields to avoid confusion
-        delete transformedCategory._id
-        delete transformedCategory.parentCategory
         
         return transformedCategory
       })
