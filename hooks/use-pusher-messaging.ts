@@ -77,10 +77,52 @@ interface UsePusherMessagingReturn {
   disconnect: () => void
 }
 
+// Clés pour le localStorage
+const MESSAGES_STORAGE_KEY = 'pusher_messages_cache'
+const LAST_ACTIVITY_KEY = 'pusher_last_activity'
+
+// Charger les messages depuis le localStorage
+const loadMessagesFromStorage = (): Message[] => {
+  if (typeof window === 'undefined') return []
+  
+  try {
+    const stored = localStorage.getItem(MESSAGES_STORAGE_KEY)
+    const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY)
+    
+    if (!stored || !lastActivity) return []
+    
+    // Si l'activité est trop ancienne (>30 min), nettoyer le cache
+    const timeDiff = Date.now() - parseInt(lastActivity)
+    if (timeDiff > 30 * 60 * 1000) { // 30 minutes
+      localStorage.removeItem(MESSAGES_STORAGE_KEY)
+      localStorage.removeItem(LAST_ACTIVITY_KEY)
+      return []
+    }
+    
+    return JSON.parse(stored) || []
+  } catch {
+    return []
+  }
+}
+
+// Sauvegarder les messages dans le localStorage
+const saveMessagesToStorage = (messages: Message[]) => {
+  if (typeof window === 'undefined') return
+  
+  try {
+    // Limiter à 100 messages max pour éviter de surcharger le localStorage
+    const limitedMessages = messages.slice(-100)
+    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(limitedMessages))
+    localStorage.setItem(LAST_ACTIVITY_KEY, Date.now().toString())
+  } catch (error) {
+    console.warn('⚠️ Failed to save messages to localStorage:', error)
+  }
+}
+
 export function usePusherMessaging(): UsePusherMessagingReturn {
   const { data: session } = useSession()
   const [isConnected, setIsConnected] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(() => loadMessagesFromStorage())
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([])
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
   const [userStatuses, setUserStatuses] = useState<Record<string, UserStatus>>({})
@@ -328,15 +370,31 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
   const loadMessages = useCallback(
     async (channelId: string, limit: number = 50): Promise<Message[]> => {
       try {
+        console.log('📋 Loading messages for channel:', channelId)
         const response = await fetch(
           `/api/messaging/messages?channelId=${channelId}&limit=${limit}`
         )
         const data = await response.json()
 
         if (data.success) {
-          const messages = data.data.messages || []
-          setMessages(messages)
-          return messages
+          const channelMessages = data.data.messages || []
+          console.log('📋 Loaded', channelMessages.length, 'messages for channel:', channelId)
+          
+          // FIXME: Fusionner avec les messages existants au lieu de remplacer
+          setMessages(prev => {
+            // Enlever les anciens messages de ce channel
+            const otherChannelMessages = prev.filter(msg => msg.channel !== channelId)
+            // Ajouter les nouveaux messages du channel
+            const uniqueMessages = [...otherChannelMessages, ...channelMessages]
+            console.log('📋 Total messages after merge:', uniqueMessages.length)
+            
+            // Sauvegarder dans le localStorage pour persistance
+            saveMessagesToStorage(uniqueMessages)
+            
+            return uniqueMessages
+          })
+          
+          return channelMessages
         }
 
         return []
@@ -417,7 +475,11 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
               readBy: data.readBy,
             }
             
-            return [...prev, message]
+            const newMessages = [...prev, message]
+            // Sauvegarder les nouveaux messages
+            saveMessagesToStorage(newMessages)
+            
+            return newMessages
           })
         })
 

@@ -13,7 +13,7 @@ interface NotificationCounts {
 
 export function useNotifications() {
   const { data: session } = useSession()
-  const { isConnected, markMessagesAsRead } = usePusherMessaging()
+  const { isConnected, markMessagesAsRead, messages } = usePusherMessaging()
 
   const [notificationCounts, setNotificationCounts] =
     useState<NotificationCounts>({
@@ -39,14 +39,51 @@ export function useNotifications() {
     }
   }, [session?.user?.id])
 
-  // TODO: Écouter les mises à jour en temps réel via Pusher
-  // Temporairement désactivé pendant la migration vers Pusher
+  // FIXME: Calculer les notifications basées sur les messages en temps réel
   useEffect(() => {
-    if (!isConnected) return
+    if (!session?.user?.id || !isConnected || messages.length === 0) return
     
-    console.log('🔔 Notifications temporairement en mode fallback (Pusher migration)')
-    // Les notifications Pusher seront implémentées dans une version ultérieure
-  }, [isConnected])
+    console.log('🔔 Recalculating notifications from', messages.length, 'messages')
+    
+    const userId = session.user.id
+    const channelBreakdown: Record<string, number> = {}
+    let totalUnread = 0
+    let messagesDMs = 0
+    let channels = 0
+    
+    // Compter les messages non lus par channel
+    messages.forEach(message => {
+      // Ignorer mes propres messages
+      if (message.sender._id === userId) return
+      
+      // Vérifier si je l'ai lu
+      const readByMe = message.readBy?.some(read => read.user === userId)
+      if (readByMe) return
+      
+      // C'est un message non lu
+      const channelId = message.channel
+      channelBreakdown[channelId] = (channelBreakdown[channelId] || 0) + 1
+      totalUnread++
+      
+      // Déterminer le type de channel (à améliorer avec les vraies données)
+      if (channelId.includes('Direct') || channelId.includes('dm')) {
+        messagesDMs++
+      } else {
+        channels++
+      }
+    })
+    
+    const newCounts = {
+      totalUnread,
+      messagesDMs, 
+      channels,
+      channelBreakdown,
+    }
+    
+    console.log('🔔 Updated notification counts:', newCounts)
+    setNotificationCounts(newCounts)
+    
+  }, [messages, session?.user?.id, isConnected])
 
   // Charger les compteurs au démarrage
   useEffect(() => {

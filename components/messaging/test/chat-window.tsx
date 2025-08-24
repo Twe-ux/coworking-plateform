@@ -123,7 +123,7 @@ export function ChatWindow({
     }
   }, [])
 
-  // Auto-marquer les messages non lus comme lus quand ils apparaissent
+  // FIXME: Marquer comme lu seulement après interaction utilisateur visible
   useEffect(() => {
     if (!session?.user?.id || !chatId || messages.length === 0) return
 
@@ -137,145 +137,57 @@ export function ChatWindow({
 
     if (unreadMessages.length > 0) {
       const messageIds = unreadMessages.map(msg => msg._id)
-      console.log('👁️ Auto-marking messages as read:', messageIds)
-      // Attendre un peu pour simuler que l'utilisateur "voit" le message
-      setTimeout(() => {
-        markMessagesAsRead(chatId, messageIds)
-      }, 2000)
+      console.log('👁️ Messages detected as unread (will mark after user scroll):', messageIds)
+      
+      // ATTENDRE que l'utilisateur scroll au bas pour marquer comme lu
+      const markAsReadTimer = setTimeout(() => {
+        // Vérifier si l'utilisateur a scroll jusqu'au bas
+        const scrollContainer = scrollAreaRef.current
+        if (scrollContainer) {
+          const isAtBottom = scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 10
+          if (isAtBottom) {
+            console.log('👁️ User at bottom - marking messages as read:', messageIds)
+            markMessagesAsRead(chatId, messageIds)
+          } else {
+            console.log('👁️ User not at bottom - not marking as read yet')
+          }
+        }
+      }, 1500) // Plus court délai mais avec vérification du scroll
+      
+      return () => clearTimeout(markAsReadTimer)
     }
   }, [messages, chatId, session?.user?.id, markMessagesAsRead])
 
   // Charger les messages quand on sélectionne un chat
   useEffect(() => {
     if (chatId && isConnected) {
+      console.log('💬 Loading chat:', chatId)
       setIsLoading(true)
 
       // Rejoindre le channel
       joinChannel(chatId)
 
-      // Charger l'historique
+      // Charger l'historique - les messages sont maintenant fusionnés dans le hook
       loadMessages(chatId).then((msgs) => {
-        // Messages are now handled by global hook state
-        // Marquer les messages des autres comme lus
-        if (msgs && msgs.length > 0) {
-          const unreadMessageIds = msgs
-            .filter(
-              (msg) =>
-                msg.sender._id !== session?.user?.id &&
-                !msg.readBy?.some((read) => read.user === session?.user?.id)
-            )
-            .map((msg) => msg._id)
-
-          if (unreadMessageIds.length > 0) {
-            setTimeout(() => {
-              markMessagesAsRead(chatId, unreadMessageIds)
-            }, 1500) // Délai pour simuler la lecture
-          }
-        }
-
-        setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
+        console.log('📋 Messages loaded for', chatId, ':', msgs?.length || 0)
+        
+        // NE PAS marquer automatiquement comme lu - attendre interaction utilisateur
+        setTimeout(scrollToBottom, 200) // Scroll vers le dernier message  
         setIsLoading(false)
       })
+    } else if (chatId && !isConnected) {
+      console.log('⚠️ Chat selected but not connected to Pusher:', chatId)
     }
   }, [
     chatId,
     isConnected,
     joinChannel,
     loadMessages,
-    markMessagesAsRead,
-    session?.user?.id,
     scrollToBottom,
   ])
 
-  // Écouter les nouveaux messages
-  useEffect(() => {
-    if (!isConnected) return
-
-    const handleNewMessage = (message: Message) => {
-      if (message.channel === chatId) {
-        setMessages((prev) => {
-          // Éviter les doublons
-          const exists = prev.find((m) => m._id === message._id)
-          if (exists) return prev
-          const newMessages = [...prev, message]
-
-          // Marquer automatiquement comme lu si ce n'est pas mon message
-          if (message.sender._id !== session?.user?.id && chatId) {
-            setTimeout(() => {
-              markMessagesAsRead(chatId, [message._id])
-            }, 1000) // Délai d'1 seconde pour simuler la lecture
-          }
-
-          return newMessages
-        })
-        setTimeout(scrollToBottom, 100) // Scroll vers le nouveau message
-      }
-    }
-
-    const handleChannelHistory = (data: {
-      channelId: string
-      messages: Message[]
-    }) => {
-      if (data.channelId === chatId) {
-        setMessages(data.messages || [])
-        setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
-      }
-    }
-
-    const handleMessagesRead = (data: {
-      userId: string
-      messageIds: string[]
-      readAt: string
-    }) => {
-      console.log('👁️ ChatWindow: Messages read event received:', data)
-      setMessages((prev) =>
-        prev.map((message) => {
-          if (data.messageIds.includes(message._id)) {
-            // Ajouter le statut de lecture s'il n'existe pas déjà
-            const readBy = message.readBy || []
-            const alreadyRead = readBy.some((read) => read.user === data.userId)
-
-            if (!alreadyRead) {
-              console.log(
-                `👁️ Marking message ${message._id} as read by ${data.userId}`
-              )
-              return {
-                ...message,
-                readBy: [...readBy, { user: data.userId, readAt: data.readAt }],
-              }
-            }
-          }
-          return message
-        })
-      )
-    }
-
-    const handleTyping = (data: {
-      userId: string
-      userName: string
-      isTyping: boolean
-    }) => {
-      if (data.isTyping) {
-        setTypingUsers((prev) => [
-          ...prev.filter((name) => name !== data.userName),
-          data.userName,
-        ])
-      } else {
-        setTypingUsers((prev) => prev.filter((name) => name !== data.userName))
-      }
-    }
-
-    // Les events Pusher sont gérés dans le hook usePusherMessaging
-    // socket.on('new_message', handleNewMessage) - Pusher gère automatiquement
-    // socket.on('channel_history', handleChannelHistory) - Chargé via loadMessages
-    // socket.on('user_typing', handleTyping) - À implémenter avec Pusher
-    // socket.on('messages_read', handleMessagesRead) - À implémenter avec Pusher
-
-    // Pas de cleanup nécessaire avec Pusher
-    return () => {
-      // Cleanup si nécessaire
-    }
-  }, [chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
+  // REMOVED: Event listeners car tout est géré dans usePusherMessaging hook
+  // Les nouveaux messages arrivent via globalMessages et sont filtrés par useMemo
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatId || !isConnected) return
