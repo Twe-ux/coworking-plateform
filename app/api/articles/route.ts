@@ -206,14 +206,13 @@ export async function POST(request: NextRequest) {
         issues: validationResult.error.issues.map(issue => ({
           path: issue.path.join('.'),
           message: issue.message,
-          received: issue.received,
-          expected: issue.expected
+          code: issue.code
         })),
         receivedData: JSON.stringify(body, null, 2)
       })
       
       const detailedErrors = validationResult.error.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message} (received: ${JSON.stringify(issue.received)})`
+        `${issue.path.join('.')}: ${issue.message} (code: ${issue.code})`
       )
       
       return createErrorResponse(
