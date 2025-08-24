@@ -52,12 +52,13 @@ interface UsePusherMessagingReturn {
   loadMessages: (channelId: string, limit?: number) => Promise<Message[]>
 
   // Channels
-  joinChannel: (channelId: string) => void
+  joinChannel: (channelId: string, forceRejoin?: boolean) => void
   leaveChannel: (channelId: string) => void
 
   // Direct Messages
   directMessages: DirectMessage[]
   createDirectMessage: (userId: string) => Promise<{ id: string } | null>
+  refreshDirectMessages: () => Promise<void>
 
   // Typing indicators
   startTyping: (channelId: string) => void
@@ -406,25 +407,35 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     []
   )
 
-  // Join channel (version simplifiée pour debug)
+  // Join channel avec gestion améliorée pour les nouveaux DM
   const joinChannel = useCallback(
-    (channelId: string) => {
-      if (!session?.user || activeChannelsRef.current.has(channelId)) {
-        console.log(`⏭️ Skipping channel join for ${channelId}:`, {
-          hasUser: !!session?.user,
-          alreadyActive: activeChannelsRef.current.has(channelId)
-        })
+    (channelId: string, forceRejoin = false) => {
+      if (!session?.user) {
+        console.log(`❌ Cannot join ${channelId}: no user session`)
+        return
+      }
+      
+      if (activeChannelsRef.current.has(channelId) && !forceRejoin) {
+        console.log(`⏭️ Already joined channel ${channelId}, skipping`)
         return
       }
 
-      console.log(`📺 Joining channel: ${channelId}`)
+      console.log(`📺 Joining channel: ${channelId}${forceRejoin ? ' (forced)' : ''}`)
       console.log(`🔗 Pusher connection state:`, pusherClient.connection.state)
 
-      // Pour l'instant, on utilise des canaux publics pour simplifier
       const channelName = PUSHER_CHANNELS.PUBLIC(channelId)
       console.log(`🌐 Subscribing to public channel: ${channelName}`)
       
       try {
+        // Si le channel existe déjà, le désabonner d'abord
+        const existingChannel = channelInstancesRef.current.get(channelName)
+        if (existingChannel && forceRejoin) {
+          console.log(`🔄 Unsubscribing from existing channel before rejoining`)
+          pusherClient.unsubscribe(channelName)
+          channelInstancesRef.current.delete(channelName)
+          activeChannelsRef.current.delete(channelId)
+        }
+        
         const channel = pusherClient.subscribe(channelName)
 
         // Add subscription success/error handlers
@@ -432,30 +443,36 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
           console.log(`✅ Successfully subscribed to channel: ${channelName}`)
           console.log(`🔗 Channel ready for messaging!`)
           console.log(`📋 Active channels:`, Array.from(activeChannelsRef.current))
-          console.log(`💾 Channel instances:`, channelInstancesRef.current.keys())
-          // Set connected when any channel is successfully subscribed
+          console.log(`💾 Channel instances:`, Array.from(channelInstancesRef.current.keys()))
           setIsConnected(true)
         })
 
         channel.bind('pusher:subscription_error', (error: any) => {
           console.error(`❌ Failed to subscribe to channel: ${channelName}`, error)
           console.error(`❌ Subscription error details:`, error)
-          // Don't set disconnected immediately - maybe other channels work
           console.log('⚠️ Channel subscription failed but keeping connection status')
         })
 
         console.log(`🎧 Binding MESSAGE_SENT event to channel: ${channelName}`)
         console.log(`🎧 Event name: ${PUSHER_EVENTS.MESSAGE_SENT}`)
         
-        // Bind channel events
+        // Bind channel events avec logging amélioré
         channel.bind(PUSHER_EVENTS.MESSAGE_SENT, (data: PusherMessage) => {
           console.log('🎯 MESSAGE_SENT event received from Pusher!')
-          console.log('📨 New message received:', data)
-          console.log('📨 Channel name:', channelName)
-          console.log('📨 Event name:', PUSHER_EVENTS.MESSAGE_SENT)
+          console.log('📨 New message data:', {
+            id: data.id,
+            content: data.content?.substring(0, 50) + '...',
+            channel: data.channel,
+            sender: data.sender.name,
+            timestamp: data.createdAt
+          })
+          
           setMessages(prev => {
             const exists = prev.find(m => m._id === data.id)
-            if (exists) return prev
+            if (exists) {
+              console.log('💭 Message already exists, skipping')
+              return prev
+            }
             
             // Convert PusherMessage to Message format
             const message: Message = {
@@ -475,6 +492,7 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
               readBy: data.readBy,
             }
             
+            console.log('✨ Adding new message to state:', message._id)
             const newMessages = [...prev, message]
             // Sauvegarder les nouveaux messages
             saveMessagesToStorage(newMessages)
@@ -540,7 +558,15 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
         activeChannelsRef.current.add(channelId)
 
         // Load channel history
-        loadMessages(channelId)
+        console.log(`📋 Loading messages for channel: ${channelId}`)
+        loadMessages(channelId).then(messages => {
+          console.log(`✅ Loaded ${messages.length} messages for channel ${channelId}`)
+          if (messages.length === 0) {
+            console.log('💭 No existing messages - channel ready for new messages')
+          }
+        }).catch(error => {
+          console.error(`❌ Error loading messages for ${channelId}:`, error)
+        })
 
       } catch (error) {
         console.error(`❌ Error joining channel ${channelId}:`, error)
@@ -570,10 +596,12 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     []
   )
 
-  // Create direct message
+  // Create direct message avec subscription immédiate au channel Pusher
   const createDirectMessage = useCallback(
     async (userId: string): Promise<{ id: string } | null> => {
       try {
+        console.log('📝 Creating DM with user:', userId)
+        
         const response = await fetch('/api/messaging/simple-create-channel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -588,25 +616,38 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
         const data = await response.json()
 
         if (data.success && data.channel) {
+          const dmId = data.channel._id
+          console.log('✅ DM created with ID:', dmId)
+          
           const dm = {
-            id: data.channel._id,
+            id: dmId,
             name: data.channel.name,
             participants: [session?.user?.id, userId].filter(Boolean) as string[],
             unreadCount: 0,
           }
 
+          // Ajouter à la liste des DM
           setDirectMessages(prev => {
-            const exists = prev.find(dm => dm.id === data.channel._id)
-            if (exists) return prev
+            const exists = prev.find(dm => dm.id === dmId)
+            if (exists) {
+              console.log('💭 DM already exists in list')
+              return prev
+            }
+            console.log('🆕 Adding new DM to list:', dm)
             return [...prev, dm]
           })
+          
+          // IMPORTANT: Le channel sera rejoint par l'appelant (handleStartChatWithUser)
+          // pour s'éviter les problèmes de synchronisation
 
-          return { id: data.channel._id }
+          return { id: dmId }
+        } else {
+          console.error('❌ DM creation failed:', data)
         }
 
         return null
       } catch (error) {
-        console.error('Error creating direct message:', error)
+        console.error('💥 Error creating direct message:', error)
         return null
       }
     },
@@ -673,6 +714,32 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     [session]
   )
 
+  // Function to refresh direct messages list
+  const refreshDirectMessages = useCallback(async (): Promise<void> => {
+    try {
+      console.log('🔄 Refreshing direct messages list...')
+      const response = await fetch('/api/messaging/simple-channels')
+      const data = await response.json()
+      
+      if (data.success) {
+        const directChats = data.channels.filter(
+          (ch: any) => ch.type === 'direct' || ch.type === 'dm'
+        )
+        
+        setDirectMessages(directChats.map((ch: any) => ({
+          id: ch._id,
+          name: ch.name,
+          participants: ch.members?.map((m: any) => m.user._id) || [],
+          unreadCount: 0,
+        })))
+        
+        console.log('✅ Refreshed', directChats.length, 'direct messages')
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing direct messages:', error)
+    }
+  }, [])
+
   // Helper function to check online status
   const getUserOnlineStatus = useCallback(
     (userId: string): boolean => {
@@ -697,6 +764,7 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     // Direct Messages
     directMessages,
     createDirectMessage,
+    refreshDirectMessages,
 
     // Typing indicators
     startTyping,

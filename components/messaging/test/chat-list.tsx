@@ -180,6 +180,26 @@ export function ChatList({
       loadDirectMessages()
     }
   }, [notificationCounts, currentView, session?.user?.id])
+  
+  // Écouter les events de création de nouveaux DM
+  useEffect(() => {
+    const handleDmCreated = (event: CustomEvent) => {
+      console.log('🆕 New DM created event received:', event.detail)
+      if (currentView === 'messages') {
+        console.log('🔄 Refreshing DM list due to new DM creation')
+        // Délai court pour laisser le serveur traiter la création
+        setTimeout(() => {
+          loadDirectMessages()
+        }, 500)
+      }
+    }
+    
+    window.addEventListener('dm-created', handleDmCreated as EventListener)
+    
+    return () => {
+      window.removeEventListener('dm-created', handleDmCreated as EventListener)
+    }
+  }, [currentView, loadDirectMessages])
 
   // Forcer la resynchronisation quand on passe à la vue contacts ou quand la connexion change
   useEffect(() => {

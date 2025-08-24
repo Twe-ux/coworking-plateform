@@ -68,7 +68,7 @@ export default function MessagingPage() {
   const [selectedChat, setSelectedChat] = useState<any>(null)
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
   const [currentView, setCurrentView] = useState('messages')
-  const { createDirectMessage, directMessages, isConnected } = useMessaging()
+  const { createDirectMessage, directMessages, isConnected, joinChannel, refreshDirectMessages } = useMessaging()
   const { notificationCounts } = useNotifications()
 
   // Fonction pour gérer le changement de vue avec nettoyage des états
@@ -141,9 +141,15 @@ export default function MessagingPage() {
       console.log('✅ DM creation result:', result)
 
       if (result && result.id) {
-        // Directly select the chat with the returned ID
+        const dmId = result.id
+        
+        // IMPORTANT: Immediately join the Pusher channel for this new DM
+        console.log('📺 Joining Pusher channel for new DM:', dmId)
+        joinChannel(dmId)
+        
+        // Create chat data
         const chatData = {
-          id: result.id,
+          id: dmId,
           name:
             selectedUserProfile?.firstName && selectedUserProfile?.lastName
               ? `${selectedUserProfile.firstName} ${selectedUserProfile.lastName}`
@@ -155,9 +161,19 @@ export default function MessagingPage() {
         console.log('🎯 Setting selectedChat:', chatData)
         console.log('🔄 Changing view from', currentView, 'to messages')
 
+        // Update UI state
         setSelectedChat(chatData)
         setCurrentView('messages') // Switch to messages view to see DMs
         setSelectedUserProfile(null) // Hide profile
+        
+        // FIXME: Force refresh of DM list to show the new conversation
+        console.log('🔄 Refreshing DM list to include new conversation')
+        
+        // Method 1: Refresh via hook
+        await refreshDirectMessages()
+        
+        // Method 2: Also trigger ChatList refresh
+        window.dispatchEvent(new CustomEvent('dm-created', { detail: { dmId, chatData } }))
 
         console.log('✅ All state updated successfully')
       } else {
