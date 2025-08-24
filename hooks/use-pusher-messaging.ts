@@ -345,6 +345,92 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     }
   }, [isClient, session?.user?.id, connect, disconnect, loadOnlineUsers])
 
+  // Fonction pour rejoindre un channel et attendre qu'il soit prêt
+  const joinChannelAndWait = useCallback(
+    (channelId: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!session?.user) {
+          console.log(`❌ Cannot join ${channelId}: no user session`)
+          reject(new Error('No user session'))
+          return
+        }
+        
+        if (activeChannelsRef.current.has(channelId)) {
+          console.log(`⏭️ Already joined channel ${channelId}, resolving immediately`)
+          resolve()
+          return
+        }
+
+        console.log(`📺 🕰️ Joining channel and waiting: ${channelId}`)
+
+        const channelName = PUSHER_CHANNELS.PUBLIC(channelId)
+        
+        try {
+          const channel = pusherClient.subscribe(channelName)
+          
+          // Timeout de sécurité
+          const timeout = setTimeout(() => {
+            console.warn(`⏰ Subscription timeout for channel ${channelName}`)
+            reject(new Error(`Subscription timeout for channel ${channelName}`))
+          }, 15000) // 15 secondes
+
+          // Attendre la subscription
+          channel.bind('pusher:subscription_succeeded', () => {
+            clearTimeout(timeout)
+            console.log(`✅ 🕰️ Channel ${channelName} ready for messaging!`)
+            
+            // Maintenant on peut ajouter les event listeners normalement
+            channel.bind(PUSHER_EVENTS.MESSAGE_SENT, (data: PusherMessage) => {
+              console.log('🎯 New message in fresh channel:', data.id)
+              setMessages(prev => {
+                const exists = prev.find(m => m._id === data.id)
+                if (exists) return prev
+                
+                const message: Message = {
+                  _id: data.id,
+                  content: data.content,
+                  messageType: data.messageType,
+                  sender: {
+                    _id: data.sender.id,
+                    name: data.sender.name,
+                    avatar: data.sender.image,
+                    role: 'user',
+                  },
+                  channel: data.channel,
+                  createdAt: data.createdAt,
+                  reactions: data.reactions,
+                  attachments: data.attachments,
+                  readBy: data.readBy,
+                }
+                
+                console.log('✨ Adding message to NEW channel:', message._id)
+                const newMessages = [...prev, message]
+                saveMessagesToStorage(newMessages)
+                return newMessages
+              })
+            })
+            
+            channelInstancesRef.current.set(channelName, channel)
+            activeChannelsRef.current.add(channelId)
+            
+            resolve()
+          })
+
+          channel.bind('pusher:subscription_error', (error: any) => {
+            clearTimeout(timeout)
+            console.error(`❌ Failed to subscribe to channel: ${channelName}`, error)
+            reject(error)
+          })
+          
+        } catch (error) {
+          console.error(`❌ Error joining channel ${channelId}:`, error)
+          reject(error)
+        }
+      })
+    },
+    [session]
+  )
+
   // Send message avec vérification que le channel est prêt
   const sendMessage = useCallback(
     async (
@@ -393,7 +479,7 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
         throw error
       }
     },
-    [session, joinChannelAndWait]
+    [session]
   )
 
   // Load messages for a channel
@@ -768,92 +854,6 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
       console.error('❌ Error refreshing direct messages:', error)
     }
   }, [])
-  
-  // Join channel et attendre que la subscription soit prête
-  const joinChannelAndWait = useCallback(
-    (channelId: string): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        if (!session?.user) {
-          console.log(`❌ Cannot join ${channelId}: no user session`)
-          reject(new Error('No user session'))
-          return
-        }
-        
-        if (activeChannelsRef.current.has(channelId)) {
-          console.log(`⏭️ Already joined channel ${channelId}, resolving immediately`)
-          resolve()
-          return
-        }
-
-        console.log(`📺 🕰️ Joining channel and waiting: ${channelId}`)
-
-        const channelName = PUSHER_CHANNELS.PUBLIC(channelId)
-        
-        try {
-          const channel = pusherClient.subscribe(channelName)
-          
-          // Timeout de sécurité
-          const timeout = setTimeout(() => {
-            console.warn(`⏰ Subscription timeout for channel ${channelName}`)
-            reject(new Error(`Subscription timeout for channel ${channelName}`))
-          }, 15000) // 15 secondes
-
-          // Attendre la subscription
-          channel.bind('pusher:subscription_succeeded', () => {
-            clearTimeout(timeout)
-            console.log(`✅ 🕰️ Channel ${channelName} ready for messaging!`)
-            
-            // Maintenant on peut ajouter les event listeners normalement
-            channel.bind(PUSHER_EVENTS.MESSAGE_SENT, (data: PusherMessage) => {
-              console.log('🎯 New message in fresh channel:', data.id)
-              setMessages(prev => {
-                const exists = prev.find(m => m._id === data.id)
-                if (exists) return prev
-                
-                const message: Message = {
-                  _id: data.id,
-                  content: data.content,
-                  messageType: data.messageType,
-                  sender: {
-                    _id: data.sender.id,
-                    name: data.sender.name,
-                    avatar: data.sender.image,
-                    role: 'user',
-                  },
-                  channel: data.channel,
-                  createdAt: data.createdAt,
-                  reactions: data.reactions,
-                  attachments: data.attachments,
-                  readBy: data.readBy,
-                }
-                
-                console.log('✨ Adding message to NEW channel:', message._id)
-                const newMessages = [...prev, message]
-                saveMessagesToStorage(newMessages)
-                return newMessages
-              })
-            })
-            
-            channelInstancesRef.current.set(channelName, channel)
-            activeChannelsRef.current.add(channelId)
-            
-            resolve()
-          })
-
-          channel.bind('pusher:subscription_error', (error: any) => {
-            clearTimeout(timeout)
-            console.error(`❌ Failed to subscribe to channel: ${channelName}`, error)
-            reject(error)
-          })
-          
-        } catch (error) {
-          console.error(`❌ Error joining channel ${channelId}:`, error)
-          reject(error)
-        }
-      })
-    },
-    [session]
-  )
 
   // Helper function to check online status
   const getUserOnlineStatus = useCallback(

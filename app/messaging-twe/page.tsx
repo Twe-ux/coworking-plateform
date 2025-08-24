@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 import { RouteGuard } from '@/components/auth/route-guard'
 import Logo from '@/components/Logo'
-import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging-safe'
+import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging'
 import { UserRole } from '@/types/auth'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'

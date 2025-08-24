@@ -28,8 +28,8 @@ import { ChatList } from '@/components/messaging/test/chat-list'
 import { ChatWindow } from '@/components/messaging/test/chat-window'
 import { TestAppSidebar } from '@/components/messaging/test/test-app-sidebar'
 import { SidebarProvider } from '@/components/messaging/test/ui/sidebar'
-import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging-safe'
-// import { useNotifications } from '@/hooks/use-notifications'
+import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging'
+import { useNotifications } from '@/hooks/use-notifications'
 import { UserRole } from '@/types/auth'
 
 interface Channel {
@@ -72,8 +72,7 @@ export default function MessagingPage() {
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
   const [currentView, setCurrentView] = useState('messages')
   const { createDirectMessage, directMessages, isConnected, joinChannel, joinChannelAndWait, refreshDirectMessages } = useMessaging()
-  // const { notificationCounts } = useNotifications()
-  const notificationCounts = { totalUnread: 0 } // Safe default for build
+  const { notificationCounts } = useNotifications()
 
   // Fonction pour gérer le changement de vue avec nettoyage des états
   const handleViewChange = (newView: string) => {
