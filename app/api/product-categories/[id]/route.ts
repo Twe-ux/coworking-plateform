@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Récupérer les statistiques de la catégorie
     const [productCount, childrenCount] = await Promise.all([
-      Product.countDocuments({ category: category.slug }),
+      Product.countDocuments({ category: (category as any).slug }),
       ProductCategoryModel.countDocuments({ parentCategoryId: id })
     ])
 
