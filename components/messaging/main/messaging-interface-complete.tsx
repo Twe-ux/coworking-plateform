@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { MessagingSidebarMain } from './messaging-sidebar-main'
 import { MessagingSidebarContextual } from './messaging-sidebar-contextual'
-import { ChatArea } from '../modern/chat-area'
+import { ChatWindow } from '../test/chat-window'
 import { MessagingMobileOptimizations } from './messaging-mobile-optimizations'
 
 interface MessagingInterfaceCompleteProps {
@@ -38,11 +38,9 @@ export function MessagingInterfaceComplete({
     return (
       <MessagingMobileOptimizations activeNav={activeNav}>
         <div className="border-coffee-primary bg-background h-full border-r">
-          <ChatArea
-            activeChannelId="general"
-            onSendMessage={(message) => {
-              console.log('Message envoyé:', message)
-            }}
+          <ChatWindow
+            chatId="general"
+            chatName="Général"
           />
         </div>
       </MessagingMobileOptimizations>
@@ -74,11 +72,9 @@ export function MessagingInterfaceComplete({
       {/* Chat Area (droite) - Grande fenêtre pour le tchat */}
       <div className="min-w-0 flex-1">
         <div className="border-coffee-primary bg-background h-full rounded-lg border">
-          <ChatArea
-            activeChannelId="general"
-            onSendMessage={(message) => {
-              console.log('Message envoyé:', message)
-            }}
+          <ChatWindow
+            chatId="general"
+            chatName="Général"
           />
         </div>
       </div>
