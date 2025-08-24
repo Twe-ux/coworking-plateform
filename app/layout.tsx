@@ -7,7 +7,6 @@ import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ToastProvider } from '@/components/ui/toast'
 import { Nunito } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
 
 const nunito = Nunito({
@@ -44,13 +43,6 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       {/* eslint-disable-next-line @next/next/no-sync-scripts */}
       <body className={nunito.className}>
-        <Script
-          src="https://dappros-wp-scripts.s3.us-east-2.amazonaws.com/ethora_assistant.js"
-          id="chat-content-assistant"
-          data-bot-id="68aae2b6fac7d0b33bea4826_68aae2b7fac7d0b33bea4834-bot@xmpp.ethoradev.com"
-          strategy="afterInteractive"
-        />
-
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>

@@ -68,7 +68,7 @@ export default function MessagingPage() {
   const [selectedChat, setSelectedChat] = useState<any>(null)
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
   const [currentView, setCurrentView] = useState('messages')
-  const { createDirectMessage, directMessages, isConnected, joinChannel, refreshDirectMessages } = useMessaging()
+  const { createDirectMessage, directMessages, isConnected, joinChannel, joinChannelAndWait, refreshDirectMessages } = useMessaging()
   const { notificationCounts } = useNotifications()
 
   // Fonction pour gérer le changement de vue avec nettoyage des états
@@ -143,9 +143,17 @@ export default function MessagingPage() {
       if (result && result.id) {
         const dmId = result.id
         
-        // IMPORTANT: Immediately join the Pusher channel for this new DM
-        console.log('📺 Joining Pusher channel for new DM:', dmId)
-        joinChannel(dmId)
+        // IMPORTANT: Wait for Pusher channel to be ready before proceeding
+        console.log('📺 🕰️ Joining and waiting for Pusher channel:', dmId)
+        
+        try {
+          await joinChannelAndWait(dmId)
+          console.log('✅ Channel is ready, user can now send messages!')
+        } catch (error) {
+          console.error('❌ Failed to join channel:', error)
+          // Fallback to normal join if wait fails
+          joinChannel(dmId)
+        }
         
         // Create chat data
         const chatData = {
