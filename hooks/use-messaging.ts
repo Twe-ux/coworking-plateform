@@ -1,79 +1,82 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { io, Socket } from 'socket.io-client'
 
-interface Message {
+// Types existants (gardés compatibles avec l'ancienne implémentation)
+export interface Message {
   _id: string
   content: string
-  messageType: 'text' | 'image' | 'file' | 'system'
+  messageType: 'text' | 'image' | 'file'
   sender: {
     _id: string
     name: string
     avatar?: string
-    role?: string
+    role: string
   }
   channel: string
   createdAt: string
-  reactions?: any[]
-  attachments?: any[]
+  reactions: any[]
+  attachments: any[]
+  readBy: { user: string; readAt: string }[]
 }
 
-interface DirectMessage {
+export interface DirectMessage {
   id: string
   name: string
   participants: string[]
-  lastMessage?: Message
-  unreadCount?: number
+  unreadCount: number
 }
 
-interface UserStatus {
-  isOnline: boolean
-  lastSeen: Date
+export interface TypingUser {
+  userId: string
+  userName: string
 }
 
+// Interface pour les messages WebSocket
+interface WSMessage {
+  type: string
+  channelId?: string
+  content?: string
+  messageType?: 'text' | 'image' | 'file'
+  messageIds?: string[]
+  isTyping?: boolean
+  message?: Message
+  userId?: string
+  userName?: string
+  readAt?: string
+}
+
+// Interface pour les types de retour du hook
 interface UseMessagingReturn {
-  // Socket connection
-  socket: Socket | null
+  socket: WebSocket | null
   isConnected: boolean
-
-  // Messages
   messages: Message[]
-  sendMessage: (
-    channelId: string,
-    content: string,
-    type?: 'text' | 'image' | 'file'
-  ) => Promise<void>
+  sendMessage: (channelId: string, content: string, type?: 'text' | 'image' | 'file') => Promise<void>
   loadMessages: (channelId: string, limit?: number) => Promise<Message[]>
-
-  // Channels
   joinChannel: (channelId: string) => void
   leaveChannel: (channelId: string) => void
-
-  // Direct Messages
   directMessages: DirectMessage[]
   createDirectMessage: (userId: string) => Promise<{ id: string } | null>
-
-  // Typing indicators
   startTyping: (channelId: string) => void
   stopTyping: (channelId: string) => void
-
-  // User status (online/offline)
-  userStatuses: UserStatus[]
   onlineUsers: Set<string>
-
-  // Message status
+  userStatuses: Record<string, UserStatus>
+  getUserOnlineStatus: (userId: string) => boolean
   markMessagesAsRead: (channelId: string, messageIds: string[]) => void
-
-  // Connection management
   connect: () => void
   disconnect: () => void
 }
 
+// Interface pour les statuts utilisateur
+interface UserStatus {
+  isOnline: boolean
+  lastSeen?: Date | string
+}
+
 export function useMessaging(): UseMessagingReturn {
   const { data: session } = useSession()
-  const [socket, setSocket] = useState<Socket | null>(null)
+  const [socket, setSocket] = useState<WebSocket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([])
@@ -84,299 +87,264 @@ export function useMessaging(): UseMessagingReturn {
 
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
-
-  // Initialize socket connection
+  
+  // Initialize WebSocket connection
   const connect = useCallback(() => {
-    if (!session?.user || socket?.connected) return
+    if (!session?.user || socket) return
 
-    console.log('🔌 Connecting to Socket.IO...')
+    console.log('🔌 Initializing WebSocket connection...')
 
-    const newSocket = io({
-      path: '/api/socket/',
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 20000,
-      forceNew: false,
-      auth: {
-        sessionToken: 'auth-token',
-        userId: session.user.id,
+    const wsUrl = typeof window !== 'undefined' ? 
+      `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/ws` : 
+      'ws://localhost:3000/api/ws'
+    
+    const newSocket = new WebSocket(wsUrl)
+
+    newSocket.onopen = () => {
+      console.log('✅ WebSocket connected')
+      setIsConnected(true)
+      
+      // Send authentication once connected
+      const authMessage = {
+        type: 'auth',
+        userId: (session.user as any).id,
         userRole: (session.user as any).role || 'client',
         userName:
-          session.user.firstName && session.user.lastName
-            ? `${session.user.firstName} ${session.user.lastName}`
+          (session.user as any).firstName && (session.user as any).lastName
+            ? `${(session.user as any).firstName} ${(session.user as any).lastName}`
             : session.user.name || 'Utilisateur',
         userEmail: session.user.email,
-      },
-    })
-
-    // Connection events
-    newSocket.on('connect', () => {
-      setIsConnected(true)
-      console.log('✅ Socket connected')
-
-      // Clear reconnect timeout if exists
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current)
-        reconnectTimeoutRef.current = undefined
       }
+      
+      newSocket.send(JSON.stringify(authMessage))
+      console.log('✅ Authentication message sent')
 
-      // Demander les utilisateurs en ligne au serveur
-      newSocket.emit('request_online_users')
-    })
+      // Request online users list
+      newSocket.send(JSON.stringify({ type: 'request_online_users' }))
+    }
 
-    newSocket.on('disconnect', (reason) => {
+    newSocket.onclose = (event) => {
+      console.log('❌ WebSocket disconnected:', event.code, event.reason)
       setIsConnected(false)
-      console.log('❌ Socket disconnected:', reason)
-
-      // Attempt reconnection after delay
-      if (reason !== 'io client disconnect') {
+      setSocket(null)
+      
+      // Auto-reconnect after delay
+      if (event.code !== 1000) { // Not normal closure
         reconnectTimeoutRef.current = setTimeout(() => {
-          if (!newSocket.connected) {
-            console.log('🔄 Attempting reconnection...')
-            newSocket.connect()
-          }
+          console.log('🔄 Attempting WebSocket reconnection...')
+          connect()
         }, 3000)
       }
-    })
+    }
 
-    newSocket.on('connect_error', (error) => {
-      console.error('❌ Socket connection error:', error)
+    newSocket.onerror = (error) => {
+      console.error('❌ WebSocket error:', error)
       setIsConnected(false)
-    })
-
-    // Liste complète des utilisateurs en ligne
-    newSocket.on(
-      'online_users_list',
-      (data: { users: any[]; timestamp: Date }) => {
-        const timestamp = new Date().toLocaleTimeString()
-        console.log(`📋 [${timestamp}] Online users list received:`, {
-          count: data.users.length,
-          users: data.users.map((u) => `${u.userName} (${u.userRole})`),
-          currentUser: session?.user?.email,
-          currentRole: (session?.user as any)?.role,
-        })
-
-        // FUSION au lieu de remplacement complet pour éviter les conflits
-        if (data.users && data.users.length >= 0) {
-          setOnlineUsers((prev) => {
-            const newOnlineUsers = new Set(prev) // Commencer avec l'état existant
-
-            // Ajouter les nouveaux utilisateurs en ligne
-            data.users.forEach((u) => {
-              newOnlineUsers.add(u.userId)
-            })
-
-            console.log(
-              `🔄 [${timestamp}] Merging onlineUsers: from ${prev.size} to ${newOnlineUsers.size} users`
-            )
-            console.log(`📊 [${timestamp}] Previous:`, Array.from(prev))
-            console.log(`📊 [${timestamp}] Merged:`, Array.from(newOnlineUsers))
-            return newOnlineUsers
-          })
-
-          // Mettre à jour les statuts (fusion aussi)
-          setUserStatuses((prev) => {
-            const newUserStatuses = { ...prev } // Conserver les statuts existants
-            data.users.forEach((u) => {
-              newUserStatuses[u.userId] = {
-                isOnline: true,
-                lastSeen: u.lastSeen,
-              }
-            })
-            console.log(
-              `📊 [${timestamp}] Merging userStatuses:`,
-              newUserStatuses
-            )
-            return newUserStatuses
-          })
-        } else {
-          console.warn(
-            `⚠️ [${timestamp}] Received empty or invalid users list, not updating`
-          )
-        }
-      }
-    )
-
-    // Presence events individuels (synchroniser avec le serveur)
-    newSocket.on(
-      'user_presence',
-      (data: {
-        userId: string
-        status: 'online' | 'offline'
-        lastSeen: Date
-      }) => {
-        const timestamp = new Date().toLocaleTimeString()
-        console.log(`👤 [${timestamp}] User presence update received:`, {
-          userId: data.userId,
-          status: data.status,
-          currentUser: session?.user?.email,
-          currentRole: (session?.user as any)?.role,
-          lastSeen: data.lastSeen,
-        })
-
-        if (data.status === 'online') {
-          setOnlineUsers((prev) => {
-            const newSet = new Set([...prev, data.userId])
-            console.log(
-              `🟢 [${timestamp}] Added to onlineUsers:`,
-              data.userId,
-              'Total online:',
-              newSet.size,
-              'All:',
-              Array.from(newSet)
-            )
-            return newSet
-          })
-          setUserStatuses((prev) => ({
-            ...prev,
-            [data.userId]: { isOnline: true, lastSeen: data.lastSeen },
-          }))
-        } else {
-          // PROTECTION: Retarder la suppression d'utilisateurs offline pour éviter les faux positifs
-          console.log(
-            `🔴 [${timestamp}] User ${data.userId} marked offline - scheduling delayed removal`
-          )
-
-          setTimeout(() => {
-            setOnlineUsers((prev) => {
-              const newSet = new Set(prev)
-              const wasOnline = newSet.has(data.userId)
-
-              // Double check si l'utilisateur est toujours supposé être offline
-              if (wasOnline) {
-                newSet.delete(data.userId)
-                console.log(
-                  `🔴 [${timestamp}] Delayed removal of ${data.userId} from onlineUsers after verification`
-                )
-                console.warn(
-                  `⚠️ [${timestamp}] CONTACT DISAPPEARED! User ${data.userId} was marked offline after delay. This might be the issue!`
-                )
-              } else {
-                console.log(
-                  `✅ [${timestamp}] User ${data.userId} already removed or came back online`
-                )
-              }
-
-              return newSet
-            })
-
-            setUserStatuses((prev) => ({
-              ...prev,
-              [data.userId]: { isOnline: false, lastSeen: data.lastSeen },
-            }))
-          }, 3000) // Délai de 3 secondes pour vérifier la persistance
-        }
-      }
-    )
-
-    // Message events
-    newSocket.on('new_message', (message: Message) => {
-      console.log('📨 New message received:', message)
-      setMessages((prev) => {
-        // Avoid duplicates
-        const exists = prev.find((m) => m._id === message._id)
-        if (exists) return prev
-        return [...prev, message]
-      })
-    })
-
-    // Événements de statuts de lecture
-    newSocket.on(
-      'messages_read',
-      (data: { userId: string; messageIds: string[]; readAt: string }) => {
-        console.log('👁️ Messages read event:', data)
-        setMessages((prev) =>
-          prev.map((message) => {
-            if (data.messageIds.includes(message._id)) {
-              // Ajouter le statut de lecture s'il n'existe pas déjà
-              const readBy = message.readBy || []
-              const alreadyRead = readBy.some(
-                (read) => read.user === data.userId
-              )
-
-              if (!alreadyRead) {
-                return {
-                  ...message,
-                  readBy: [
-                    ...readBy,
-                    { user: data.userId, readAt: data.readAt },
-                  ],
-                }
-              }
-            }
-            return message
-          })
-        )
-      }
-    )
-
-    newSocket.on(
-      'channel_history',
-      (data: { channelId: string; messages: Message[] }) => {
-        console.log(
-          `📜 Channel history received: ${data.messages.length} messages`
-        )
-        setMessages(data.messages || [])
-      }
-    )
-
-    newSocket.on('error', (error) => {
-      console.error('❌ Socket error:', error)
-    })
-
-    // User status events
-    newSocket.on('user_online', (data: { userId: string; user?: any }) => {
-      console.log('👤 User came online:', data)
-      setOnlineUsers((prev) => new Set(prev).add(data.userId))
-      setUserStatuses((prev) => {
-        const existing = prev.find((u) => u._id === data.userId)
-        if (existing) {
-          return prev.map((u) =>
-            u._id === data.userId ? { ...u, isOnline: true } : u
-          )
-        }
-        return [...prev, { _id: data.userId, isOnline: true }]
-      })
-    })
-
-    newSocket.on(
-      'user_offline',
-      (data: { userId: string; lastSeen?: string }) => {
-        console.log('👤 User went offline:', data)
-        setOnlineUsers((prev) => {
-          const newSet = new Set(prev)
-          newSet.delete(data.userId)
-          return newSet
-        })
-        setUserStatuses((prev) =>
-          prev.map((u) =>
-            u._id === data.userId
-              ? { ...u, isOnline: false, lastSeen: data.lastSeen }
-              : u
-          )
-        )
-      }
-    )
-
-    newSocket.on('users_status_update', (data: { users: UserStatus[] }) => {
-      console.log('👥 Users status batch update:', data.users.length, 'users')
-      setUserStatuses(data.users)
-      setOnlineUsers(
-        new Set(data.users.filter((u) => u.isOnline).map((u) => u._id))
-      )
-    })
+    }
 
     setSocket(newSocket)
   }, [session])
 
-  // Disconnect socket
+  // Handle incoming WebSocket messages
+  useEffect(() => {
+    if (!socket) return
+
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data)
+        console.log('📨 WebSocket message received:', data.type, data)
+
+        switch (data.type) {
+          case 'connected':
+            console.log('✅ WebSocket connected successfully')
+            // Request online users list
+            if (socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({ type: 'request_online_users' }))
+            }
+            break
+
+          case 'message_received':
+            if (data.message) {
+              console.log('📨 New message received:', data.message)
+              setMessages((prev) => {
+                const exists = prev.find((m) => m._id === data.message._id)
+                if (exists) return prev
+                return [...prev, data.message]
+              })
+            }
+            break
+
+          case 'messages_read':
+            console.log('👁️ Messages read event:', data)
+            setMessages((prev) =>
+              prev.map((message) => {
+                if (data.messageIds?.includes(message._id)) {
+                  const readBy = message.readBy || []
+                  const alreadyRead = readBy.some(
+                    (read) => read.user === data.userId
+                  )
+
+                  if (!alreadyRead) {
+                    return {
+                      ...message,
+                      readBy: [
+                        ...readBy,
+                        { user: data.userId, readAt: data.readAt },
+                      ],
+                    }
+                  }
+                }
+                return message
+              })
+            )
+            break
+
+          case 'channel_history':
+            console.log(
+              `📜 Channel history received: ${data.messages?.length || 0} messages`
+            )
+            setMessages(data.messages || [])
+            break
+
+          case 'online_users_list':
+            const timestamp = new Date().toLocaleTimeString()
+            console.log(`📋 [${timestamp}] Online users list received:`, {
+              count: data.users?.length || 0,
+              users: data.users?.map((u: any) => `${u.userName} (${u.userRole})`) || [],
+              currentUser: session?.user?.email,
+              currentRole: (session?.user as any)?.role,
+            })
+
+            if (data.users && data.users.length >= 0) {
+              setOnlineUsers((prev) => {
+                const newOnlineUsers = new Set([...prev])
+                data.users.forEach((u: any) => {
+                  newOnlineUsers.add(u.userId)
+                })
+
+                console.log(
+                  `🔄 [${timestamp}] Merging onlineUsers: from ${prev.size} to ${newOnlineUsers.size} users`
+                )
+                return newOnlineUsers
+              })
+
+              setUserStatuses((prev) => {
+                const newUserStatuses = { ...prev }
+                data.users.forEach((u: any) => {
+                  newUserStatuses[u.userId] = {
+                    isOnline: true,
+                    lastSeen: u.lastSeen,
+                  }
+                })
+                console.log(
+                  `📊 [${timestamp}] Merging userStatuses:`,
+                  newUserStatuses
+                )
+                return newUserStatuses
+              })
+            }
+            break
+
+          case 'user_presence':
+            const presenceTimestamp = new Date().toLocaleTimeString()
+            console.log(`👤 [${presenceTimestamp}] User presence update received:`, {
+              userId: data.userId,
+              status: data.status,
+              currentUser: session?.user?.email,
+              lastSeen: data.lastSeen,
+            })
+
+            if (data.status === 'online') {
+              setOnlineUsers((prev) => {
+                const newSet = new Set([...prev, data.userId])
+                console.log(
+                  `🟢 [${presenceTimestamp}] Added to onlineUsers:`,
+                  data.userId,
+                  'Total online:',
+                  newSet.size
+                )
+                return newSet
+              })
+              setUserStatuses((prev) => ({
+                ...prev,
+                [data.userId]: { isOnline: true, lastSeen: data.lastSeen },
+              }))
+            } else {
+              console.log(
+                `🔴 [${presenceTimestamp}] User ${data.userId} marked offline - scheduling delayed removal`
+              )
+
+              setTimeout(() => {
+                setOnlineUsers((prev) => {
+                  const newSet = new Set(prev)
+                  if (newSet.has(data.userId)) {
+                    newSet.delete(data.userId)
+                    console.log(
+                      `🔴 [${presenceTimestamp}] Delayed removal of ${data.userId} from onlineUsers`
+                    )
+                  }
+                  return newSet
+                })
+
+                setUserStatuses((prev) => ({
+                  ...prev,
+                  [data.userId]: { isOnline: false, lastSeen: data.lastSeen },
+                }))
+              }, 3000)
+            }
+            break
+
+          case 'user_online':
+            console.log('👤 User came online:', data)
+            setOnlineUsers((prev) => new Set(prev).add(data.userId))
+            break
+
+          case 'user_offline':
+            console.log('👤 User went offline:', data)
+            setOnlineUsers((prev) => {
+              const newSet = new Set(prev)
+              newSet.delete(data.userId)
+              return newSet
+            })
+            break
+
+          case 'error':
+            console.error('❌ WebSocket error:', data.message)
+            break
+
+          default:
+            console.warn('⚠️ Unknown message type:', data.type)
+        }
+      } catch (error) {
+        console.error('❌ Error processing WebSocket message:', error)
+      }
+    }
+
+    socket.addEventListener('message', handleMessage)
+
+    return () => {
+      socket.removeEventListener('message', handleMessage)
+    }
+  }, [socket, session])
+
+  // Auto connect when session is available
+  useEffect(() => {
+    if (session?.user) {
+      connect()
+    } else {
+      disconnect()
+    }
+
+    return () => {
+      disconnect()
+    }
+  }, [session?.user?.id])
+
+  // Disconnect WebSocket
   const disconnect = useCallback(() => {
-    if (socket) {
-      console.log('🔌 Disconnecting socket...')
-      socket.disconnect()
-      setSocket(null)
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      console.log('🔌 Disconnecting WebSocket...')
+      socket.close()
       setIsConnected(false)
     }
 
@@ -386,37 +354,23 @@ export function useMessaging(): UseMessagingReturn {
     }
   }, [socket])
 
-  // Auto connect/disconnect based on session
-  useEffect(() => {
-    if (session?.user) {
-      connect()
-    } else {
-      disconnect()
-    }
-
-    // Cleanup on unmount
-    return () => {
-      disconnect()
-    }
-  }, [session?.user?.id]) // Only depend on user ID to avoid reconnection loops
-
   // Resynchronisation périodique et sur focus
   useEffect(() => {
     if (!socket || !isConnected) return
 
-    // Resync sur focus de la fenêtre
     const handleFocus = () => {
       console.log('🔄 Window focused, requesting online users refresh')
-      socket.emit('request_online_users')
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'request_online_users' }))
+      }
     }
 
-    // Resync périodique (toutes les 5 minutes pour minimiser les conflits)
     const interval = setInterval(() => {
-      if (socket && isConnected) {
+      if (socket && isConnected && socket.readyState === WebSocket.OPEN) {
         console.log('🔄 Periodic resync, requesting online users')
-        socket.emit('request_online_users')
+        socket.send(JSON.stringify({ type: 'request_online_users' }))
       }
-    }, 300000) // 5 minutes pour réduire drastiquement les interférences
+    }, 300000) // 5 minutes
 
     window.addEventListener('focus', handleFocus)
 
@@ -426,15 +380,15 @@ export function useMessaging(): UseMessagingReturn {
     }
   }, [socket, isConnected])
 
-  // Send message
+  // Send message via WebSocket
   const sendMessage = useCallback(
     async (
       channelId: string,
       content: string,
       type: 'text' | 'image' | 'file' = 'text'
     ) => {
-      if (!socket || !isConnected) {
-        throw new Error('Socket not connected')
+      if (!socket || !isConnected || socket.readyState !== WebSocket.OPEN) {
+        throw new Error('WebSocket not connected')
       }
 
       return new Promise<void>((resolve, reject) => {
@@ -442,11 +396,15 @@ export function useMessaging(): UseMessagingReturn {
           reject(new Error('Message send timeout'))
         }, 10000)
 
-        socket.emit('send_message', {
+        const message = {
+          type: 'message',
           channelId,
           content: content.trim(),
           messageType: type,
-        })
+        }
+
+        socket.send(JSON.stringify(message))
+        console.log('📤 Message sent via WebSocket:', message)
 
         // Consider message sent immediately for optimistic UI
         clearTimeout(timeout)
@@ -480,24 +438,30 @@ export function useMessaging(): UseMessagingReturn {
     []
   )
 
-  // Join channel
+  // Join channel via WebSocket
   const joinChannel = useCallback(
     (channelId: string) => {
-      if (!socket || !isConnected) return
+      if (!socket || !isConnected || socket.readyState !== WebSocket.OPEN) return
 
       console.log(`📺 Joining channel: ${channelId}`)
-      socket.emit('join_channel', { channelId })
+      socket.send(JSON.stringify({ 
+        type: 'join_channel', 
+        channelId 
+      }))
     },
     [socket, isConnected]
   )
 
-  // Leave channel
+  // Leave channel via WebSocket
   const leaveChannel = useCallback(
     (channelId: string) => {
-      if (!socket || !isConnected) return
+      if (!socket || !isConnected || socket.readyState !== WebSocket.OPEN) return
 
       console.log(`📺 Leaving channel: ${channelId}`)
-      socket.emit('leave_channel', { channelId })
+      socket.send(JSON.stringify({ 
+        type: 'leave_channel', 
+        channelId 
+      }))
     },
     [socket, isConnected]
   )
@@ -547,12 +511,16 @@ export function useMessaging(): UseMessagingReturn {
     [session]
   )
 
-  // Typing indicators
+  // Typing indicators via WebSocket
   const startTyping = useCallback(
     (channelId: string) => {
-      if (!socket || !isConnected) return
+      if (!socket || !isConnected || socket.readyState !== WebSocket.OPEN) return
 
-      socket.emit('typing_start', { channelId })
+      socket.send(JSON.stringify({ 
+        type: 'typing', 
+        channelId, 
+        isTyping: true 
+      }))
 
       // Clear existing timeout
       if (typingTimeoutRef.current) {
@@ -569,9 +537,13 @@ export function useMessaging(): UseMessagingReturn {
 
   const stopTyping = useCallback(
     (channelId: string) => {
-      if (!socket || !isConnected) return
+      if (!socket || !isConnected || socket.readyState !== WebSocket.OPEN) return
 
-      socket.emit('typing_stop', { channelId })
+      socket.send(JSON.stringify({ 
+        type: 'typing', 
+        channelId, 
+        isTyping: false 
+      }))
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current)
@@ -581,13 +553,17 @@ export function useMessaging(): UseMessagingReturn {
     [socket, isConnected]
   )
 
-  // Mark messages as read
+  // Mark messages as read via WebSocket
   const markMessagesAsRead = useCallback(
     (channelId: string, messageIds: string[]) => {
-      if (!socket || !isConnected || messageIds.length === 0) return
+      if (!socket || !isConnected || messageIds.length === 0 || socket.readyState !== WebSocket.OPEN) return
 
       console.log('👁️ Marking messages as read:', { channelId, messageIds })
-      socket.emit('mark_read', { channelId, messageIds })
+      socket.send(JSON.stringify({ 
+        type: 'mark_read', 
+        channelId, 
+        messageIds 
+      }))
     },
     [socket, isConnected]
   )

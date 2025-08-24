@@ -294,30 +294,8 @@ export async function POST(request: NextRequest) {
       $set: { 'stats.lastActivity': new Date() }
     })
 
-    // Diffuser le message via WebSocket (si disponible)
-    try {
-      const { getWebSocketServer } = await import('@/lib/websocket/server')
-      const wsServer = getWebSocketServer()
-      if (wsServer) {
-        wsServer.broadcastToChannel(validatedData.channelId, 'new_message', {
-          _id: message._id,
-          content: message.content,
-          messageType: message.messageType,
-          sender: message.sender,
-          channel: message.channel,
-          parentMessage: message.parentMessage,
-          attachments: message.attachments,
-          mentions: message.mentions,
-          reactions: message.reactions,
-          createdAt: message.createdAt,
-          isEdited: message.isEdited,
-          editedAt: message.editedAt
-        })
-      }
-    } catch (error) {
-      console.error('Erreur lors de la diffusion WebSocket:', error)
-      // Ne pas faire échouer la requête si WebSocket échoue
-    }
+    // Note: Real-time broadcasting is now handled directly in the WebSocket API route
+    // when messages are sent through WebSocket connections
 
     return NextResponse.json({
       success: true,

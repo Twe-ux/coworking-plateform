@@ -149,7 +149,7 @@ export function ChatList({
       console.log(
         '🔄 Switching to contacts view, requesting fresh online users list'
       )
-      socket.emit('request_online_users')
+      socket.send(JSON.stringify({ type: 'request_online_users' }))
     }
   }, [currentView, socket, isConnected])
 

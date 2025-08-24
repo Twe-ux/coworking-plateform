@@ -39,84 +39,85 @@ export function useNotifications() {
     }
   }, [session?.user?.id])
 
-  // Écouter les mises à jour en temps réel
+  // Écouter les mises à jour en temps réel via WebSocket
   useEffect(() => {
     if (!socket || !isConnected) return
 
-    const handleNotificationUpdate = (data: {
-      userId: string
-      channelId: string
-      channelType: 'direct' | 'dm' | 'public' | 'private'
-      increment: number
-    }) => {
-      setNotificationCounts((prev) => {
-        const newCounts = { ...prev }
+    const handleWebSocketMessage = (event: MessageEvent) => {
+      try {
+        const message = JSON.parse(event.data)
+        
+        // Gérer les notifications d'incrémentation
+        if (message.type === 'notification_increment') {
+          const data = message.data
+          setNotificationCounts((prev) => {
+            const newCounts = { ...prev }
 
-        // Mettre à jour le compteur par channel
-        newCounts.channelBreakdown = {
-          ...prev.channelBreakdown,
-          [data.channelId]: Math.max(
-            0,
-            (prev.channelBreakdown[data.channelId] || 0) + data.increment
-          ),
+            // Mettre à jour le compteur par channel
+            newCounts.channelBreakdown = {
+              ...prev.channelBreakdown,
+              [data.channelId]: Math.max(
+                0,
+                (prev.channelBreakdown[data.channelId] || 0) + data.increment
+              ),
+            }
+
+            // Mettre à jour les totaux
+            if (data.channelType === 'direct' || data.channelType === 'dm') {
+              newCounts.messagesDMs = Math.max(0, prev.messagesDMs + data.increment)
+            } else {
+              newCounts.channels = Math.max(0, prev.channels + data.increment)
+            }
+
+            newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
+            return newCounts
+          })
         }
+        
+        // Gérer les événements de lecture
+        if (message.type === 'messages_read') {
+          console.log('🔔 Notification read event received:', message)
+          setNotificationCounts((prev) => {
+            const channelId = message.channelId
+            const channelCount = prev.channelBreakdown[channelId] || 0
+            if (channelCount === 0) return prev // Pas de changement nécessaire
 
-        // Mettre à jour les totaux
-        if (data.channelType === 'direct' || data.channelType === 'dm') {
-          newCounts.messagesDMs = Math.max(0, prev.messagesDMs + data.increment)
-        } else {
-          newCounts.channels = Math.max(0, prev.channels + data.increment)
+            const newCounts = { ...prev }
+
+            // Réinitialiser le compteur du channel
+            newCounts.channelBreakdown = {
+              ...prev.channelBreakdown,
+              [channelId]: 0,
+            }
+
+            // Déterminer si c'est un DM ou un channel et réduire le bon compteur
+            const channelType = message.channelType
+            if (channelType === 'direct' || channelType === 'dm') {
+              newCounts.messagesDMs = Math.max(0, prev.messagesDMs - channelCount)
+            } else {
+              newCounts.channels = Math.max(0, prev.channels - channelCount)
+            }
+
+            newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
+
+            console.log('🔔 Notifications updated:', {
+              before: prev,
+              after: newCounts,
+              channelCount,
+            })
+
+            return newCounts
+          })
         }
-
-        newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
-
-        return newCounts
-      })
+      } catch (error) {
+        // Ignore non-JSON messages or parsing errors
+      }
     }
 
-    const handleMarkAsRead = (data: {
-      userId: string
-      channelId: string
-      channelType?: string
-    }) => {
-      console.log('🔔 Notification read event received:', data)
-      setNotificationCounts((prev) => {
-        const channelCount = prev.channelBreakdown[data.channelId] || 0
-        if (channelCount === 0) return prev // Pas de changement nécessaire
-
-        const newCounts = { ...prev }
-
-        // Réinitialiser le compteur du channel
-        newCounts.channelBreakdown = {
-          ...prev.channelBreakdown,
-          [data.channelId]: 0,
-        }
-
-        // Déterminer si c'est un DM ou un channel et réduire le bon compteur
-        if (data.channelType === 'direct' || data.channelType === 'dm') {
-          newCounts.messagesDMs = Math.max(0, prev.messagesDMs - channelCount)
-        } else {
-          newCounts.channels = Math.max(0, prev.channels - channelCount)
-        }
-
-        newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
-
-        console.log('🔔 Notifications updated:', {
-          before: prev,
-          after: newCounts,
-          channelCount,
-        })
-
-        return newCounts
-      })
-    }
-
-    socket.on('notification_increment', handleNotificationUpdate)
-    socket.on('notifications_read', handleMarkAsRead)
+    socket.addEventListener('message', handleWebSocketMessage)
 
     return () => {
-      socket.off('notification_increment', handleNotificationUpdate)
-      socket.off('notifications_read', handleMarkAsRead)
+      socket.removeEventListener('message', handleWebSocketMessage)
     }
   }, [socket, isConnected])
 

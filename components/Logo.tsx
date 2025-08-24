@@ -66,8 +66,7 @@ export default function Logo({
         className={`object-contain ${logoVariants[effectiveVariant]}`}
         priority={true}
         onError={(e) => {
-          console.error('Erreur de chargement du logo:', e)
-          console.log('Tentative de chargement:', '/logo-circle.webp')
+          // Silencieux pour éviter la boucle de logs
         }}
         // onLoad={() => console.log('Logo chargé avec succès')}
       />

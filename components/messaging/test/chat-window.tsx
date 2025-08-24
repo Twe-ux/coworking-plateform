@@ -79,7 +79,6 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const { data: session } = useSession()
   const [newMessage, setNewMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [typingUsers, setTypingUsers] = useState<string[]>([])
 
@@ -90,6 +89,7 @@ export function ChatWindow({
   const {
     socket,
     isConnected,
+    messages,
     sendMessage: sendSocketMessage,
     loadMessages,
     joinChannel,
@@ -118,15 +118,12 @@ export function ChatWindow({
   useEffect(() => {
     if (chatId && socket && isConnected) {
       setIsLoading(true)
-      setMessages([])
 
       // Rejoindre le channel
       joinChannel(chatId)
 
       // Charger l'historique
       loadMessages(chatId).then((msgs) => {
-        setMessages(msgs || [])
-
         // Marquer les messages des autres comme lus
         if (msgs && msgs.length > 0) {
           const unreadMessageIds = msgs
@@ -159,96 +156,29 @@ export function ChatWindow({
     scrollToBottom,
   ])
 
-  // Écouter les nouveaux messages
+  // Scroll automatiquement quand les messages changent  
   useEffect(() => {
-    if (!socket) return
-
-    const handleNewMessage = (message: Message) => {
-      if (message.channel === chatId) {
-        setMessages((prev) => {
-          // Éviter les doublons
-          const exists = prev.find((m) => m._id === message._id)
-          if (exists) return prev
-          const newMessages = [...prev, message]
-
-          // Marquer automatiquement comme lu si ce n'est pas mon message
-          if (message.sender._id !== session?.user?.id && chatId) {
-            setTimeout(() => {
-              markMessagesAsRead(chatId, [message._id])
-            }, 1000) // Délai d'1 seconde pour simuler la lecture
-          }
-
-          return newMessages
-        })
-        setTimeout(scrollToBottom, 100) // Scroll vers le nouveau message
-      }
+    if (messages.length > 0) {
+      setTimeout(scrollToBottom, 100)
     }
+  }, [messages, scrollToBottom])
 
-    const handleChannelHistory = (data: {
-      channelId: string
-      messages: Message[]
-    }) => {
-      if (data.channelId === chatId) {
-        setMessages(data.messages || [])
-        setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
-      }
+  // Marquer automatiquement les messages comme lus
+  useEffect(() => {
+    if (!chatId || !messages.length) return
+
+    const unreadMessages = messages.filter(
+      (message) =>
+        message.sender._id !== session?.user?.id &&
+        !message.readBy?.some((read) => read.user === session?.user?.id)
+    )
+
+    if (unreadMessages.length > 0) {
+      setTimeout(() => {
+        markMessagesAsRead(chatId, unreadMessages.map(m => m._id))
+      }, 1000) // Délai d'1 seconde pour simuler la lecture
     }
-
-    const handleMessagesRead = (data: {
-      userId: string
-      messageIds: string[]
-      readAt: string
-    }) => {
-      console.log('👁️ ChatWindow: Messages read event received:', data)
-      setMessages((prev) =>
-        prev.map((message) => {
-          if (data.messageIds.includes(message._id)) {
-            // Ajouter le statut de lecture s'il n'existe pas déjà
-            const readBy = message.readBy || []
-            const alreadyRead = readBy.some((read) => read.user === data.userId)
-
-            if (!alreadyRead) {
-              console.log(
-                `👁️ Marking message ${message._id} as read by ${data.userId}`
-              )
-              return {
-                ...message,
-                readBy: [...readBy, { user: data.userId, readAt: data.readAt }],
-              }
-            }
-          }
-          return message
-        })
-      )
-    }
-
-    const handleTyping = (data: {
-      userId: string
-      userName: string
-      isTyping: boolean
-    }) => {
-      if (data.isTyping) {
-        setTypingUsers((prev) => [
-          ...prev.filter((name) => name !== data.userName),
-          data.userName,
-        ])
-      } else {
-        setTypingUsers((prev) => prev.filter((name) => name !== data.userName))
-      }
-    }
-
-    socket.on('new_message', handleNewMessage)
-    socket.on('channel_history', handleChannelHistory)
-    socket.on('user_typing', handleTyping)
-    socket.on('messages_read', handleMessagesRead)
-
-    return () => {
-      socket.off('new_message', handleNewMessage)
-      socket.off('channel_history', handleChannelHistory)
-      socket.off('user_typing', handleTyping)
-      socket.off('messages_read', handleMessagesRead)
-    }
-  }, [socket, chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
+  }, [messages, chatId, session?.user?.id, markMessagesAsRead])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatId || !socket || !isConnected) return
@@ -261,7 +191,7 @@ export function ChatWindow({
       clearTimeout(typingTimeoutRef.current)
     }
     if (socket) {
-      socket.emit('typing_stop', { channelId: chatId })
+      socket.send(JSON.stringify({ type: 'typing', channelId: chatId, isTyping: false }))
     }
 
     try {
@@ -275,14 +205,14 @@ export function ChatWindow({
   const handleTyping = () => {
     if (!socket || !chatId) return
 
-    socket.emit('typing_start', { channelId: chatId })
+    socket.send(JSON.stringify({ type: 'typing', channelId: chatId, isTyping: true }))
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
 
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing_stop', { channelId: chatId })
+      socket.send(JSON.stringify({ type: 'typing', channelId: chatId, isTyping: false }))
     }, 2000)
   }
 
