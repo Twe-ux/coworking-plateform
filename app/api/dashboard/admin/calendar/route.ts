@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     // Récupérer les réservations sans populate pour l'instant
     const bookings = await Booking.find(filter)
       .sort({ date: 1, startTime: 1 })
-      .lean()
+      .lean() as any[]
 
     // Calculer les statistiques
     const stats = {
