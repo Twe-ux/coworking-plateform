@@ -133,7 +133,7 @@ export async function PATCH(request: NextRequest) {
     const updatedBooking = await Booking.findById(bookingId)
       .populate('userId', 'firstName lastName email')
       .populate('spaceId', 'name location')
-      .lean()
+      .lean() as any
 
     if (!updatedBooking) {
       return NextResponse.json(
