@@ -132,8 +132,8 @@ export async function GET(request: NextRequest) {
           }
           
           // Remove the original _id and parentCategory fields to avoid confusion
-          delete transformedCategory._id
-          delete transformedCategory.parentCategory
+          delete (transformedCategory as any)._id
+          delete (transformedCategory as any).parentCategory
           
           return transformedCategory
         })
@@ -169,8 +169,8 @@ export async function GET(request: NextRequest) {
         }
         
         // Remove the original _id and parentCategory fields to avoid confusion
-        delete transformedCategory._id
-        delete transformedCategory.parentCategory
+        delete (transformedCategory as any)._id
+        delete (transformedCategory as any).parentCategory
         
         return transformedCategory
       })

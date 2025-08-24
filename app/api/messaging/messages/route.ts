@@ -97,13 +97,13 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       // Recherche dans les messages
-      messages = await Message.searchMessages(search, [channelId], { limit })
+      messages = await (Message as any).searchMessages(search, [channelId], { limit })
     } else {
       // Récupération normale avec pagination
       const beforeDate = before ? new Date(before) : undefined
       const afterDate = after ? new Date(after) : undefined
 
-      messages = await Message.findByChannel(channelId, {
+      messages = await (Message as any).findByChannel(channelId, {
         limit,
         before: beforeDate,
         after: afterDate,

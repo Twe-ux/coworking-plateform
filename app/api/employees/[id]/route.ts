@@ -48,20 +48,21 @@ export async function GET(
       )
     }
 
+    const emp = employee as any
     const formattedEmployee = {
-      id: employee._id.toString(),
-      firstName: employee.firstName,
-      lastName: employee.lastName,
-      email: employee.email,
-      phone: employee.phone,
-      role: employee.role,
-      color: employee.color,
-      startDate: employee.startDate,
-      pin: employee.pin,
-      isActive: employee.isActive,
-      fullName: `${employee.firstName} ${employee.lastName}`,
-      createdAt: employee.createdAt,
-      updatedAt: employee.updatedAt,
+      id: emp._id.toString(),
+      firstName: emp.firstName,
+      lastName: emp.lastName,
+      email: emp.email,
+      phone: emp.phone,
+      role: emp.role,
+      color: emp.color,
+      startDate: emp.startDate,
+      pin: emp.pin,
+      isActive: emp.isActive,
+      fullName: `${emp.firstName} ${emp.lastName}`,
+      createdAt: emp.createdAt,
+      updatedAt: emp.updatedAt,
     }
 
     return NextResponse.json({
@@ -156,20 +157,21 @@ export async function PUT(
       )
     }
 
+    const updatedEmp = updatedEmployee as any
     const formattedEmployee = {
-      id: updatedEmployee._id.toString(),
-      firstName: updatedEmployee.firstName,
-      lastName: updatedEmployee.lastName,
-      email: updatedEmployee.email,
-      phone: updatedEmployee.phone,
-      role: updatedEmployee.role,
-      color: updatedEmployee.color,
-      startDate: updatedEmployee.startDate,
-      pin: updatedEmployee.pin,
-      isActive: updatedEmployee.isActive,
-      fullName: `${updatedEmployee.firstName} ${updatedEmployee.lastName}`,
-      createdAt: updatedEmployee.createdAt,
-      updatedAt: updatedEmployee.updatedAt,
+      id: updatedEmp._id.toString(),
+      firstName: updatedEmp.firstName,
+      lastName: updatedEmp.lastName,
+      email: updatedEmp.email,
+      phone: updatedEmp.phone,
+      role: updatedEmp.role,
+      color: updatedEmp.color,
+      startDate: updatedEmp.startDate,
+      pin: updatedEmp.pin,
+      isActive: updatedEmp.isActive,
+      fullName: `${updatedEmp.firstName} ${updatedEmp.lastName}`,
+      createdAt: updatedEmp.createdAt,
+      updatedAt: updatedEmp.updatedAt,
     }
 
     return NextResponse.json({

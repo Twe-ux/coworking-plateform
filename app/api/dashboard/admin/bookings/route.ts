@@ -135,24 +135,32 @@ export async function PATCH(request: NextRequest) {
       .populate('spaceId', 'name location')
       .lean()
 
+    if (!updatedBooking) {
+      return NextResponse.json(
+        { success: false, error: 'Réservation non trouvée après mise à jour' },
+        { status: 404 }
+      )
+    }
+
     // Formater la réponse
+    const bookingData = updatedBooking as any
     const formattedBooking = {
-      id: updatedBooking._id.toString(),
+      id: bookingData._id.toString(),
       user: {
-        firstName: updatedBooking.userId?.firstName || 'N/A',
-        lastName: updatedBooking.userId?.lastName || 'N/A',
-        email: updatedBooking.userId?.email || 'N/A',
+        firstName: bookingData.userId?.firstName || 'N/A',
+        lastName: bookingData.userId?.lastName || 'N/A',
+        email: bookingData.userId?.email || 'N/A',
       },
-      spaceName: updatedBooking.spaceId?.name || 'Espace supprimé',
-      spaceLocation: updatedBooking.spaceId?.location || 'N/A',
-      date: updatedBooking.date,
-      startTime: updatedBooking.startTime,
-      endTime: updatedBooking.endTime,
-      totalPrice: updatedBooking.totalPrice,
-      status: updatedBooking.status,
-      adminNote: updatedBooking.adminNote,
-      createdAt: updatedBooking.createdAt,
-      updatedAt: updatedBooking.updatedAt,
+      spaceName: bookingData.spaceId?.name || 'Espace supprimé',
+      spaceLocation: bookingData.spaceId?.location || 'N/A',
+      date: bookingData.date,
+      startTime: bookingData.startTime,
+      endTime: bookingData.endTime,
+      totalPrice: bookingData.totalPrice,
+      status: bookingData.status,
+      adminNote: bookingData.adminNote,
+      createdAt: bookingData.createdAt,
+      updatedAt: bookingData.updatedAt,
     }
 
     return NextResponse.json({

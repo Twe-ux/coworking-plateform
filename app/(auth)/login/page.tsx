@@ -48,7 +48,7 @@ export default function LoginPage() {
 
   // Récupérer le callbackUrl depuis les paramètres de l'URL
   // Par défaut, rester sur la page d'accueil
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const callbackUrl = searchParams?.get('callbackUrl') || '/'
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),

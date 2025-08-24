@@ -113,8 +113,8 @@ export async function GET(request: NextRequest) {
       data: {
         bookings: bookings.map((booking) => ({
           ...booking,
-          _id: booking._id.toString(),
-          date: booking.date.toISOString(),
+          _id: (booking as any)._id.toString(),
+          date: (booking as any).date.toISOString(),
           userId: {
             firstName: 'Utilisateur',
             lastName: 'Anonyme',

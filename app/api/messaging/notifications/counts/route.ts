@@ -13,6 +13,14 @@ export async function GET(request: NextRequest) {
 
     await connectMongoose()
     const db = mongoose.connection.db
+    
+    if (!db) {
+      return NextResponse.json(
+        { success: false, error: 'Base de données non connectée' },
+        { status: 500 }
+      )
+    }
+    
     const messagesCollection = db.collection('messages')
     const channelsCollection = db.collection('channels')
 

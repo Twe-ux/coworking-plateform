@@ -30,6 +30,13 @@ export async function GET(request: NextRequest) {
 
     const db = mongoose.connection.db
 
+    if (!db) {
+      return NextResponse.json(
+        { success: false, error: 'Base de données non connectée' },
+        { status: 500 }
+      )
+    }
+
     // Lister toutes les collections
     const collections = await db.listCollections().toArray()
 
@@ -46,7 +53,7 @@ export async function GET(request: NextRequest) {
         const count = await collection.countDocuments()
         const sample = await collection.findOne({})
 
-        debug[`${collectionName}_info`] = {
+        ;(debug as any)[`${collectionName}_info`] = {
           count,
           sampleDocument: sample
             ? {
@@ -59,7 +66,7 @@ export async function GET(request: NextRequest) {
             : null,
         }
       } catch (error) {
-        debug[`${collectionName}_info`] = { error: 'Collection non trouvée' }
+        ;(debug as any)[`${collectionName}_info`] = { error: 'Collection non trouvée' }
       }
     }
 

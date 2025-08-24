@@ -101,8 +101,8 @@ export async function GET(
     }
     
     // Remove the original _id fields to avoid confusion
-    delete responseData._id
-    delete responseData.parentCategory
+    delete (responseData as any)._id
+    delete (responseData as any).parentCategory
 
     return createSuccessResponse(
       responseData,
@@ -313,8 +313,8 @@ export async function PUT(
     }
     
     // Remove the original _id fields to avoid confusion
-    delete responseData._id
-    delete responseData.parentCategory
+    delete (responseData as any)._id
+    delete (responseData as any).parentCategory
 
     return createSuccessResponse(
       responseData,

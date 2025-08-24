@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // Formater les données pour l'interface
     const formattedEmployees = employees.map((employee) => ({
-      id: employee._id.toString(),
+      id: (employee as any)._id.toString(),
       firstName: employee.firstName,
       lastName: employee.lastName,
       email: employee.email,

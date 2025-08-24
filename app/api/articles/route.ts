@@ -206,14 +206,14 @@ export async function POST(request: NextRequest) {
         issues: validationResult.error.issues.map(issue => ({
           path: issue.path.join('.'),
           message: issue.message,
-          received: issue.received,
-          expected: issue.expected
+          received: 'received' in issue ? issue.received : undefined,
+          expected: 'expected' in issue ? issue.expected : undefined
         })),
         receivedData: JSON.stringify(body, null, 2)
       })
       
       const detailedErrors = validationResult.error.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message} (received: ${JSON.stringify(issue.received)})`
+        `${issue.path.join('.')}: ${issue.message}${('received' in issue) ? ` (received: ${JSON.stringify(issue.received)})` : ''}`
       )
       
       return createErrorResponse(

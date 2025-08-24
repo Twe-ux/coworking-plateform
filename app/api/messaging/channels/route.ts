@@ -68,11 +68,11 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       // Recherche textuelle
-      channels = await Channel.searchChannels(search, session.user.id, { limit, skip: offset })
+      channels = await (Channel as any).searchChannels(search, session.user.id, { limit, skip: offset })
     } else {
       // Récupération normale
       const typeFilter = type ? [type] : undefined
-      channels = await Channel.findByUser(session.user.id, {
+      channels = await (Channel as any).findByUser(session.user.id, {
         includeArchived,
         type: typeFilter
       })
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
         // Calculer le nombre de messages non lus
         const Message = (await import('@/lib/models/message')).Message
-        const unreadCount = await Message.getUnreadCount(session.user.id, channel._id.toString())
+        const unreadCount = await (Message as any).getUnreadCount(session.user.id, channel._id.toString())
 
         // Obtenir le dernier message
         const lastMessage = await Message.findOne({
@@ -111,11 +111,11 @@ export async function GET(request: NextRequest) {
           ...channel,
           unreadCount,
           lastMessage: lastMessage ? {
-            _id: lastMessage._id,
-            content: lastMessage.content.substring(0, 100),
-            sender: lastMessage.sender,
-            createdAt: lastMessage.createdAt,
-            messageType: lastMessage.messageType
+            _id: (lastMessage as any)._id,
+            content: (lastMessage as any).content.substring(0, 100),
+            sender: (lastMessage as any).sender,
+            createdAt: (lastMessage as any).createdAt,
+            messageType: (lastMessage as any).messageType
           } : null,
           // Ne pas exposer les informations sensibles
           aiSettings: channel.aiSettings ? {

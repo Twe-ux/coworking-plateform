@@ -321,14 +321,13 @@ export async function GET(request: NextRequest) {
 
     const analytics = {
       totalRevenue: stats.totalRevenue,
-      monthlyRevenue: stats.totalRevenue, // Pour la période sélectionnée
+      monthlyRevenue: completeDaily, // Données journalières pour le graphique
       averageBookingValue:
         stats.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0,
       totalBookings: stats.totalBookings,
       monthlyGrowth,
       topSpaces,
       dailyRevenue: completeDaily,
-      monthlyRevenue: completeDaily, // Même données pour cohérence
       revenueByStatus,
     }
 
