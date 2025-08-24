@@ -30,6 +30,13 @@ export async function GET(request: NextRequest) {
 
     const db = mongoose.connection.db
 
+    if (!db) {
+      return NextResponse.json(
+        { error: 'Connexion à la base de données non établie' },
+        { status: 500 }
+      )
+    }
+
     // Lister toutes les collections
     const collections = await db.listCollections().toArray()
 
