@@ -484,23 +484,33 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
         })
 
         channel.bind('messages_read', (data: { userId: string; messageIds: string[]; readAt: string }) => {
-          console.log('👁️ Messages read event:', data)
-          setMessages(prev =>
-            prev.map(message => {
+          console.log('👁️ Messages read event received:', data)
+          setMessages(prev => {
+            const updatedMessages = prev.map(message => {
               if (data.messageIds.includes(message._id)) {
                 const readBy = message.readBy || []
-                const alreadyRead = readBy.some(read => read.user === data.userId)
+                const alreadyRead = readBy.some(read => 
+                  read.user === data.userId || read.user.toString() === data.userId
+                )
 
                 if (!alreadyRead) {
-                  return {
+                  console.log(`👁️ Marking message ${message._id} as read by ${data.userId}`)
+                  const newMessage = {
                     ...message,
                     readBy: [...readBy, { user: data.userId, readAt: data.readAt }],
                   }
+                  return newMessage
+                } else {
+                  console.log(`💭 Message ${message._id} already read by ${data.userId}`)
                 }
               }
               return message
             })
-          )
+            
+            // Sauvegarder immédiatement les changements
+            saveMessagesToStorage(updatedMessages)
+            return updatedMessages
+          })
         })
 
         channel.bind(PUSHER_EVENTS.USER_TYPING, (data: { userId: string; userName: string; channelId: string }) => {

@@ -88,9 +88,10 @@ export function ChatList({
     }
   }
 
-  // Charger les messages directs pour la vue Messages
+  // Charger les messages directs pour la vue Messages avec informations enrichies
   const loadDirectMessages = async () => {
     try {
+      console.log('💬 Loading direct messages...')
       const response = await fetch('/api/messaging/simple-channels')
       const data = await response.json()
 
@@ -98,40 +99,63 @@ export function ChatList({
         const directChats = data.channels.filter(
           (ch: Channel) => ch.type === 'direct' || ch.type === 'dm'
         )
-        setDirectMessages(directChats)
+        
+        console.log('💬 Found', directChats.length, 'direct message channels')
+        
+        // Enrichir avec les informations de notifs et d'activité
+        const enrichedChats = directChats.map(chat => ({
+          ...chat,
+          unreadCount: notificationCounts.channelBreakdown[chat._id] || 0
+        }))
+        
+        setDirectMessages(enrichedChats)
+        console.log('💬 Direct messages loaded:', enrichedChats.map(dm => `${dm.name} (${dm.unreadCount} unread)`))
       }
     } catch (error) {
       console.error('Erreur chargement DMs:', error)
     }
   }
 
-  // Charger les utilisateurs disponibles
-  const loadUsers = async () => {
+  // Charger les utilisateurs disponibles avec synchronisation améliorée
+  const loadUsers = async (forceRefresh = false) => {
     try {
-      const response = await fetch('/api/messaging/users')
+      console.log('👥 Loading users...', forceRefresh ? '(forced refresh)' : '')
+      
+      // Ajouter un timestamp pour forcer le rechargement
+      const apiUrl = forceRefresh 
+        ? `/api/messaging/users?t=${Date.now()}`
+        : '/api/messaging/users'
+        
+      const response = await fetch(apiUrl)
       const data = await response.json()
 
       if (data.success) {
         // Filtrer l'utilisateur actuel et synchroniser avec les statuts en ligne
-        console.log('👥 OnlineUsers from hook:', Array.from(onlineUsers))
+        console.log('👥 OnlineUsers from Pusher hook:', Array.from(onlineUsers))
+        console.log('👥 Users from DB:', data.users.length)
+        
         const users = data.users
           .filter((user: User) => user._id !== session?.user?.id)
           .map((user: User) => {
+            // Priorité : Pusher > DB > false
             const isOnlineFromHook = getUserOnlineStatus(user._id)
             const isOnlineFromDB = user.isOnline
             const finalOnlineStatus = isOnlineFromHook || isOnlineFromDB || false
-            console.log(`👤 ${user.name}: hook=${isOnlineFromHook}, db=${isOnlineFromDB}, final=${finalOnlineStatus}`)
+            
+            console.log(`👤 ${user.firstName} ${user.lastName || user.name}: pusher=${isOnlineFromHook}, db=${isOnlineFromDB}, final=${finalOnlineStatus}`)
+            
             return {
               ...user,
               isOnline: finalOnlineStatus,
             }
           })
+          
         setAvailableUsers(users)
+        
+        const onlineCount = users.filter(u => u.isOnline).length
         console.log(
-          '👥 Utilisateurs chargés avec statuts:',
-          users.map(
-            (u) => `${u.name}: ${u.isOnline ? 'en ligne' : 'hors ligne'}`
-          )
+          '👥', users.length, 'utilisateurs chargés,', onlineCount, 'en ligne:',
+          users.filter(u => u.isOnline).map(u => `${u.firstName} ${u.lastName || u.name}`).join(', ')
         )
       }
     } catch (error) {
@@ -148,19 +172,37 @@ export function ChatList({
       loadUsers()
     }
   }, [session?.user?.id])
-
-  // Forcer la resynchronisation quand on passe à la vue contacts
+  
+  // Recharger les DMs quand les notifications changent pour mettre à jour les badges
   useEffect(() => {
-    if (currentView === 'contacts' && isConnected) {
-      console.log(
-        '🔄 Switching to contacts view, requesting fresh online users list'
-      )
-      // Avec Pusher, on recharge les utilisateurs via API
-      setTimeout(() => {
-        loadUsers()
-      }, 500) // Petit délai pour s'assurer que Pusher est synchronisé
+    if (currentView === 'messages' && session?.user) {
+      console.log('🔔 Notifications changed, refreshing DM list for badges')
+      loadDirectMessages()
     }
-  }, [currentView, isConnected])
+  }, [notificationCounts, currentView, session?.user?.id])
+
+  // Forcer la resynchronisation quand on passe à la vue contacts ou quand la connexion change
+  useEffect(() => {
+    if (currentView === 'contacts' && session?.user) {
+      console.log('🔄 Switching to contacts view, forcing fresh user data')
+      // Forcer le rechargement des utilisateurs avec timestamp
+      setTimeout(() => {
+        loadUsers(true) // Force refresh
+      }, 300)
+    }
+  }, [currentView, session?.user?.id])
+  
+  // Recharger les utilisateurs quand la liste des utilisateurs en ligne change
+  useEffect(() => {
+    if (currentView === 'contacts' && onlineUsers.size > 0) {
+      console.log('🔄 Online users changed, refreshing user list')
+      // Ne pas faire de requête API, juste mettre à jour les statuts
+      setAvailableUsers(prev => prev.map(user => ({
+        ...user,
+        isOnline: getUserOnlineStatus(user._id)
+      })))
+    }
+  }, [onlineUsers, currentView, getUserOnlineStatus])
 
   // Rafraîchir les statuts des utilisateurs quand les statuts en ligne changent
   // ✅ Supprimé - remplacé par displayUsers avec useMemo pour éviter les boucles infinies
