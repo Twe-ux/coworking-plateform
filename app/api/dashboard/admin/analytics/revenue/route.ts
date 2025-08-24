@@ -328,7 +328,6 @@ export async function GET(request: NextRequest) {
       monthlyGrowth,
       topSpaces,
       dailyRevenue: completeDaily,
-      monthlyRevenue: completeDaily, // Même données pour cohérence
       revenueByStatus,
     }
 
