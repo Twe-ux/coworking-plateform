@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react'
 // import { Switch } from '@/components/ui/switch' // Pas disponible
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { toast } from '@/components/ui/use-toast'
+import { useToast } from '@/components/ui/use-toast'
 import { Bell, Mail, Monitor, Smartphone } from 'lucide-react'
 
 interface NotificationPreferences {
@@ -31,6 +31,7 @@ interface EmailSettings {
 
 export function NotificationsPreferences() {
   const { data: session, update } = useSession()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     email: true,
