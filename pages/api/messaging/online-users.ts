@@ -32,8 +32,8 @@ export default async function handler(
     console.log('📋 API: Found online users:', onlineUsers.length)
 
     // Formater les données
-    const formattedUsers = onlineUsers.map(user => ({
-      _id: user._id.toString(),
+    const formattedUsers = onlineUsers.map((user: any) => ({
+      _id: user._id?.toString() || user._id,
       name: user.firstName && user.lastName 
         ? `${user.firstName} ${user.lastName}`
         : user.name,

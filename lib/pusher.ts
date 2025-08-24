@@ -131,6 +131,7 @@ export const triggerPusherBatch = async (
 // Hook pour l'authentification Pusher
 export const authenticatePusherUser = (socketId: string, userId: string) => {
   const presenceData = {
+    id: userId,
     user_id: userId,
     user_info: {
       id: userId,

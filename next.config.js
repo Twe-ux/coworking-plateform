@@ -53,9 +53,9 @@ const nextConfig = {
   },
   // Compression
   compress: true,
-  // Optimisation des bundles
+  // Optimisation des bundles (temporairement désactivée)
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // Temporairement désactivé pour la build
     optimizePackageImports: ['lucide-react', 'recharts', 'date-fns'],
   },
   // Configuration for build

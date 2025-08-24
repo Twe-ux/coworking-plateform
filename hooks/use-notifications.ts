@@ -39,8 +39,9 @@ export function useNotifications() {
     }
   }, [session?.user?.id])
 
-  // FIXME: Calculer les notifications en temps réel avec débounce pour éviter les mises à jour trop fréquentes
+  // FIXME: Calculer les notifications en temps réel (seulement côté client)
   useEffect(() => {
+    if (typeof window === 'undefined') return // Skip during SSR
     if (!session?.user?.id) return
     
     // Toujours calculer même si pas connecté (utiliser les messages en cache)

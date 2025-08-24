@@ -313,8 +313,10 @@ export function usePusherMessaging(): UsePusherMessagingReturn {
     }
   }, [session])
 
-  // Auto connect/disconnect based on session
+  // Auto connect/disconnect based on session (only in browser)
   useEffect(() => {
+    if (typeof window === 'undefined') return // Skip during SSR
+    
     if (session?.user) {
       connect()
       // Load online users as fallback - only once per session
