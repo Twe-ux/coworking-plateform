@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
 
     // Créer le channel avec mongoose direct
     const db = mongoose.connection.db
+    
+    if (!db) {
+      return NextResponse.json(
+        { success: false, error: 'Base de données non connectée' },
+        { status: 500 }
+      )
+    }
+    
     const channelsCollection = db.collection('channels')
     const usersCollection = db.collection('users')
 
@@ -204,9 +212,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Erreur serveur',
-        message: error.message,
+        message: error instanceof Error ? error.message : 'Erreur inconnue',
         details:
-          process.env.NODE_ENV === 'development' ? error.stack : undefined,
+          process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined,
       },
       { status: 500 }
     )
