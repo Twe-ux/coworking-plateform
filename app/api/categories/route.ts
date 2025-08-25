@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
             .lean()
 
           // Transform _id to id for frontend compatibility
-          const transformedCategory = {
+          const { _id, parentCategory, ...transformedCategory } = {
             ...category,
             id: category._id.toString(),
             parentCategoryId: category.parentCategory?.toString(),
@@ -130,10 +130,6 @@ export async function GET(request: NextRequest) {
             hasSubCategories: subCategoriesCount > 0,
             articlesCount: category.stats?.articleCount || 0,
           }
-          
-          // Remove the original _id and parentCategory fields to avoid confusion
-          delete transformedCategory._id
-          delete transformedCategory.parentCategory
           
           return transformedCategory
         })
