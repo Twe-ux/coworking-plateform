@@ -144,22 +144,22 @@ export async function PATCH(request: NextRequest) {
 
     // Formater la réponse
     const formattedBooking = {
-      id: updatedBooking._id.toString(),
+      id: (updatedBooking as any)._id.toString(),
       user: {
-        firstName: updatedBooking.userId?.firstName || 'N/A',
-        lastName: updatedBooking.userId?.lastName || 'N/A',
-        email: updatedBooking.userId?.email || 'N/A',
+        firstName: (updatedBooking as any).userId?.firstName || 'N/A',
+        lastName: (updatedBooking as any).userId?.lastName || 'N/A',
+        email: (updatedBooking as any).userId?.email || 'N/A',
       },
-      spaceName: updatedBooking.spaceId?.name || 'Espace supprimé',
-      spaceLocation: updatedBooking.spaceId?.location || 'N/A',
-      date: updatedBooking.date,
-      startTime: updatedBooking.startTime,
-      endTime: updatedBooking.endTime,
-      totalPrice: updatedBooking.totalPrice,
-      status: updatedBooking.status,
-      adminNote: updatedBooking.adminNote,
-      createdAt: updatedBooking.createdAt,
-      updatedAt: updatedBooking.updatedAt,
+      spaceName: (updatedBooking as any).spaceId?.name || 'Espace supprimé',
+      spaceLocation: (updatedBooking as any).spaceId?.location || 'N/A',
+      date: (updatedBooking as any).date,
+      startTime: (updatedBooking as any).startTime,
+      endTime: (updatedBooking as any).endTime,
+      totalPrice: (updatedBooking as any).totalPrice,
+      status: (updatedBooking as any).status,
+      adminNote: (updatedBooking as any).adminNote,
+      createdAt: (updatedBooking as any).createdAt,
+      updatedAt: (updatedBooking as any).updatedAt,
     }
 
     return NextResponse.json({
