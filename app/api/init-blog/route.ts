@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Article from '@/lib/models/Article'
 import Category from '@/lib/models/Category'
-import User from '@/lib/models/User'
+import User from '@/lib/models/user'
 import { generateSlug } from '@/lib/validation/blog'
 
 export async function POST(request: NextRequest) {
