@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
       })
       
       const detailedErrors = validationResult.error.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message} (received: ${JSON.stringify(issue.received)})`
+        `${issue.path.join('.')}: ${issue.message}${('received' in issue) ? ` (received: ${JSON.stringify(issue.received)})` : ''}`
       )
       
       return createErrorResponse(
