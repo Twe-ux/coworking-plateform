@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
 
     // Récupérer tous les utilisateurs sauf l'utilisateur actuel
     const db = mongoose.connection.db
+    if (!db) {
+      throw new Error('Database connection not established')
+    }
     const usersCollection = db.collection('users')
 
     const users = await usersCollection
@@ -63,7 +66,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Erreur serveur',
-        message: error.message,
+        message: (error as any).message,
       },
       { status: 500 }
     )

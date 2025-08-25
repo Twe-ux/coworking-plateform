@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { connectMongoose } from '@/lib/mongoose'
 import { Booking } from '@/lib/models'
+import { connectMongoose } from '@/lib/mongoose'
 import { isValidObjectId } from 'mongoose'
+import { getServerSession } from 'next-auth/next'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
   request: NextRequest,
@@ -38,7 +38,7 @@ export async function POST(
     }
 
     // Check if user owns this booking
-    if (booking.user.toString() !== session.user.id) {
+    if (booking.userId.toString() !== session.user.id) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
     }
 

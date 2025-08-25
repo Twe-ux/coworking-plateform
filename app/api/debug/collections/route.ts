@@ -29,11 +29,14 @@ export async function GET(request: NextRequest) {
     await connectMongoose()
 
     const db = mongoose.connection.db
+    if (!db) {
+      throw new Error('Database connection not established')
+    }
 
     // Lister toutes les collections
     const collections = await db.listCollections().toArray()
 
-    const debug = {
+    const debug: any = {
       collections: collections.map((c) => c.name),
       connectionState: mongoose.connection.readyState,
       dbName: db.databaseName,

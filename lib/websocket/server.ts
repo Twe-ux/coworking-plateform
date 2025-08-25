@@ -48,13 +48,11 @@ interface ChannelJoinData {
 
 // Rate limiters
 const messageLimiter = new RateLimiterMemory({
-  keyGenerator: (socket: Socket) => (socket.data as SocketData).userId,
   points: 30, // 30 messages
   duration: 60, // par minute
 })
 
 const connectionLimiter = new RateLimiterMemory({
-  keyGenerator: (socket: Socket) => (socket.data as SocketData).ipAddress,
   points: 5, // 5 connexions simultanées
   duration: 300, // par 5 minutes
 })

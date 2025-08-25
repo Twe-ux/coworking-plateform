@@ -134,7 +134,7 @@ export class MessageWebSocketClient {
           resolve()
         })
 
-        this.socket.once('connect_error', (error) => {
+        this.socket.once('connect_error', (error: any) => {
           clearTimeout(timeout)
           this.isConnecting = false
           console.error('Erreur de connexion WebSocket:', error)
@@ -288,7 +288,7 @@ export class MessageWebSocketClient {
       this.emit('connect')
     })
 
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on('disconnect', (reason: any) => {
       console.log('Déconnexion WebSocket:', reason)
       this.emit('disconnect')
       
@@ -301,7 +301,7 @@ export class MessageWebSocketClient {
       this.attemptReconnect()
     })
 
-    this.socket.on('connect_error', (error) => {
+    this.socket.on('connect_error', (error: any) => {
       console.error('Erreur de connexion:', error)
       this.emit('connect_error', error)
       this.attemptReconnect()
@@ -320,31 +320,31 @@ export class MessageWebSocketClient {
       this.emit('user_presence', data)
     })
 
-    this.socket.on('reaction_added', (data) => {
+    this.socket.on('reaction_added', (data: any) => {
       this.emit('reaction_added', data)
     })
 
-    this.socket.on('reaction_removed', (data) => {
+    this.socket.on('reaction_removed', (data: any) => {
       this.emit('reaction_removed', data)
     })
 
-    this.socket.on('messages_read', (data) => {
+    this.socket.on('messages_read', (data: any) => {
       this.emit('messages_read', data)
     })
 
-    this.socket.on('channel_history', (data) => {
+    this.socket.on('channel_history', (data: any) => {
       this.emit('channel_history', data)
     })
 
-    this.socket.on('channel_joined', (data) => {
+    this.socket.on('channel_joined', (data: any) => {
       this.emit('channel_joined', data)
     })
 
-    this.socket.on('channel_left', (data) => {
+    this.socket.on('channel_left', (data: any) => {
       this.emit('channel_left', data)
     })
 
-    this.socket.on('mention_notification', (data) => {
+    this.socket.on('mention_notification', (data: any) => {
       this.emit('mention_notification', data)
       
       // Afficher une notification toast
@@ -361,7 +361,7 @@ export class MessageWebSocketClient {
       })
     })
 
-    this.socket.on('error', (data) => {
+    this.socket.on('error', (data: any) => {
       console.error('Erreur WebSocket:', data.message)
       this.emit('error', data)
       

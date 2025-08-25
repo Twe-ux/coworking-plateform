@@ -101,7 +101,7 @@ export default function AuthButtons({
   }
 
   // Générer l'URL de login avec le callbackUrl pour préserver la page actuelle
-  const loginUrl = `/login${pathname !== '/' ? `?callbackUrl=${encodeURIComponent(pathname)}` : ''}`
+  const loginUrl = `/login${pathname !== '/' ? `?callbackUrl=${encodeURIComponent(pathname || '')}` : ''}`
 
   // Transition simple lors des changements d'état
   useEffect(() => {

@@ -99,7 +99,7 @@ export function ArticleForm({
   const handleSubmit = async (data: CreateArticleInput, action: 'save' | 'publish') => {
     // Convert tags string to array if needed
     if (typeof data.tags === 'string') {
-      data.tags = data.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+      data.tags = data.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean)
     }
 
     // Set status based on action

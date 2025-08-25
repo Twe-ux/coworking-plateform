@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: currency,
             product_data: {
-              name: `Réservation ${booking.spaceName || 'Espace'}`,
+              name: `Réservation ${(booking as any).spaceName || 'Espace'}`,
               description: `${format(booking.date, 'dd/MM/yyyy', { locale: fr })} de ${booking.startTime} à ${booking.endTime}`,
             },
             unit_amount: Math.round(amount * 100), // Stripe utilise les centimes

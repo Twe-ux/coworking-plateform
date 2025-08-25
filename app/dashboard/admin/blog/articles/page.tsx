@@ -117,11 +117,11 @@ export default function ArticlesPage() {
 
   // Filters state
   const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    status: searchParams.get('status') || 'all',
-    contentType: searchParams.get('contentType') || 'all',
-    categoryId: searchParams.get('categoryId') || 'all',
-    featured: searchParams.get('featured') || 'all',
+    search: searchParams?.get('search') || '',
+    status: searchParams?.get('status') || 'all',
+    contentType: searchParams?.get('contentType') || 'all',
+    categoryId: searchParams?.get('categoryId') || 'all',
+    featured: searchParams?.get('featured') || 'all',
   })
 
   const [isProcessing, setIsProcessing] = useState(false)

@@ -82,15 +82,15 @@ export async function GET(request: NextRequest) {
 
     // Transformer les données pour le frontend
     const transformedShifts = shifts.map((shift) => ({
-      id: shift._id.toString(),
-      employeeId: shift.employeeId._id.toString(),
+      id: (shift._id as any).toString(),
+      employeeId: (shift.employeeId as any)._id.toString(),
       employee: {
-        id: shift.employeeId._id.toString(),
-        firstName: shift.employeeId.firstName,
-        lastName: shift.employeeId.lastName,
-        fullName: shift.employeeId.fullName,
-        role: shift.employeeId.role,
-        color: shift.employeeId.color,
+        id: (shift.employeeId as any)._id.toString(),
+        firstName: (shift.employeeId as any).firstName,
+        lastName: (shift.employeeId as any).lastName,
+        fullName: (shift.employeeId as any).fullName,
+        role: (shift.employeeId as any).role,
+        color: (shift.employeeId as any).color,
       },
       date: shift.date,
       startTime: shift.startTime,
@@ -239,27 +239,34 @@ export async function POST(request: NextRequest) {
       .populate('employeeId', 'firstName lastName fullName role color')
       .lean()
 
+    if (!populatedShift) {
+      return NextResponse.json(
+        { success: false, error: 'Erreur lors de la récupération du créneau créé' },
+        { status: 500 }
+      )
+    }
+
     const transformedShift = {
-      id: populatedShift._id.toString(),
-      employeeId: populatedShift.employeeId._id.toString(),
+      id: (populatedShift._id as any).toString(),
+      employeeId: (populatedShift as any).employeeId._id.toString(),
       employee: {
-        id: populatedShift.employeeId._id.toString(),
-        firstName: populatedShift.employeeId.firstName,
-        lastName: populatedShift.employeeId.lastName,
-        fullName: populatedShift.employeeId.fullName,
-        role: populatedShift.employeeId.role,
-        color: populatedShift.employeeId.color,
+        id: (populatedShift as any).employeeId._id.toString(),
+        firstName: (populatedShift as any).employeeId.firstName,
+        lastName: (populatedShift as any).employeeId.lastName,
+        fullName: (populatedShift as any).employeeId.fullName,
+        role: (populatedShift as any).employeeId.role,
+        color: (populatedShift as any).employeeId.color,
       },
-      date: populatedShift.date,
-      startTime: populatedShift.startTime,
-      endTime: populatedShift.endTime,
-      type: populatedShift.type,
-      location: populatedShift.location,
-      notes: populatedShift.notes,
-      isActive: populatedShift.isActive,
-      timeRange: `${populatedShift.startTime} - ${populatedShift.endTime}`,
-      createdAt: populatedShift.createdAt,
-      updatedAt: populatedShift.updatedAt,
+      date: (populatedShift as any).date,
+      startTime: (populatedShift as any).startTime,
+      endTime: (populatedShift as any).endTime,
+      type: (populatedShift as any).type,
+      location: (populatedShift as any).location,
+      notes: (populatedShift as any).notes,
+      isActive: (populatedShift as any).isActive,
+      timeRange: `${(populatedShift as any).startTime} - ${(populatedShift as any).endTime}`,
+      createdAt: (populatedShift as any).createdAt,
+      updatedAt: (populatedShift as any).updatedAt,
     }
 
     return NextResponse.json(

@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       // Recherche textuelle
-      categories = await ProductCategoryModel.searchCategories(search, activeOnly)
+      categories = await (ProductCategoryModel as any).searchCategories(search, activeOnly)
     } else if (includeHierarchy) {
       // Récupération avec hiérarchie et compteurs
-      categories = await ProductCategoryModel.findHierarchy()
+      categories = await (ProductCategoryModel as any).findHierarchy()
     } else {
       // Récupération simple avec filtrage optionnel par parent
       const query: any = {}

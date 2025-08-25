@@ -28,6 +28,9 @@ export interface IBooking extends Document {
   notes?: string
   createdAt: Date
   updatedAt: Date
+  isActive: () => boolean
+  isPast: () => boolean
+  canBeCancelled: () => boolean
 }
 
 // Schema Mongoose pour les réservations

@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         bookingId: bookingId,
         userId: session.user.id,
       },
-      description: `Réservation ${(booking.spaceId as any)?.name || 'Espace'} - ${booking.formattedDate}`,
+      description: `Réservation ${(booking.spaceId as any)?.name || 'Espace'} - ${(booking as any).formattedDate}`,
       receipt_email: session.user.email || undefined,
     })
 

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Erreur test channels:', error)
     return NextResponse.json(
-      { error: 'Erreur serveur', message: error.message },
+      { error: 'Erreur serveur', message: (error as any).message },
       { status: 500 }
     )
   }

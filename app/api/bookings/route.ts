@@ -460,11 +460,11 @@ export async function GET(request: NextRequest) {
     // Parser les query parameters
     const { searchParams } = new URL(request.url)
     const queryValidation = getBookingsQuerySchema.safeParse({
-      status: searchParams.get('status'),
-      date: searchParams.get('date'),
-      spaceId: searchParams.get('spaceId'),
-      limit: searchParams.get('limit'),
-      offset: searchParams.get('offset'),
+      status: searchParams?.get('status'),
+      date: searchParams?.get('date'),
+      spaceId: searchParams?.get('spaceId'),
+      limit: searchParams?.get('limit'),
+      offset: searchParams?.get('offset'),
     })
 
     if (!queryValidation.success) {

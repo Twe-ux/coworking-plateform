@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
 
     // Accéder directement aux collections
     const db = mongoose.connection.db
+    if (!db) {
+      throw new Error('Database connection not established')
+    }
     const channelsCollection = db.collection('channels')
     const usersCollection = db.collection('users')
 
@@ -32,7 +35,7 @@ export async function GET(request: NextRequest) {
           if (currentUserId && channel.members && channel.members.length >= 2) {
             // Trouver l'autre utilisateur (pas l'utilisateur actuel)
             const otherMember = channel.members.find(
-              (member) => member.user.toString() !== currentUserId
+              (member: any) => member.user.toString() !== currentUserId
             )
 
             if (otherMember) {
@@ -76,7 +79,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Erreur simple channels:', error)
     return NextResponse.json(
-      { error: 'Erreur serveur', message: error.message },
+      { error: 'Erreur serveur', message: (error as any).message },
       { status: 500 }
     )
   }

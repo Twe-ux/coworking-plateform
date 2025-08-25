@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { connectToDatabase } from '@/lib/mongodb'
 import Employee from '@/lib/models/employee'
+import { connectToDatabase } from '@/lib/mongodb'
 import mongoose from 'mongoose'
+import { getServerSession } from 'next-auth'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/employees/[id] - Récupérer un employé par ID
@@ -49,19 +49,19 @@ export async function GET(
     }
 
     const formattedEmployee = {
-      id: employee._id.toString(),
-      firstName: employee.firstName,
-      lastName: employee.lastName,
-      email: employee.email,
-      phone: employee.phone,
-      role: employee.role,
-      color: employee.color,
-      startDate: employee.startDate,
-      pin: employee.pin,
-      isActive: employee.isActive,
-      fullName: `${employee.firstName} ${employee.lastName}`,
-      createdAt: employee.createdAt,
-      updatedAt: employee.updatedAt,
+      id: (employee as any)._id.toString(),
+      firstName: (employee as any).firstName,
+      lastName: (employee as any).lastName,
+      email: (employee as any).email,
+      phone: (employee as any).phone,
+      role: (employee as any).role,
+      color: (employee as any).color,
+      startDate: (employee as any).startDate,
+      pin: (employee as any).pin,
+      isActive: (employee as any).isActive,
+      fullName: `${(employee as any).firstName} ${(employee as any).lastName}`,
+      createdAt: (employee as any).createdAt,
+      updatedAt: (employee as any).updatedAt,
     }
 
     return NextResponse.json({
@@ -157,19 +157,19 @@ export async function PUT(
     }
 
     const formattedEmployee = {
-      id: updatedEmployee._id.toString(),
-      firstName: updatedEmployee.firstName,
-      lastName: updatedEmployee.lastName,
-      email: updatedEmployee.email,
-      phone: updatedEmployee.phone,
-      role: updatedEmployee.role,
-      color: updatedEmployee.color,
-      startDate: updatedEmployee.startDate,
-      pin: updatedEmployee.pin,
-      isActive: updatedEmployee.isActive,
-      fullName: `${updatedEmployee.firstName} ${updatedEmployee.lastName}`,
-      createdAt: updatedEmployee.createdAt,
-      updatedAt: updatedEmployee.updatedAt,
+      id: (updatedEmployee as any)._id.toString(),
+      firstName: (updatedEmployee as any).firstName,
+      lastName: (updatedEmployee as any).lastName,
+      email: (updatedEmployee as any).email,
+      phone: (updatedEmployee as any).phone,
+      role: (updatedEmployee as any).role,
+      color: (updatedEmployee as any).color,
+      startDate: (updatedEmployee as any).startDate,
+      pin: (updatedEmployee as any).pin,
+      isActive: (updatedEmployee as any).isActive,
+      fullName: `${(updatedEmployee as any).firstName} ${(updatedEmployee as any).lastName}`,
+      createdAt: (updatedEmployee as any).createdAt,
+      updatedAt: (updatedEmployee as any).updatedAt,
     }
 
     return NextResponse.json({

@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
 
     await connectMongoose()
     const db = mongoose.connection.db
+    if (!db) {
+      throw new Error('Database connection not established')
+    }
     const messagesCollection = db.collection('messages')
     const channelsCollection = db.collection('channels')
 

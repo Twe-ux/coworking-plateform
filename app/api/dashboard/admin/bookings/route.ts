@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { UserRole } from '@/types/auth'
-import connectMongoose from '@/lib/mongoose'
 import { Booking } from '@/lib/models/booking'
+import connectMongoose from '@/lib/mongoose'
+import { UserRole } from '@/types/auth'
+import { getServerSession } from 'next-auth'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * API pour les réservations du dashboard avancé
@@ -93,7 +93,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { bookingId, status, adminNote } = body
+    const { bookingId, status /*, adminNote */ } = body
 
     if (!bookingId || !status) {
       return NextResponse.json(
@@ -122,9 +122,9 @@ export async function PATCH(request: NextRequest) {
 
     // Mettre à jour le statut
     booking.status = status
-    if (adminNote) {
-      booking.adminNote = adminNote
-    }
+    // if (adminNote) {
+    //   booking.adminNote = adminNote
+    // }
     booking.updatedAt = new Date()
 
     await booking.save()
