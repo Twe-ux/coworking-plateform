@@ -206,8 +206,8 @@ export async function POST(request: NextRequest) {
         issues: validationResult.error.issues.map(issue => ({
           path: issue.path.join('.'),
           message: issue.message,
-          received: issue.received,
-          expected: issue.expected
+          ...(('received' in issue) && { received: issue.received }),
+          ...(('expected' in issue) && { expected: issue.expected })
         })),
         receivedData: JSON.stringify(body, null, 2)
       })
@@ -352,3 +352,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// Force Node.js runtime for database compatibility
+export const runtime = 'nodejs'

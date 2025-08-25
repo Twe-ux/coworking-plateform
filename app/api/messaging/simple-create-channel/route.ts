@@ -212,3 +212,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// Force Node.js runtime for middleware and database compatibility
+export const runtime = 'nodejs'

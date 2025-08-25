@@ -181,3 +181,6 @@ export const POST = withCSRF(async function (request: NextRequest) {
     )
   }
 })
+
+// Force Node.js runtime for admin middleware and database compatibility
+export const runtime = 'nodejs'
