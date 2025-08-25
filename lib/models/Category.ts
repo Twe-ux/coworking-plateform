@@ -1,5 +1,5 @@
-import { Document, Schema, model, models, Model } from 'mongoose'
 import { ObjectId } from 'mongodb'
+import { Document, Model, Schema, model, models } from 'mongoose'
 
 // Interface pour les méthodes statiques
 interface ICategoryModel extends Model<ICategory> {
@@ -69,7 +69,8 @@ const categorySchema = new Schema<ICategory>(
         validator: function (value: string) {
           return /^[a-z0-9-]+$/.test(value)
         },
-        message: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets',
+        message:
+          'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets',
       },
     },
     description: {
@@ -92,14 +93,15 @@ const categorySchema = new Schema<ICategory>(
     icon: {
       type: String,
       trim: true,
-      maxlength: [50, 'Le nom de l\'icône ne peut dépasser 50 caractères'] as any,
+      maxlength: 50,
       validate: {
         validator: function (value: string) {
           return !value || /^[a-zA-Z0-9-_]+$/.test(value)
         },
-        message: 'Le nom de l\'icône ne peut contenir que des lettres, chiffres, tirets et underscores',
+        message:
+          "Le nom de l'icône ne peut contenir que des lettres, chiffres, tirets et underscores",
       },
-    },
+    } as any,
     parentCategory: {
       type: Schema.Types.ObjectId,
       ref: 'Category',
@@ -114,7 +116,7 @@ const categorySchema = new Schema<ICategory>(
     sortOrder: {
       type: Number,
       default: 0,
-      min: [0, 'L\'ordre de tri ne peut être négatif'],
+      min: [0, "L'ordre de tri ne peut être négatif"],
       index: true,
     },
     seoMetadata: {
@@ -157,8 +159,8 @@ const categorySchema = new Schema<ICategory>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function (doc, ret) {
-        delete ret.__v
+      transform: function (doc: any, ret: any) {
+        if (ret.__v) delete ret.__v
         return ret
       },
     },
@@ -167,9 +169,18 @@ const categorySchema = new Schema<ICategory>(
 )
 
 // Index composites pour les requêtes fréquentes
-categorySchema.index({ isActive: 1, sortOrder: 1 }, { name: 'active_sort_order' })
-categorySchema.index({ parentCategory: 1, isActive: 1, sortOrder: 1 }, { name: 'parent_active_sort' })
-categorySchema.index({ 'stats.articleCount': -1, isActive: 1 }, { name: 'article_count_active' })
+categorySchema.index(
+  { isActive: 1, sortOrder: 1 },
+  { name: 'active_sort_order' }
+)
+categorySchema.index(
+  { parentCategory: 1, isActive: 1, sortOrder: 1 },
+  { name: 'parent_active_sort' }
+)
+categorySchema.index(
+  { 'stats.articleCount': -1, isActive: 1 },
+  { name: 'article_count_active' }
+)
 categorySchema.index({ createdAt: -1, isActive: 1 }, { name: 'created_active' })
 
 // Index de texte pour la recherche
@@ -221,7 +232,10 @@ categorySchema.methods.decrementArticleCount = function (this: ICategory) {
   return this.save()
 }
 
-categorySchema.methods.incrementViews = function (this: ICategory, viewCount: number = 1) {
+categorySchema.methods.incrementViews = function (
+  this: ICategory,
+  viewCount: number = 1
+) {
   this.stats.totalViews += viewCount
   return this.save()
 }
@@ -231,7 +245,9 @@ categorySchema.methods.getAncestors = async function (this: ICategory) {
   let current = this
 
   while (current.parentCategory) {
-    const parent = await (this.constructor as any).findById(current.parentCategory)
+    const parent = await (this.constructor as any).findById(
+      current.parentCategory
+    )
     if (!parent) break
     ancestors.unshift(parent)
     current = parent
@@ -241,7 +257,9 @@ categorySchema.methods.getAncestors = async function (this: ICategory) {
 }
 
 categorySchema.methods.getDescendants = async function (this: ICategory) {
-  return await (this.constructor as any).find({ parentCategory: this._id }).populate('parentCategory')
+  return await (this.constructor as any)
+    .find({ parentCategory: this._id })
+    .populate('parentCategory')
 }
 
 categorySchema.methods.getAllDescendants = async function (this: ICategory) {
@@ -257,26 +275,36 @@ categorySchema.methods.getAllDescendants = async function (this: ICategory) {
   return descendants
 }
 
-categorySchema.methods.getFullPath = async function (this: ICategory): Promise<string> {
+categorySchema.methods.getFullPath = async function (
+  this: ICategory
+): Promise<string> {
   const ancestors = await this.getAncestors()
-  const pathSegments = ancestors.map(ancestor => ancestor.slug)
+  const pathSegments = ancestors.map((ancestor) => ancestor.slug)
   pathSegments.push(this.slug)
   return pathSegments.join('/')
 }
 
-categorySchema.methods.canBeDeleted = async function (this: ICategory): Promise<boolean> {
+categorySchema.methods.canBeDeleted = async function (
+  this: ICategory
+): Promise<boolean> {
   // Vérifier s'il y a des articles dans cette catégorie
   if (this.stats.articleCount > 0) return false
 
   // Vérifier s'il y a des sous-catégories
   const Article = models.Article
-  const subCategories = await (this.constructor as any).countDocuments({ parentCategory: this._id })
+  const subCategories = await (this.constructor as any).countDocuments({
+    parentCategory: this._id,
+  })
   if (subCategories > 0) return false
 
   // Vérifier s'il y a des articles dans les sous-catégories
   if (Article) {
     const articlesInSubCategories = await Article.countDocuments({
-      category: { $in: await this.getAllDescendants().then(desc => desc.map(d => d._id)) }
+      category: {
+        $in: await this.getAllDescendants().then((desc) =>
+          desc.map((d) => d._id)
+        ),
+      },
     })
     if (articlesInSubCategories > 0) return false
   }
@@ -285,7 +313,9 @@ categorySchema.methods.canBeDeleted = async function (this: ICategory): Promise<
 }
 
 // Méthodes statiques
-categorySchema.statics.findActive = function (includeSubCategories: boolean = true) {
+categorySchema.statics.findActive = function (
+  includeSubCategories: boolean = true
+) {
   const query: any = { isActive: true }
   if (!includeSubCategories) {
     query.parentCategory = { $exists: false }
@@ -294,7 +324,10 @@ categorySchema.statics.findActive = function (includeSubCategories: boolean = tr
 }
 
 categorySchema.statics.findBySlug = function (slug: string) {
-  return this.findOne({ slug, isActive: true }).populate('parentCategory', 'name slug color icon')
+  return this.findOne({ slug, isActive: true }).populate(
+    'parentCategory',
+    'name slug color icon'
+  )
 }
 
 categorySchema.statics.findTopLevel = function () {
@@ -307,12 +340,9 @@ categorySchema.statics.findTopLevel = function () {
 categorySchema.statics.findWithSubCategories = function (categoryId?: string) {
   const query: any = { isActive: true }
   if (categoryId) {
-    query.$or = [
-      { _id: categoryId },
-      { parentCategory: categoryId }
-    ]
+    query.$or = [{ _id: categoryId }, { parentCategory: categoryId }]
   }
-  
+
   return this.find(query)
     .populate('parentCategory', 'name slug color icon')
     .sort({ parentCategory: 1, sortOrder: 1, name: 1 })
@@ -343,7 +373,10 @@ categorySchema.statics.findMostPopular = function (limit: number = 10) {
     .limit(limit)
 }
 
-categorySchema.statics.findWithRecentActivity = function (days: number = 30, limit: number = 10) {
+categorySchema.statics.findWithRecentActivity = function (
+  days: number = 30,
+  limit: number = 10
+) {
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
   return this.find({
     isActive: true,
@@ -365,14 +398,14 @@ categorySchema.statics.buildCategoryTree = async function () {
   categories.forEach((category: any) => {
     categoryMap.set(category._id.toString(), {
       ...category,
-      children: []
+      children: [],
     })
   })
 
   // Construire l'arbre
   categories.forEach((category: any) => {
     const categoryNode = categoryMap.get(category._id.toString())
-    
+
     if (category.parentCategory) {
       const parent = categoryMap.get(category.parentCategory.toString())
       if (parent) {
@@ -394,10 +427,10 @@ categorySchema.statics.reorderCategories = async function (
     updateOne: {
       filter: {
         _id: id,
-        parentCategory: parentCategoryId || { $exists: false }
+        parentCategory: parentCategoryId || { $exists: false },
       },
-      update: { sortOrder: index }
-    }
+      update: { sortOrder: index },
+    },
   }))
 
   return await this.bulkWrite(updates)
@@ -407,15 +440,19 @@ categorySchema.statics.reorderCategories = async function (
 categorySchema.pre('validate', async function (next) {
   if ((this as any).parentCategory && (this as any)._id) {
     // Vérifier que la catégorie parent n'est pas elle-même ou un descendant
-    let current = await (this.constructor as any).findById((this as any).parentCategory)
-    
+    let current = await (this.constructor as any).findById(
+      (this as any).parentCategory
+    )
+
     while (current) {
       if (current._id.toString() === (this as any)._id.toString()) {
-        return next(new Error('Une catégorie ne peut pas être sa propre parente'))
+        return next(
+          new Error('Une catégorie ne peut pas être sa propre parente')
+        )
       }
-      current = current.parentCategory ? 
-        await (this.constructor as any).findById(current.parentCategory) : 
-        null
+      current = current.parentCategory
+        ? await (this.constructor as any).findById(current.parentCategory)
+        : null
     }
   }
   next()
@@ -424,7 +461,7 @@ categorySchema.pre('validate', async function (next) {
 // Middleware pre-save pour générer le slug automatiquement
 categorySchema.pre('save', function (next) {
   if (this.isModified('name') && !(this as any).slug) {
-    (this as any).slug = (this as any).name
+    ;(this as any).slug = (this as any).name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
@@ -438,11 +475,11 @@ categorySchema.pre('save', function (next) {
 // Middleware pre-save pour gérer les métadonnées SEO automatiques
 categorySchema.pre('save', function (next) {
   if (this.isModified('name') || this.isModified('description')) {
-    if (!this.seoMetadata.title) {
-      this.seoMetadata.title = this.name.substring(0, 60)
+    if (!(this as any).seoMetadata.title) {
+      (this as any).seoMetadata.title = (this as any).name.substring(0, 60)
     }
-    if (!this.seoMetadata.description && this.description) {
-      this.seoMetadata.description = this.description.substring(0, 160)
+    if (!(this as any).seoMetadata.description && (this as any).description) {
+      (this as any).seoMetadata.description = (this as any).description.substring(0, 160)
     }
   }
   next()
@@ -450,46 +487,52 @@ categorySchema.pre('save', function (next) {
 
 // Middleware pour mettre à jour updatedBy
 categorySchema.pre('save', function (next) {
-  if (this.isModified() && !this.isNew && this.updatedBy) {
+  if (this.isModified() && !this.isNew && (this as any).updatedBy) {
     // updatedBy sera défini par le contrôleur
   }
   next()
 })
 
 // Middleware post-remove pour nettoyer les références
-categorySchema.pre('deleteOne', { document: true, query: false }, async function (next) {
-  try {
-    // Déplacer les sous-catégories vers la catégorie parent
-    if (this.parentCategory) {
-      await (this.constructor as any).updateMany(
-        { parentCategory: this._id },
-        { parentCategory: this.parentCategory }
-      )
-    } else {
-      // Si c'est une catégorie de niveau supérieur, faire des sous-catégories des catégories de niveau supérieur
-      await (this.constructor as any).updateMany(
-        { parentCategory: this._id },
-        { $unset: { parentCategory: 1 } }
-      )
-    }
-
-    // Optionnel : déplacer les articles vers une catégorie par défaut
-    const Article = models.Article
-    if (Article) {
-      const defaultCategory = await (this.constructor as any).findOne({ slug: 'general' })
-      if (defaultCategory) {
-        await Article.updateMany(
-          { category: this._id },
-          { category: defaultCategory._id }
+categorySchema.pre(
+  'deleteOne',
+  { document: true, query: false },
+  async function (next) {
+    try {
+      // Déplacer les sous-catégories vers la catégorie parent
+      if ((this as any).parentCategory) {
+        await (this.constructor as any).updateMany(
+          { parentCategory: this._id },
+          { parentCategory: (this as any).parentCategory }
+        )
+      } else {
+        // Si c'est une catégorie de niveau supérieur, faire des sous-catégories des catégories de niveau supérieur
+        await (this.constructor as any).updateMany(
+          { parentCategory: this._id },
+          { $unset: { parentCategory: 1 } }
         )
       }
-    }
 
-    next()
-  } catch (error: any) {
-    next(error)
+      // Optionnel : déplacer les articles vers une catégorie par défaut
+      const Article = models.Article
+      if (Article) {
+        const defaultCategory = await (this.constructor as any).findOne({
+          slug: 'general',
+        })
+        if (defaultCategory) {
+          await Article.updateMany(
+            { category: this._id },
+            { category: defaultCategory._id }
+          )
+        }
+      }
+
+      next()
+    } catch (error: any) {
+      next(error)
+    }
   }
-})
+)
 
 // Catégories par défaut à insérer
 export const defaultCategories = [
@@ -512,7 +555,7 @@ export const defaultCategories = [
   {
     name: 'Coworking',
     slug: 'coworking',
-    description: 'Tout sur l\'univers du coworking',
+    description: "Tout sur l'univers du coworking",
     color: '#3B82F6',
     icon: 'users',
     sortOrder: 2,
@@ -546,20 +589,24 @@ export const defaultCategories = [
 // Fonction utilitaire pour insérer les catégories par défaut
 export async function insertDefaultCategories(createdBy: ObjectId) {
   const existingCategories = await Category.countDocuments()
-  
+
   if (existingCategories === 0) {
-    const categoriesToInsert = defaultCategories.map(cat => ({
+    const categoriesToInsert = defaultCategories.map((cat) => ({
       ...cat,
       createdBy,
     }))
-    
+
     await Category.insertMany(categoriesToInsert)
     console.log('Catégories par défaut insérées avec succès')
   }
 }
 
 // Exporter le modèle
-export const Category = (models.Category || model<ICategory, ICategoryModel>('Category', categorySchema)) as ICategoryModel
+export const Category = (models.Category ||
+  model<ICategory, ICategoryModel>(
+    'Category',
+    categorySchema
+  )) as ICategoryModel
 
 // Export par défaut
 export default Category

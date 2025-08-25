@@ -69,7 +69,7 @@ export function useShifts(options: UseShiftsOptions = {}) {
         setShifts((prev) => {
           if (prev.length !== shiftsWithDates.length) return shiftsWithDates
 
-          const hasChanges = shiftsWithDates.some((newShift, index) => {
+          const hasChanges = shiftsWithDates.some((newShift: any, index: number) => {
             const oldShift = prev[index]
             return (
               !oldShift ||

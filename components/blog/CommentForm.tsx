@@ -35,11 +35,11 @@ export function CommentForm({
   onCancel,
   onError,
   placeholder = 'Écrivez votre commentaire...',
-  compact = false
+  compact = false,
 }: CommentFormProps) {
   const { data: session } = useSession()
   const { createComment, isSubmitting, error } = useCreateComment()
-  
+
   // État du formulaire
   const [formData, setFormData] = useState<CommentFormData>({
     content: '',
@@ -48,25 +48,25 @@ export function CommentForm({
     authorWebsite: '',
     parentCommentId,
   })
-  
+
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
-  
+
   // Validation du formulaire
-  const isFormValid = 
+  const isFormValid =
     formData.content.trim().length >= 10 &&
     formData.authorName.trim().length >= 2 &&
     formData.authorEmail.trim().length >= 5 &&
     formData.authorEmail.includes('@') &&
     agreedToTerms
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!isFormValid) {
       return
     }
-    
+
     try {
       await createComment(articleId, {
         ...formData,
@@ -75,7 +75,7 @@ export function CommentForm({
         authorEmail: formData.authorEmail.trim().toLowerCase(),
         authorWebsite: formData.authorWebsite?.trim() || undefined,
       })
-      
+
       // Réinitialiser le formulaire
       setFormData({
         content: '',
@@ -86,34 +86,32 @@ export function CommentForm({
       })
       setAgreedToTerms(false)
       setShowSuccessMessage(true)
-      
+
       // Masquer le message après 3 secondes
       setTimeout(() => setShowSuccessMessage(false), 3000)
-      
+
       // Notifier le parent
       onSubmitted()
-      
     } catch (err) {
-      console.error('Erreur lors de l\'envoi du commentaire:', err)
+      console.error("Erreur lors de l'envoi du commentaire:", err)
       if (onError) {
         onError(err instanceof Error ? err.message : 'Erreur inconnue')
       }
     }
   }
-  
+
   const handleInputChange = (field: keyof CommentFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
-  
+
   // Message de succès
   if (showSuccessMessage) {
     return (
       <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
         <AlertDescription className="text-green-800 dark:text-green-200">
-          {parentCommentId 
+          {parentCommentId
             ? 'Votre réponse a été soumise et est en attente de modération.'
-            : 'Votre commentaire a été soumis et est en attente de modération.'
-          }
+            : 'Votre commentaire a été soumis et est en attente de modération.'}
         </AlertDescription>
       </Alert>
     )
@@ -132,11 +130,11 @@ export function CommentForm({
           </Avatar>
           <div>
             <p className="text-sm font-medium">{session.user.name}</p>
-            <p className="text-xs text-muted-foreground">Connecté</p>
+            <p className="text-muted-foreground text-xs">Connecté</p>
           </div>
         </div>
       )}
-      
+
       {/* Zone de texte pour le commentaire */}
       <div>
         <Label htmlFor="content" className="sr-only">
@@ -151,21 +149,22 @@ export function CommentForm({
           maxLength={2000}
           required
         />
-        <div className="flex justify-between items-center mt-1">
-          <p className="text-xs text-muted-foreground">
-            Minimum 10 caractères
-          </p>
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-muted-foreground text-xs">Minimum 10 caractères</p>
+          <p className="text-muted-foreground text-xs">
             {formData.content.length}/2000
           </p>
         </div>
       </div>
-      
+
       {/* Informations de l'auteur (si non connecté) */}
       {!session?.user && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <Label htmlFor="authorName" className="flex items-center space-x-1 text-sm">
+            <Label
+              htmlFor="authorName"
+              className="flex items-center space-x-1 text-sm"
+            >
               <User className="h-3 w-3" />
               <span>Nom *</span>
             </Label>
@@ -179,9 +178,12 @@ export function CommentForm({
               required
             />
           </div>
-          
+
           <div>
-            <Label htmlFor="authorEmail" className="flex items-center space-x-1 text-sm">
+            <Label
+              htmlFor="authorEmail"
+              className="flex items-center space-x-1 text-sm"
+            >
               <Mail className="h-3 w-3" />
               <span>Email *</span>
             </Label>
@@ -194,13 +196,16 @@ export function CommentForm({
               maxLength={254}
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 text-xs">
               Ne sera pas publié
             </p>
           </div>
-          
+
           <div className="sm:col-span-2">
-            <Label htmlFor="authorWebsite" className="flex items-center space-x-1 text-sm">
+            <Label
+              htmlFor="authorWebsite"
+              className="flex items-center space-x-1 text-sm"
+            >
               <LinkIcon className="h-3 w-3" />
               <span>Site web (optionnel)</span>
             </Label>
@@ -208,35 +213,41 @@ export function CommentForm({
               id="authorWebsite"
               type="url"
               value={formData.authorWebsite}
-              onChange={(e) => handleInputChange('authorWebsite', e.target.value)}
+              onChange={(e) =>
+                handleInputChange('authorWebsite', e.target.value)
+              }
               placeholder="https://votre-site.com"
             />
           </div>
         </div>
       )}
-      
+
       {/* Conditions d'utilisation */}
       <div className="flex items-start space-x-2">
         <Checkbox
           id="terms"
           checked={agreedToTerms}
-          onCheckedChange={setAgreedToTerms}
+          onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
           className="mt-0.5"
           required
         />
-        <Label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-          J'accepte que mon commentaire soit soumis à modération et je respecte les{' '}
-          <a 
-            href="/terms" 
-            target="_blank" 
+        <Label
+          htmlFor="terms"
+          className="cursor-pointer text-sm leading-relaxed"
+        >
+          J&apos;accepte que mon commentaire soit soumis à modération et je
+          respecte les{' '}
+          <a
+            href="/terms"
+            target="_blank"
             className="text-primary hover:underline"
           >
-            conditions d'utilisation
+            conditions d&apos;utilisation
           </a>
           .
         </Label>
       </div>
-      
+
       {/* Message d'erreur */}
       {error && (
         <Alert className="border-red-500 bg-red-50 dark:bg-red-950">
@@ -245,13 +256,13 @@ export function CommentForm({
           </AlertDescription>
         </Alert>
       )}
-      
+
       {/* Boutons d'action */}
       <div className="flex items-center justify-between pt-2">
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           {parentCommentId ? 'Réponse' : 'Commentaire'} soumis à modération
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {onCancel && (
             <Button
@@ -261,11 +272,11 @@ export function CommentForm({
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              <X className="h-4 w-4 mr-1" />
+              <X className="mr-1 h-4 w-4" />
               Annuler
             </Button>
           )}
-          
+
           <Button
             type="submit"
             size="sm"
@@ -274,24 +285,24 @@ export function CommentForm({
           >
             <Send className="h-4 w-4" />
             <span>
-              {isSubmitting 
-                ? 'Envoi...' 
-                : parentCommentId 
-                  ? 'Répondre' 
-                  : 'Publier'
-              }
+              {isSubmitting
+                ? 'Envoi...'
+                : parentCommentId
+                  ? 'Répondre'
+                  : 'Publier'}
             </span>
           </Button>
         </div>
       </div>
-      
+
       {/* Informations sur la modération */}
       {!compact && (
-        <div className="p-3 bg-muted/30 rounded-md">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            <strong>Note:</strong> Tous les commentaires sont modérés avant publication. 
-            Nous nous réservons le droit de supprimer tout contenu inapproprié, spam ou hors-sujet. 
-            Les commentaires respectueux et constructifs sont encouragés.
+        <div className="bg-muted/30 rounded-md p-3">
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            <strong>Note:</strong> Tous les commentaires sont modérés avant
+            publication. Nous nous réservons le droit de supprimer tout contenu
+            inapproprié, spam ou hors-sujet. Les commentaires respectueux et
+            constructifs sont encouragés.
           </p>
         </div>
       )}

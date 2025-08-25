@@ -58,7 +58,7 @@ interface SpaceRevenue {
 
 interface Analytics {
   totalRevenue: number
-  monthlyRevenue: number
+  monthlyRevenueTotal: number
   averageBookingValue: number
   totalBookings: number
   monthlyGrowth: number

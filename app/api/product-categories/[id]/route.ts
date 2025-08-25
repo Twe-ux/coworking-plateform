@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
-import { ProductCategoryModel, Product } from '@/lib/models'
+import { ProductCategory, Product } from '@/lib/models'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { ObjectId } from 'mongodb'
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
 
-    const category = await ProductCategoryModel.findById(id)
+    const category = await ProductCategory.findById(id)
       .populate('createdBy', 'name email')
       .populate('parentCategoryId', 'name slug')
       .lean()
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Récupérer les statistiques de la catégorie
     const [productCount, childrenCount] = await Promise.all([
       Product.countDocuments({ category: (category as any).slug }),
-      ProductCategoryModel.countDocuments({ parentCategoryId: id })
+      ProductCategory.countDocuments({ parentCategoryId: id })
     ])
 
     const categoryWithStats = {
@@ -112,7 +112,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     } = body
 
     // Vérifier que la catégorie existe
-    const existingCategory = await ProductCategoryModel.findById(id)
+    const existingCategory = await ProductCategory.findById(id)
     if (!existingCategory) {
       return Response.json({
         success: false,
@@ -130,7 +130,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Empêcher les boucles dans la hiérarchie
     if (parentCategoryId) {
-      const parentCategory = await ProductCategoryModel.findById(parentCategoryId)
+      const parentCategory = await ProductCategory.findById(parentCategoryId)
       if (!parentCategory) {
         return Response.json({
           success: false,
@@ -163,7 +163,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         .replace(/-+/g, '-')
 
       // Vérifier l'unicité du nouveau slug
-      const slugExists = await ProductCategoryModel.findOne({ slug, _id: { $ne: id } })
+      const slugExists = await ProductCategory.findOne({ slug, _id: { $ne: id } })
       if (slugExists) {
         return Response.json({
           success: false,
@@ -187,7 +187,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (metaTitle !== undefined) updateData.metaTitle = metaTitle
     if (metaDescription !== undefined) updateData.metaDescription = metaDescription
 
-    const updatedCategory = await ProductCategoryModel.findByIdAndUpdate(
+    const updatedCategory = await ProductCategory.findByIdAndUpdate(
       id,
       { $set: updateData },
       { 
@@ -264,7 +264,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Vérifier que la catégorie existe
-    const category = await ProductCategoryModel.findById(id)
+    const category = await ProductCategory.findById(id)
     if (!category) {
       return Response.json({
         success: false,
@@ -282,7 +282,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Vérifier qu'aucune sous-catégorie n'existe
-    const childrenCount = await ProductCategoryModel.countDocuments({ parentCategoryId: id })
+    const childrenCount = await ProductCategory.countDocuments({ parentCategoryId: id })
     if (childrenCount > 0) {
       return Response.json({
         success: false,
@@ -290,7 +290,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
 
-    const deletedCategory = await ProductCategoryModel.findByIdAndDelete(id)
+    const deletedCategory = await ProductCategory.findByIdAndDelete(id)
 
     return Response.json({
       success: true,

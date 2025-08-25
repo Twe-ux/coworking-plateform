@@ -395,7 +395,7 @@ export function ChatInterface({
             <ChannelList
               channels={channels}
               activeChannel={activeChannel}
-              onChannelSelect={handleChannelSelect}
+              onChannelSelect={handleChannelSelect as any}
               userPresence={userPresence}
             />
           </ScrollArea>

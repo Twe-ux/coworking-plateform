@@ -106,3 +106,5 @@ export function SocialProofSection() {
     </section>
   )
 }
+
+export default SocialProofSection

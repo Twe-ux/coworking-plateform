@@ -194,3 +194,5 @@ export function EnhancedCTA({
 
   return null
 }
+
+export default EnhancedCTA

@@ -6,10 +6,8 @@ export { default as TimeTrackingCard } from './TimeTrackingCard'
 export { default as PINKeypad } from './PINKeypad'
 export { default as TimeEntriesList } from './TimeEntriesList'
 
-export type {
-  Employee,
-  Shift,
-  EmployeeSchedulingProps,
-} from './EmployeeScheduling'
+export type { EmployeeSchedulingProps } from './EmployeeScheduling'
+export type { Employee } from '@/hooks/useEmployees'
+export type { Shift } from '@/hooks/useShifts'
 export type { EmployeeListProps } from './EmployeeList'
 export type { ShiftAssignmentProps } from './ShiftAssignment'

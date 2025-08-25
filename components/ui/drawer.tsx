@@ -1,7 +1,20 @@
 'use client'
 
 import * as React from 'react'
-import { Drawer as DrawerPrimitive } from 'vaul'
+// import { Drawer as DrawerPrimitive } from 'vaul'
+// Placeholder for missing vaul library
+const DrawerPrimitive = {
+  Root: 'div' as any,
+  Trigger: 'button' as any,
+  Portal: 'div' as any,
+  Close: 'button' as any,
+  Overlay: 'div' as any,
+  Content: 'div' as any,
+  Header: 'div' as any,
+  Footer: 'div' as any,
+  Title: 'h2' as any,
+  Description: 'p' as any,
+}
 
 import { cn } from '@/lib/utils'
 

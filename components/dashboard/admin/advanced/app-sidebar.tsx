@@ -62,7 +62,7 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain as any} />
       </SidebarContent>
 
       <SidebarFooter>

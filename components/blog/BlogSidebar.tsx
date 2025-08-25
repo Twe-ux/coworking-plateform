@@ -67,8 +67,8 @@ export function BlogSidebar({ currentCategory, className = '' }: BlogSidebarProp
 
   // Filtrer les catégories avec des articles
   const categoriesWithArticles = categories
-    .filter(cat => cat.stats?.articleCount && cat.stats.articleCount > 0)
-    .sort((a, b) => (b.stats?.articleCount || 0) - (a.stats?.articleCount || 0))
+    .filter((cat: any) => cat.stats?.articleCount && cat.stats.articleCount > 0)
+    .sort((a: any, b: any) => (b.stats?.articleCount || 0) - (a.stats?.articleCount || 0))
     .slice(0, 8)
 
   return (
@@ -107,7 +107,7 @@ export function BlogSidebar({ currentCategory, className = '' }: BlogSidebarProp
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {popularArticles.map((article) => (
+            {popularArticles.map((article: any) => (
               <ArticleCard
                 key={article._id}
                 article={article}
@@ -130,7 +130,7 @@ export function BlogSidebar({ currentCategory, className = '' }: BlogSidebarProp
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentArticles.slice(0, 3).map((article) => (
+            {recentArticles.slice(0, 3).map((article: any) => (
               <ArticleCard
                 key={article._id}
                 article={article}
@@ -152,7 +152,7 @@ export function BlogSidebar({ currentCategory, className = '' }: BlogSidebarProp
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {categoriesWithArticles.map((category) => (
+              {categoriesWithArticles.map((category: any) => (
                 <Link
                   key={category._id}
                   href={`/blog/category/${category.slug}`}

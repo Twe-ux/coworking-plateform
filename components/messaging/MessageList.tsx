@@ -251,11 +251,11 @@ function MessageItem({
             <div className="flex items-center gap-2 mb-1">
               <Reply className="h-3 w-3 text-gray-500" />
               <span className="font-medium text-gray-700">
-                Réponse à {message.parentMessage.sender.name}
+                Réponse à {(message.parentMessage as any).sender.name}
               </span>
             </div>
             <p className="text-gray-600 truncate">
-              {message.parentMessage.content}
+              {(message.parentMessage as any).content}
             </p>
           </div>
         )}

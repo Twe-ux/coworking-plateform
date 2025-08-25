@@ -1,4 +1,5 @@
 // Export des modèles MongoDB pour la plateforme de coworking
+import type { ISEOMetadata } from './Article'
 
 // Modèles principaux
 export { User, type IUser } from './user'
@@ -13,8 +14,8 @@ export { Category, type ICategory, defaultCategories, insertDefaultCategories } 
 export { Comment, type IComment } from './Comment'
 
 // Modèles Produits & Commandes
-export { Product, type IProduct, type ProductCategory, type ProductStatus } from './product'
-export { ProductCategory as ProductCategoryModel, type IProductCategory } from './productCategory'
+export { Product, type IProduct, type ProductCategory as ProductCategoryType, type ProductStatus } from './product'
+export { ProductCategory, type IProductCategory } from './productCategory'
 
 // Modèles Messagerie
 export { Message, type IMessage } from './message'
@@ -48,9 +49,9 @@ export type ContentType = 'article' | 'news' | 'tutorial' | 'announcement'
 export type CommentStatus = 'pending' | 'approved' | 'rejected' | 'spam'
 export type CommentType = 'comment' | 'reply'
 
-// Types Produits
-export type ProductCategory = 'coffee' | 'tea' | 'pastry' | 'sandwich' | 'snack' | 'beverage' | 'healthy' | 'breakfast'
-export type ProductStatus = 'available' | 'unavailable' | 'coming_soon'
+// Types Produits (imported from individual model files)
+// export type ProductCategory = 'coffee' | 'tea' | 'pastry' | 'sandwich' | 'snack' | 'beverage' | 'healthy' | 'breakfast'
+// export type ProductStatus = 'available' | 'unavailable' | 'coming_soon'
 
 // Types Messagerie
 export type ChannelType = 'public' | 'private' | 'direct' | 'ai_assistant'

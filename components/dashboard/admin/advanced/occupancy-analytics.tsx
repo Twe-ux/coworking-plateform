@@ -499,10 +499,8 @@ export function OccupancyAnalytics() {
                     outerRadius="90%"
                   >
                     <RadialBar
-                      minAngle={15}
                       label={false}
-                      background
-                      clockWise
+                      background={true}
                       dataKey="utilizationRate"
                     />
                     <Tooltip

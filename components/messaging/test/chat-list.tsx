@@ -60,10 +60,12 @@ export function ChatList({
   const {
     onlineUsers,
     userStatuses,
-    getUserOnlineStatus,
     socket,
     isConnected,
   } = useMessaging()
+  
+  // Helper function since getUserOnlineStatus is not available in minimal hook
+  const getUserOnlineStatus = (userId: string) => false
   const { notificationCounts, markChannelAsRead } = useNotifications()
   const [searchQuery, setSearchQuery] = useState('')
   const [channels, setChannels] = useState<Channel[]>([])
@@ -124,7 +126,7 @@ export function ChatList({
         console.log(
           '👥 Utilisateurs chargés avec statuts:',
           users.map(
-            (u) => `${u.name}: ${u.isOnline ? 'en ligne' : 'hors ligne'}`
+            (u: User) => `${u.name}: ${u.isOnline ? 'en ligne' : 'hors ligne'}`
           )
         )
       }

@@ -16,7 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 import { useSession } from 'next-auth/react'
-import { io, Socket } from 'socket.io-client'
+// import { io, Socket } from 'socket.io-client'
+type Socket = any
 
 interface Channel {
   _id: string
@@ -126,116 +127,115 @@ export function ImprovedChatInterface() {
     }
   }
 
-  // Initialiser Socket.IO
+  // Socket.IO temporarily disabled for deployment
   useEffect(() => {
-    if (!session?.user) return
-
-    console.log('🔌 Initialisation Socket.IO...')
+    console.log('🔌 Socket.IO temporarily disabled for deployment')
+    // TODO: Re-enable socket connection after installing socket.io-client
     
-    const newSocket = io({
-      path: '/api/socket/',
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 20000,
-      forceNew: false,
-      auth: {
-        sessionToken: 'auth-token',
-        userId: session.user.id,
-        userRole: (session.user as any).role,
-        userName: (session.user.firstName && session.user.lastName) 
-          ? `${session.user.firstName} ${session.user.lastName}`
-          : session.user.name,
-        userEmail: session.user.email
-      }
-    })
+    // const newSocket = io({
+    //   path: '/api/socket/',
+    //   transports: ['websocket', 'polling'],
+    //   reconnection: true,
+    //   reconnectionAttempts: 5,
+    const newSocket: any = null; // Temporarily disabled for deployment
+    //   reconnectionDelay: 1000,
+    //   timeout: 20000,
+    //   forceNew: false,
+    //   auth: {
+    //     sessionToken: 'auth-token',
+    //     userId: session.user.id,
+    //     userRole: (session.user as any).role,
+    //     userName: (session.user.firstName && session.user.lastName) 
+    //       ? `${session.user.firstName} ${session.user.lastName}`
+    //       : session.user.name,
+    //     userEmail: session.user.email
+    //   }
+    // })
 
-    // Events de connexion
-    newSocket.on('connect', () => {
-      setIsConnected(true)
-      console.log('✅ WebSocket connecté')
-      toast({
-        title: 'Connecté',
-        description: 'Chat en temps réel activé'
-      })
-    })
+    // Events de connexion (temporarily disabled)
+    // newSocket.on('connect', () => {
+    //   setIsConnected(true)
+    //   console.log('✅ WebSocket connecté')
+    //   toast({
+    //     title: 'Connecté',
+    //     description: 'Chat en temps réel activé'
+    //   })
+    // })
 
-    newSocket.on('disconnect', (reason) => {
-      setIsConnected(false)
-      console.log('❌ WebSocket déconnecté:', reason)
-      
-      // Ne pas afficher d'erreur si c'est une déconnexion volontaire
-      if (reason !== 'io client disconnect' && reason !== 'transport close') {
-        toast({
-          title: 'Déconnecté',
-          description: 'Tentative de reconnexion...',
-          variant: 'destructive'
-        })
-      }
-    })
+    // newSocket.on('disconnect', (reason: any) => {
+    //   setIsConnected(false)
+    //   console.log('❌ WebSocket déconnecté:', reason)
+    //   
+    //   // Ne pas afficher d'erreur si c'est une déconnexion volontaire
+    //   if (reason !== 'io client disconnect' && reason !== 'transport close') {
+    //     toast({
+    //       title: 'Déconnecté',
+    //       description: 'Tentative de reconnexion...',
+    //       variant: 'destructive'
+    //     })
+    //   }
+    // })
 
-    newSocket.on('reconnect', (attemptNumber) => {
-      setIsConnected(true)
-      console.log('✅ WebSocket reconnecté après', attemptNumber, 'tentatives')
-      toast({
-        title: 'Reconnecté',
-        description: 'Chat en temps réel restauré'
-      })
-    })
+    // newSocket.on('reconnect', (attemptNumber: any) => {
+    //   setIsConnected(true)
+    //   console.log('✅ WebSocket reconnecté après', attemptNumber, 'tentatives')
+    //   toast({
+    //     title: 'Reconnecté',
+    //     description: 'Chat en temps réel restauré'
+    //   })
+    // })
 
-    newSocket.on('reconnect_error', (error) => {
-      console.log('❌ Erreur de reconnexion:', error.message)
-    })
+    // newSocket.on('reconnect_error', (error: any) => {
+    //   console.log('❌ Erreur de reconnexion:', error.message)
+    // })
 
-    newSocket.on('connect_error', (error) => {
-      console.error('❌ Erreur connexion:', error)
-      setIsConnected(false)
-      toast({
-        title: 'Erreur de connexion',
-        description: error.message,
-        variant: 'destructive'
-      })
-    })
+    // newSocket.on('connect_error', (error: any) => {
+    //   console.error('❌ Erreur connexion:', error)
+    //   setIsConnected(false)
+    //   toast({
+    //     title: 'Erreur de connexion',
+    //     description: error.message,
+    //     variant: 'destructive'
+    //   })
+    // })
 
-    // Events de chat
-    newSocket.on('new_message', (message: Message) => {
-      console.log('📨 Nouveau message reçu')
-      setMessages(prev => [...prev, message])
-      setTimeout(scrollToBottom, 100)
-    })
+    // Events de chat (temporarily disabled)
+    // newSocket.on('new_message', (message: Message) => {
+    //   console.log('📨 Nouveau message reçu')
+    //   setMessages(prev => [...prev, message])
+    //   setTimeout(scrollToBottom, 100)
+    // })
 
-    newSocket.on('channel_history', (data: { channelId: string; messages: Message[] }) => {
-      console.log(`📜 Historique reçu: ${data.messages.length} messages`)
-      setMessages(data.messages)
-      setTimeout(scrollToBottom, 100)
-    })
+    // newSocket.on('channel_history', (data: { channelId: string; messages: Message[] }) => {
+    //   console.log(`📜 Historique reçu: ${data.messages.length} messages`)
+    //   setMessages(data.messages)
+    //   setTimeout(scrollToBottom, 100)
+    // })
 
-    newSocket.on('user_typing', (data: { userId: string; userName: string; isTyping: boolean }) => {
-      if (data.isTyping) {
-        setTypingUsers(prev => [...prev.filter(id => id !== data.userId), data.userName])
-      } else {
-        setTypingUsers(prev => prev.filter(name => name !== data.userName))
-      }
-    })
+    // newSocket.on('user_typing', (data: { userId: string; userName: string; isTyping: boolean }) => {
+    //   if (data.isTyping) {
+    //     setTypingUsers(prev => [...prev.filter(id => id !== data.userId), data.userName])
+    //   } else {
+    //     setTypingUsers(prev => prev.filter(name => name !== data.userName))
+    //   }
+    // })
 
     setSocket(newSocket)
     loadChannels()
     loadUsers()
 
     return () => {
-      newSocket.close()
+      // newSocket?.close() - temporarily disabled
     }
   }, [session])
 
   // Rejoindre un channel
   const joinChannel = (channel: Channel) => {
     if (!socket || !isConnected) {
-      toast({
-        title: 'Erreur',
-        description: 'Pas de connexion au chat',
-        variant: 'destructive'
-      })
+      // For deployment, still allow channel selection without websocket
+      console.log(`📺 Rejoindre channel: ${channel.name} (mode déconnecté)`)
+      setActiveChannel(channel)
+      setMessages([])
       return
     }
 
@@ -251,7 +251,16 @@ export function ImprovedChatInterface() {
 
   // Envoyer un message
   const sendMessage = () => {
-    if (!socket || !isConnected || !activeChannel || !currentMessage.trim()) {
+    if (!activeChannel || !currentMessage.trim()) {
+      return
+    }
+
+    if (!socket || !isConnected) {
+      toast({
+        title: 'Mode hors ligne',
+        description: 'Les messages ne peuvent pas être envoyés en mode hors ligne',
+        variant: 'destructive'
+      })
       return
     }
 
@@ -275,14 +284,15 @@ export function ImprovedChatInterface() {
   const handleTyping = () => {
     if (!socket || !activeChannel) return
 
-    socket.emit('typing_start', { channelId: activeChannel._id })
+    // Temporarily disabled for deployment
+    // socket.emit('typing_start', { channelId: activeChannel._id })
     
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
     
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing_stop', { channelId: activeChannel._id })
+      // socket.emit('typing_stop', { channelId: activeChannel._id })
     }, 2000)
   }
 

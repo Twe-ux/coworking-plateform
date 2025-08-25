@@ -355,8 +355,8 @@ const productSchema = new Schema<IProduct>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
-        delete ret.__v
+      transform: function(doc: any, ret: any) {
+        if (ret.__v) delete ret.__v
         return ret
       }
     },

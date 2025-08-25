@@ -99,7 +99,7 @@ export function AttachmentUpload({
         preview,
         uploadProgress: 0,
         status: error ? 'error' : 'pending',
-        error
+        error: error || undefined
       }
 
       newFiles.push(attachmentFile)

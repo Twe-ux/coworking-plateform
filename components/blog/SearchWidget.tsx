@@ -117,16 +117,16 @@ export function SearchWidget({
     const params = new URLSearchParams()
     params.set('search', searchQuery)
     
-    if (searchParams.categories.length > 0) {
+    if (searchParams.categories && searchParams.categories.length > 0) {
       params.set('categories', searchParams.categories.join(','))
     }
-    if (searchParams.contentTypes.length > 0) {
+    if (searchParams.contentTypes && searchParams.contentTypes.length > 0) {
       params.set('contentTypes', searchParams.contentTypes.join(','))
     }
-    if (searchParams.sortBy !== 'relevance') {
+    if (searchParams.sortBy && searchParams.sortBy !== 'relevance') {
       params.set('sortBy', searchParams.sortBy)
     }
-    if (searchParams.dateRange !== 'all') {
+    if (searchParams.dateRange && searchParams.dateRange !== 'all') {
       params.set('dateRange', searchParams.dateRange)
     }
     
@@ -165,18 +165,18 @@ export function SearchWidget({
   const toggleCategory = (categoryId: string) => {
     setSearchParams(prev => ({
       ...prev,
-      categories: prev.categories.includes(categoryId)
-        ? prev.categories.filter(id => id !== categoryId)
-        : [...prev.categories, categoryId]
+      categories: (prev.categories || []).includes(categoryId)
+        ? (prev.categories || []).filter(id => id !== categoryId)
+        : [...(prev.categories || []), categoryId]
     }))
   }
   
   const toggleContentType = (contentType: string) => {
     setSearchParams(prev => ({
       ...prev,
-      contentTypes: prev.contentTypes.includes(contentType)
-        ? prev.contentTypes.filter(type => type !== contentType)
-        : [...prev.contentTypes, contentType]
+      contentTypes: (prev.contentTypes || []).includes(contentType)
+        ? (prev.contentTypes || []).filter(type => type !== contentType)
+        : [...(prev.contentTypes || []), contentType]
     }))
   }
 
@@ -292,7 +292,7 @@ export function SearchWidget({
                 <div key={type.value} className="flex items-center space-x-2">
                   <Checkbox
                     id={`type-${type.value}`}
-                    checked={searchParams.contentTypes.includes(type.value)}
+                    checked={(searchParams.contentTypes || []).includes(type.value)}
                     onCheckedChange={() => toggleContentType(type.value)}
                   />
                   <Label htmlFor={`type-${type.value}`} className="text-sm">
@@ -378,7 +378,7 @@ export function SearchWidget({
                           Résultats ({results.length})
                         </h4>
                         <div className="space-y-1">
-                          {results.slice(0, 8).map((result) => (
+                          {results.slice(0, 8).map((result: any) => (
                             <button
                               key={result.id}
                               onClick={() => handleResultClick(result.slug)}
@@ -432,7 +432,7 @@ export function SearchWidget({
                             Suggestions
                           </h4>
                           <div className="flex flex-wrap gap-1 px-2">
-                            {suggestions.map((suggestion, index) => (
+                            {suggestions.map((suggestion: any, index: any) => (
                               <Badge
                                 key={index}
                                 variant="outline"

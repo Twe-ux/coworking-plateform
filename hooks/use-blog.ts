@@ -6,7 +6,7 @@
 'use client'
 
 import useSWR from 'swr'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import type {
   Article,
   Category,
@@ -86,8 +86,8 @@ export function useArticles(options: UseArticlesOptions = {}) {
   )
   
   return {
-    articles: data?.data || [],
-    meta: data?.meta,
+    articles: (data as any)?.articles || [],
+    meta: (data as any)?.meta,
     isLoading,
     error,
     refresh: mutate,
@@ -110,7 +110,7 @@ export function useArticle(slug: string, enabled = true) {
   )
   
   return {
-    article: data?.data,
+    article: (data as any)?.article || data,
     isLoading,
     error,
     refresh: mutate,
@@ -144,8 +144,8 @@ export function useCategories(options: UseCategoriesOptions = {}) {
   )
   
   return {
-    categories: data?.data || [],
-    meta: data?.meta,
+    categories: (data as any)?.categories || [],
+    meta: (data as any)?.meta,
     isLoading,
     error,
     refresh: mutate,
@@ -185,8 +185,8 @@ export function useComments(options: UseCommentsOptions) {
   )
   
   return {
-    comments: data?.data || [],
-    meta: data?.meta,
+    comments: (data as any)?.comments || [],
+    meta: (data as any)?.meta,
     isLoading,
     error,
     refresh: mutate,
@@ -221,9 +221,9 @@ export function useSearch(searchParams: SearchParams, enabled = true) {
   )
   
   return {
-    results: data?.data?.results || [],
-    suggestions: data?.data?.suggestions || [],
-    meta: data?.data?.meta,
+    results: (data as any)?.results || [],
+    suggestions: (data as any)?.suggestions || [],
+    meta: (data as any)?.meta,
     isLoading,
     error,
   }
@@ -244,7 +244,7 @@ export function useBlogNavigation() {
   )
   
   return {
-    navigation: data?.data,
+    navigation: (data as any)?.navigation || data,
     isLoading,
     error,
   }
@@ -364,13 +364,13 @@ export function usePagination(totalPages: number, currentPage = 1) {
 export function useSearchDebounced(query: string, delay = 300) {
   const [debouncedQuery, setDebouncedQuery] = useState(query)
   
-  useState(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query)
     }, delay)
     
     return () => clearTimeout(timer)
-  })
+  }, [query, delay])
   
   return debouncedQuery
 }
@@ -382,7 +382,7 @@ export function useFavoriteArticles() {
   const [favorites, setFavorites] = useState<string[]>([])
   
   // Charger les favoris depuis localStorage
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('blog-favorites')
       if (stored) {
@@ -393,7 +393,7 @@ export function useFavoriteArticles() {
         }
       }
     }
-  })
+  }, [])
   
   const addFavorite = useCallback((articleId: string) => {
     setFavorites(prev => {

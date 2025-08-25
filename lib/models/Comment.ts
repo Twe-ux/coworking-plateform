@@ -48,6 +48,8 @@ export interface IComment extends Document {
   likesRatio: number
   daysSincePosted: number
   isRecent: boolean
+  // Methods
+  extractMetadata(): void
 }
 
 // Schema Mongoose pour les commentaires
@@ -242,11 +244,11 @@ const commentSchema = new Schema<IComment>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function (doc, ret) {
+      transform: function (doc: any, ret: any) {
         // Masquer les informations sensibles
-        delete ret.ipAddress
-        delete ret.userAgent
-        delete ret.__v
+        if (ret.ipAddress) delete ret.ipAddress
+        if (ret.userAgent) delete ret.userAgent
+        if (ret.__v) delete ret.__v
         return ret
       },
     },

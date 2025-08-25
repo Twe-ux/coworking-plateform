@@ -179,7 +179,7 @@ export function ClientSidebar() {
           {clientSidebarItems.map((item, index) => {
             const Icon = item.icon
             const isActive =
-              pathname === item.href || pathname.startsWith(item.href + '/')
+              pathname === item.href || (pathname && pathname.startsWith(item.href + '/'))
 
             return (
               <motion.div

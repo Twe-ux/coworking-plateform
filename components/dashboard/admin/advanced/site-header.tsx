@@ -92,7 +92,7 @@ const generateBreadcrumbs = (pathname: string) => {
 export function SiteHeader() {
   const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState('')
-  const breadcrumbs = generateBreadcrumbs(pathname)
+  const breadcrumbs = generateBreadcrumbs(pathname || '')
 
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 flex h-16 shrink-0 items-center border-b backdrop-blur">

@@ -93,7 +93,7 @@ export function NavUser({
             sideOffset={4}
             avoidCollisions={true}
             collisionPadding={8}
-            forceMount={false}
+            forceMount={true}
             style={{
               backgroundColor: 'white',
               border: '1px solid #1f4735',

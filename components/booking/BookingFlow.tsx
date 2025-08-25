@@ -1298,7 +1298,7 @@ export default function BookingFlow({ preSelectedSpace }: BookingFlowProps) {
                           }`}
                           whileHover={{ y: -5 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => updateBookingData({ space })}
+                          onClick={() => updateBookingData({ space: space as any })}
                         >
                           {/* Background Color/Gradient (priorité au gradient) */}
                           <div

@@ -1,8 +1,7 @@
 'use client'
 
 import { Suspense, lazy } from 'react'
-import { usePerformanceMonitor, LazyWrapper } from './OptimizedAnimations'
-import EnhancedHero from './EnhancedHero'
+import { EnhancedHero } from './EnhancedHero'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // Lazy load heavy components
@@ -37,6 +36,7 @@ import {
   Users,
   Wifi,
   Zap,
+  CheckCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -87,7 +87,7 @@ function SocialProofSkeleton() {
 
 export default function ImprovedHomepage() {
   // Monitor performance in development
-  usePerformanceMonitor()
+  // usePerformanceMonitor() // Removed temporarily
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-coffee-light">
@@ -148,11 +148,9 @@ export default function ImprovedHomepage() {
       </section>
 
       {/* Social Proof Section (Lazy Loaded) */}
-      <LazyWrapper fallback={<SocialProofSkeleton />}>
-        <Suspense fallback={<SocialProofSkeleton />}>
-          <SocialProofSection />
-        </Suspense>
-      </LazyWrapper>
+      <Suspense fallback={<SocialProofSkeleton />}>
+        <SocialProofSection />
+      </Suspense>
 
       {/* Spaces Gallery Section (Existing, but optimized) */}
       <section
@@ -211,18 +209,14 @@ export default function ImprovedHomepage() {
       </section>
 
       {/* Testimonials Section (Lazy Loaded) */}
-      <LazyWrapper fallback={<TestimonialsSkeleton />}>
-        <Suspense fallback={<TestimonialsSkeleton />}>
-          <TestimonialsSection />
-        </Suspense>
-      </LazyWrapper>
+      <Suspense fallback={<TestimonialsSkeleton />}>
+        <TestimonialsSection />
+      </Suspense>
 
       {/* Enhanced CTA Section (Lazy Loaded) */}
-      <LazyWrapper fallback={<CTASkeleton />}>
-        <Suspense fallback={<CTASkeleton />}>
-          <EnhancedCTASection />
-        </Suspense>
-      </LazyWrapper>
+      <Suspense fallback={<CTASkeleton />}>
+        <EnhancedCTASection />
+      </Suspense>
 
       {/* Simplified Contact Section (Keep essential, optimize rest) */}
       <section

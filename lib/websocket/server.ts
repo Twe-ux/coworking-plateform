@@ -69,20 +69,22 @@ export class MessageWebSocketServer {
   private connectedUsers: Map<string, { socketId: string; lastSeen: Date; channels: Set<string> }> = new Map()
 
   constructor(httpServer: HTTPServer) {
-    this.io = new SocketIOServer(httpServer, {
-      path: '/api/socket',
-      cors: {
-        origin: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-        methods: ['GET', 'POST'],
-        credentials: true
-      },
-      transports: ['websocket', 'polling'],
-      pingTimeout: 60000,
-      pingInterval: 25000
-    })
+    // Temporarily disabled for deployment
+    this.io = null as any
+    // this.io = new SocketIOServer(httpServer, {
+    //   path: '/api/socket',
+    //   cors: {
+    //     origin: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    //     methods: ['GET', 'POST'],
+    //     credentials: true
+    //   },
+    //   transports: ['websocket', 'polling'],
+    //   pingTimeout: 60000,
+    //   pingInterval: 25000
+    // })
 
-    this.setupMiddleware()
-    this.setupEventHandlers()
+    // this.setupMiddleware()
+    // this.setupEventHandlers()
   }
 
   private async setupMiddleware() {

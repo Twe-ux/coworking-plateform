@@ -89,11 +89,11 @@ export function CategoryContent({ category, searchParams }: CategoryContentProps
   
   // Articles à la une dans cette catégorie
   const featuredArticles = useMemo(() => {
-    return articles.filter(article => article.featured).slice(0, 2)
+    return articles.filter((article: any) => article.featured).slice(0, 2)
   }, [articles])
   
   const regularArticles = useMemo(() => {
-    return articles.filter(article => !featuredArticles.some(featured => featured._id === article._id))
+    return articles.filter((article: any) => !featuredArticles.some((featured: any) => featured._id === article._id))
   }, [articles, featuredArticles])
   
   // Gestion des erreurs
@@ -247,7 +247,7 @@ export function CategoryContent({ category, searchParams }: CategoryContentProps
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {subCategories.map((subCategory) => (
+                      {subCategories.map((subCategory: any) => (
                         <Link
                           key={subCategory._id}
                           href={`/blog/category/${subCategory.slug}`}
@@ -323,7 +323,7 @@ export function CategoryContent({ category, searchParams }: CategoryContentProps
                       </div>
                       
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {featuredArticles.map((article) => (
+                        {featuredArticles.map((article: any) => (
                           <ArticleCard
                             key={article._id}
                             article={article}
@@ -351,7 +351,7 @@ export function CategoryContent({ category, searchParams }: CategoryContentProps
                           ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
                           : 'space-y-6'
                       }>
-                        {regularArticles.map((article) => (
+                        {regularArticles.map((article: any) => (
                           <ArticleCard
                             key={article._id}
                             article={article}

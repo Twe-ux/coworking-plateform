@@ -176,7 +176,7 @@ export function SpaceManagement() {
       location: space.location,
       amenities: space.amenities || [],
       images: space.images || [],
-      openingHours: space.openingHours || formData.openingHours,
+      openingHours: (space.openingHours || formData.openingHours) as any,
     })
   }
 
@@ -279,7 +279,7 @@ export function SpaceManagement() {
       openingHours: {
         ...prev.openingHours,
         [day]: {
-          ...prev.openingHours[day],
+          ...(prev.openingHours as any)[day],
           [field]: value,
         },
       },
@@ -644,7 +644,7 @@ export function SpaceManagement() {
               <Label>Horaires d&apos;ouverture</Label>
               <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {DAYS_OF_WEEK.map((day) => {
-                  const hours = formData.openingHours[day.key]
+                  const hours = (formData.openingHours as any)[day.key]
 
                   return (
                     <div key={day.key} className="space-y-2 rounded border p-3">

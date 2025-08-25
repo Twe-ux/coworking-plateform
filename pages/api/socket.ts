@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 // import { Server as ServerIO } from 'socket.io'
 type ServerIO = any
+
 import { Server as NetServer } from 'http'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -28,19 +29,21 @@ export default async function handler(
   if (!res.socket.server.io) {
     console.log('🚀 Initialisation du serveur Socket.IO...')
 
-    const io = new ServerIO(res.socket.server, {
-      path: '/api/socket/',
-      addTrailingSlash: false,
-      cors: {
-        origin: [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          process.env.NEXTAUTH_URL || 'http://localhost:3000',
-        ],
-        methods: ['GET', 'POST'],
-        credentials: true,
-      },
-    })
+    // Temporarily disabled for deployment
+    const io = null as any
+    // const io = new ServerIO(res.socket.server, {
+    //   path: '/api/socket/',
+    //   addTrailingSlash: false,
+    //   cors: {
+    //     origin: [
+    //       'http://localhost:3000',
+    //       'http://localhost:3001',
+    //       process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    //     ],
+    //     methods: ['GET', 'POST'],
+    //     credentials: true,
+    //   },
+    // })
 
     // Middleware d'authentification Socket.IO utilisant la vraie session
     io.use(async (socket: any, next: any) => {

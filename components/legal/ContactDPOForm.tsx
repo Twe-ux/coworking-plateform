@@ -68,7 +68,7 @@ export function ContactDPOForm() {
     }
 
     if (!formData.accepteCGU) {
-      newErrors.accepteCGU = 'Vous devez accepter les conditions'
+      newErrors.accepteCGU = true
     }
 
     setErrors(newErrors)

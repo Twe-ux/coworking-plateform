@@ -3,7 +3,7 @@ import type { IEmployee } from './employee'
 
 export interface ITimeEntry extends Document {
   _id: string
-  employeeId: string
+  employeeId: mongoose.Types.ObjectId
   employee?: IEmployee
   date: Date
   clockIn: Date
@@ -127,7 +127,7 @@ timeEntrySchema.pre('save', async function (next) {
   try {
     // Vérifier que l'employé existe
     const Employee = mongoose.models.Employee
-    const employee = await Employee.findById(this.employeeId)
+    const employee = await Employee.findById((this as any).employeeId)
     if (!employee) {
       throw new Error('Employé introuvable')
     }
@@ -135,8 +135,8 @@ timeEntrySchema.pre('save', async function (next) {
     // Si c'est une nouvelle entrée, vérifier le nombre de shifts
     if (this.isNew) {
       const existingShifts = await mongoose.models.TimeEntry.countDocuments({
-        employeeId: this.employeeId,
-        date: this.date,
+        employeeId: (this as any).employeeId,
+        date: (this as any).date,
         isActive: true,
       })
 
@@ -148,27 +148,27 @@ timeEntrySchema.pre('save', async function (next) {
 
       // Déterminer automatiquement le numéro de shift
       if (existingShifts === 1) {
-        this.shiftNumber = 2
+        (this as any).shiftNumber = 2
       } else {
-        this.shiftNumber = 1
+        (this as any).shiftNumber = 1
       }
     }
 
     // Valider que clockOut est après clockIn
-    if (this.clockOut && this.clockOut <= this.clockIn) {
+    if ((this as any).clockOut && (this as any).clockOut <= (this as any).clockIn) {
       throw new Error(
         "L'heure de sortie doit être postérieure à l'heure d'entrée"
       )
     }
 
     // Calculer les heures totales si clockOut est défini
-    if (this.clockOut && !this.totalHours) {
-      this.totalHours = this.calculateTotalHours()
+    if ((this as any).clockOut && !(this as any).totalHours) {
+      (this as any).totalHours = (this as any).calculateTotalHours()
     }
 
     // Mettre à jour le statut
-    if (this.clockOut && this.status === 'active') {
-      this.status = 'completed'
+    if ((this as any).clockOut && (this as any).status === 'active') {
+      (this as any).status = 'completed'
     }
 
     next()

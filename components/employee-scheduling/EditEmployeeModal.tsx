@@ -265,7 +265,7 @@ export default function EditEmployeeModal({
                       }))
                     }
                     placeholder="Jean"
-                    error={!!errors.firstName}
+                    className={errors.firstName ? 'border-red-500' : ''}
                   />
                   {errors.firstName && (
                     <p className="text-sm text-red-600">{errors.firstName}</p>
@@ -286,7 +286,7 @@ export default function EditEmployeeModal({
                       }))
                     }
                     placeholder="Dupont"
-                    error={!!errors.lastName}
+                    className={errors.lastName ? 'border-red-500' : ''}
                   />
                   {errors.lastName && (
                     <p className="text-sm text-red-600">{errors.lastName}</p>
@@ -317,7 +317,7 @@ export default function EditEmployeeModal({
                       }))
                     }
                     placeholder="jean.dupont@example.com"
-                    error={!!errors.email}
+                    className={errors.email ? 'border-red-500' : ''}
                   />
                   {errors.email && (
                     <p className="text-sm text-red-600">{errors.email}</p>
@@ -339,7 +339,7 @@ export default function EditEmployeeModal({
                       }))
                     }
                     placeholder="01 23 45 67 89"
-                    error={!!errors.phone}
+                    className={errors.phone ? 'border-red-500' : ''}
                   />
                   {errors.phone && (
                     <p className="text-sm text-red-600">{errors.phone}</p>
@@ -363,7 +363,7 @@ export default function EditEmployeeModal({
                     }
                     placeholder="1111"
                     maxLength={4}
-                    error={!!errors.pin}
+                    className={errors.pin ? 'border-red-500' : ''}
                   />
                   {errors.pin && (
                     <p className="text-sm text-red-600">{errors.pin}</p>
@@ -393,7 +393,7 @@ export default function EditEmployeeModal({
                       setFormData((prev) => ({ ...prev, role: value }))
                     }
                   >
-                    <SelectTrigger error={!!errors.role}>
+                    <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
                       <SelectValue placeholder="Sélectionnez un rôle" />
                     </SelectTrigger>
                     <SelectContent>
@@ -480,7 +480,7 @@ export default function EditEmployeeModal({
                       startDate: e.target.value,
                     }))
                   }
-                  error={!!errors.startDate}
+                  className={errors.startDate ? 'border-red-500' : ''}
                   max={new Date().toISOString().split('T')[0]}
                 />
                 {errors.startDate && (

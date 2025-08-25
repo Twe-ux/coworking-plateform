@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
-import { ProductCategoryModel } from '@/lib/models'
+import { ProductCategory } from '@/lib/models'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       // Recherche textuelle
-      categories = await (ProductCategoryModel as any).searchCategories(search, activeOnly)
+      categories = await (ProductCategory as any).searchCategories(search, activeOnly)
     } else if (includeHierarchy) {
       // Récupération avec hiérarchie et compteurs
-      categories = await (ProductCategoryModel as any).findHierarchy()
+      categories = await (ProductCategory as any).findHierarchy()
     } else {
       // Récupération simple avec filtrage optionnel par parent
       const query: any = {}
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         query.parentCategoryId = parentId === 'null' ? null : parentId
       }
 
-      categories = await ProductCategoryModel.find(query)
+      categories = await ProductCategory.find(query)
         .populate('createdBy', 'name email')
         .populate('parentCategoryId', 'name slug')
         .sort({ sortOrder: 1, name: 1 })
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Statistiques globales
-    const stats = await ProductCategoryModel.aggregate([
+    const stats = await ProductCategory.aggregate([
       {
         $group: {
           _id: null,
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       .replace(/-+/g, '-')
 
     // Vérifier l'unicité du slug
-    const existingCategory = await ProductCategoryModel.findOne({ slug })
+    const existingCategory = await ProductCategory.findOne({ slug })
     if (existingCategory) {
       return Response.json({
         success: false,
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 
     // Valider la catégorie parent si spécifiée
     if (parentCategoryId) {
-      const parentCategory = await ProductCategoryModel.findById(parentCategoryId)
+      const parentCategory = await ProductCategory.findById(parentCategoryId)
       if (!parentCategory) {
         return Response.json({
           success: false,
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       createdBy: session.user.id
     }
 
-    const newCategory = new ProductCategoryModel(categoryData)
+    const newCategory = new ProductCategory(categoryData)
     const savedCategory = await newCategory.save()
 
     // Populer les données
