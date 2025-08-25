@@ -1,8 +1,7 @@
-import { Document, Schema, model, models } from 'mongoose'
-import { ObjectId } from 'mongodb'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import connectMongoose from '../mongoose'
+import { ObjectId } from 'mongodb'
+import { Document, Model, model, models, Schema } from 'mongoose'
 
 // Interface pour le document Booking
 export interface IBooking extends Document {
@@ -349,7 +348,7 @@ function endOfDay(date: Date): Date {
 }
 
 // Exporter le modèle
-export const Booking =
+export const Booking: Model<IBooking> =
   models.Booking || model<IBooking>('Booking', bookingSchema)
 
 // Export par défaut
