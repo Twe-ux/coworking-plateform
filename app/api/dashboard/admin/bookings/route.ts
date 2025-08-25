@@ -135,6 +135,13 @@ export async function PATCH(request: NextRequest) {
       .populate('spaceId', 'name location')
       .lean()
 
+    if (!updatedBooking) {
+      return NextResponse.json(
+        { error: 'Réservation introuvable après mise à jour' },
+        { status: 404 }
+      )
+    }
+
     // Formater la réponse
     const formattedBooking = {
       id: updatedBooking._id.toString(),
