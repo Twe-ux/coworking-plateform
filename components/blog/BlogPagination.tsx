@@ -28,7 +28,7 @@ export function BlogPagination({
   const searchParams = useSearchParams()
 
   const createPageUrl = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() || '')
     if (page === 1) {
       params.delete('page')
     } else {

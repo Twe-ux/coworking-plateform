@@ -158,7 +158,7 @@ export class IPRestrictionMiddleware {
       const normalizedClientIP = this.normalizeIP(clientIP)
 
       // Vérifier si l'IP est autorisée pour ce channel
-      const isIPAllowed = allowedIPs.some(allowedIP => 
+      const isIPAllowed = allowedIPs.some((allowedIP: any) => 
         this.isIPInRange(normalizedClientIP, allowedIP)
       )
 

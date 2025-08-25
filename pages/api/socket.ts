@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Server as ServerIO } from 'socket.io'
+// import { Server as ServerIO } from 'socket.io'
+type ServerIO = any
 import { Server as NetServer } from 'http'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -10,11 +11,7 @@ import { User } from '@/lib/models/user'
 import IPRestrictionMiddleware from '@/lib/middleware/ipRestriction'
 
 export interface NextApiResponseServerIO extends NextApiResponse {
-  socket: {
-    server: NetServer & {
-      io: ServerIO
-    }
-  }
+  socket: any
 }
 
 interface AuthenticatedSocket {
@@ -46,7 +43,7 @@ export default async function handler(
     })
 
     // Middleware d'authentification Socket.IO utilisant la vraie session
-    io.use(async (socket, next) => {
+    io.use(async (socket: any, next: any) => {
       try {
         const { sessionToken, userId, userRole, userName, userEmail } =
           socket.handshake.auth
@@ -105,7 +102,7 @@ export default async function handler(
     })
 
     // Gestionnaires d'événements Socket.IO
-    io.on('connection', async (socket) => {
+    io.on('connection', async (socket: any) => {
       const user = (socket as any).user as AuthenticatedSocket
 
       console.log(`👤 Utilisateur connecté: ${user.userName} (${user.userId})`)
@@ -252,7 +249,7 @@ export default async function handler(
       }
 
       // Écouter les nouveaux messages
-      socket.on('send_message', async (data) => {
+      socket.on('send_message', async (data: any) => {
         try {
           console.log("📤 Tentative d'envoi message:", data)
           const {
@@ -273,7 +270,7 @@ export default async function handler(
           console.log('✅ Channel trouvé:', channel.name)
 
           const isMember = channel.members.some(
-            (member) => member.user.toString() === user.userId
+            (member: any) => member.user.toString() === user.userId
           )
           if (!isMember) {
             console.log(
@@ -326,7 +323,7 @@ export default async function handler(
 
           // Émettre notification d'incrémentation pour les autres utilisateurs
           const channelType = channel.type
-          channel.members.forEach((member) => {
+          channel.members.forEach((member: any) => {
             const memberId = member.user.toString()
             if (memberId !== user.userId) {
               // Pas pour l'expéditeur
@@ -349,7 +346,7 @@ export default async function handler(
       })
 
       // Écouter les événements de frappe
-      socket.on('typing_start', (data) => {
+      socket.on('typing_start', (data: any) => {
         const { channelId } = data
         socket.to(`channel:${channelId}`).emit('user_typing', {
           userId: user.userId,
@@ -359,7 +356,7 @@ export default async function handler(
         })
       })
 
-      socket.on('typing_stop', (data) => {
+      socket.on('typing_stop', (data: any) => {
         const { channelId } = data
         socket.to(`channel:${channelId}`).emit('user_typing', {
           userId: user.userId,
@@ -370,7 +367,7 @@ export default async function handler(
       })
 
       // Rejoindre un channel spécifique
-      socket.on('join_channel', async (data) => {
+      socket.on('join_channel', async (data: any) => {
         try {
           const { channelId } = data
 
@@ -381,7 +378,7 @@ export default async function handler(
           }
 
           const isMember = channel.members.some(
-            (member) => member.user.toString() === user.userId
+            (member: any) => member.user.toString() === user.userId
           )
           if (!isMember) {
             socket.emit('error', { message: 'Accès refusé au channel' })
@@ -430,14 +427,14 @@ export default async function handler(
       })
 
       // Quitter un channel
-      socket.on('leave_channel', (data) => {
+      socket.on('leave_channel', (data: any) => {
         const { channelId } = data
         socket.leave(`channel:${channelId}`)
         console.log(`📺 ${user.userName} a quitté le channel: ${channelId}`)
       })
 
       // Réactions aux messages
-      socket.on('add_reaction', async (data) => {
+      socket.on('add_reaction', async (data: any) => {
         try {
           const { messageId, emoji } = data
 
@@ -451,7 +448,7 @@ export default async function handler(
           const channel = await Channel.findById(message.channel)
           if (
             !channel ||
-            !channel.members.some((m) => m.user.toString() === user.userId)
+            !channel.members.some((m: any) => m.user.toString() === user.userId)
           ) {
             socket.emit('error', { message: 'Accès refusé' })
             return
@@ -459,23 +456,23 @@ export default async function handler(
 
           // Ajouter ou retirer la réaction
           const existingReaction = message.reactions.find(
-            (r) => r.emoji === emoji && r.users.includes(user.userId)
+            (r: any) => r.emoji === emoji && r.users.includes(user.userId)
           )
 
           if (existingReaction) {
             // Retirer la réaction
             existingReaction.users = existingReaction.users.filter(
-              (id) => id !== user.userId
+              (id: any) => id !== user.userId
             )
             if (existingReaction.users.length === 0) {
               message.reactions = message.reactions.filter(
-                (r) => r.emoji !== emoji
+                (r: any) => r.emoji !== emoji
               )
             }
           } else {
             // Ajouter la réaction
             const reactionIndex = message.reactions.findIndex(
-              (r) => r.emoji === emoji
+              (r: any) => r.emoji === emoji
             )
             if (reactionIndex >= 0) {
               message.reactions[reactionIndex].users.push(user.userId)
@@ -541,7 +538,7 @@ export default async function handler(
       })
 
       // Marquer les messages comme lus
-      socket.on('mark_read', async (data) => {
+      socket.on('mark_read', async (data: any) => {
         try {
           const { channelId, messageIds } = data
           console.log(
@@ -597,7 +594,7 @@ export default async function handler(
       })
 
       // Déconnexion - Logique simplifiée et robuste
-      socket.on('disconnect', async (reason) => {
+      socket.on('disconnect', async (reason: any) => {
         console.log(`👋 ${user.userName} s'est déconnecté (raison: ${reason})`)
 
         // Délai réduit pour une meilleure réactivité

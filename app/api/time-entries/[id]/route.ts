@@ -72,10 +72,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Formater la réponse
     const employee = (timeEntry as any).employeeId
     const formattedTimeEntry: TimeEntryType = {
-      id: timeEntry._id.toString(),
+      id: (timeEntry as any)._id.toString(),
       employeeId: employee._id
         ? employee._id.toString()
-        : timeEntry.employeeId.toString(),
+        : (timeEntry as any).employeeId.toString(),
       employee: employee
         ? {
             id: employee._id.toString(),
@@ -85,23 +85,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             role: employee.role,
           }
         : undefined,
-      date: timeEntry.date,
-      clockIn: timeEntry.clockIn,
-      clockOut: timeEntry.clockOut,
-      shiftNumber: timeEntry.shiftNumber,
-      totalHours: timeEntry.totalHours,
-      status: timeEntry.status,
-      isActive: timeEntry.isActive,
-      createdAt: timeEntry.createdAt,
-      updatedAt: timeEntry.updatedAt,
+      date: (timeEntry as any).date,
+      clockIn: (timeEntry as any).clockIn,
+      clockOut: (timeEntry as any).clockOut,
+      shiftNumber: (timeEntry as any).shiftNumber,
+      totalHours: (timeEntry as any).totalHours,
+      status: (timeEntry as any).status,
+      isActive: (timeEntry as any).isActive,
+      createdAt: (timeEntry as any).createdAt,
+      updatedAt: (timeEntry as any).updatedAt,
       currentDuration:
-        !timeEntry.clockOut && timeEntry.status === 'active'
+        !(timeEntry as any).clockOut && (timeEntry as any).status === 'active'
           ? Math.max(
               0,
-              (new Date().getTime() - new Date(timeEntry.clockIn).getTime()) /
+              (new Date().getTime() - new Date((timeEntry as any).clockIn).getTime()) /
                 (1000 * 60 * 60)
             )
-          : timeEntry.totalHours || 0,
+          : (timeEntry as any).totalHours || 0,
     }
 
     return NextResponse.json<ApiResponse<TimeEntryType>>({
@@ -227,11 +227,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Validation: clockOut doit être après clockIn
-    const finalClockIn = actualUpdates.clockIn || timeEntry.clockIn
+    const finalClockIn = actualUpdates.clockIn || (timeEntry as any).clockIn
     const finalClockOut =
       actualUpdates.clockOut !== undefined
         ? actualUpdates.clockOut
-        : timeEntry.clockOut
+        : (timeEntry as any).clockOut
 
     if (finalClockOut && finalClockOut <= finalClockIn) {
       return NextResponse.json<ApiResponse<null>>(
@@ -249,17 +249,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Recalculer les heures si nécessaire
     if (
-      timeEntry.clockOut &&
+      (timeEntry as any).clockOut &&
       (!actualUpdates.totalHours || actualUpdates.totalHours === undefined)
     ) {
-      timeEntry.totalHours = timeEntry.calculateTotalHours()
+      (timeEntry as any).totalHours = timeEntry.calculateTotalHours()
     }
 
     // Mettre à jour le statut automatiquement
-    if (timeEntry.clockOut && timeEntry.status === 'active') {
-      timeEntry.status = 'completed'
-    } else if (!timeEntry.clockOut && timeEntry.status === 'completed') {
-      timeEntry.status = 'active'
+    if ((timeEntry as any).clockOut && (timeEntry as any).status === 'active') {
+      (timeEntry as any).status = 'completed'
+    } else if (!(timeEntry as any).clockOut && (timeEntry as any).status === 'completed') {
+      (timeEntry as any).status = 'active'
     }
 
     await timeEntry.save()
@@ -270,8 +270,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Formater la réponse
     const employee = (timeEntry as any).employeeId
     const formattedTimeEntry: TimeEntryType = {
-      id: timeEntry._id.toString(),
-      employeeId: timeEntry.employeeId.toString(),
+      id: (timeEntry as any)._id.toString(),
+      employeeId: (timeEntry as any).employeeId.toString(),
       employee: employee
         ? {
             id: employee._id.toString(),
@@ -281,15 +281,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             role: employee.role,
           }
         : undefined,
-      date: timeEntry.date,
-      clockIn: timeEntry.clockIn,
-      clockOut: timeEntry.clockOut,
-      shiftNumber: timeEntry.shiftNumber,
-      totalHours: timeEntry.totalHours,
-      status: timeEntry.status,
-      isActive: timeEntry.isActive,
-      createdAt: timeEntry.createdAt,
-      updatedAt: timeEntry.updatedAt,
+      date: (timeEntry as any).date,
+      clockIn: (timeEntry as any).clockIn,
+      clockOut: (timeEntry as any).clockOut,
+      shiftNumber: (timeEntry as any).shiftNumber,
+      totalHours: (timeEntry as any).totalHours,
+      status: (timeEntry as any).status,
+      isActive: (timeEntry as any).isActive,
+      createdAt: (timeEntry as any).createdAt,
+      updatedAt: (timeEntry as any).updatedAt,
     }
 
     return NextResponse.json<ApiResponse<TimeEntryType>>({
@@ -387,7 +387,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Soft delete - désactiver au lieu de supprimer
-    timeEntry.isActive = false
+    (timeEntry as any).isActive = false
     await timeEntry.save()
 
     return NextResponse.json<ApiResponse<null>>({

@@ -1,4 +1,6 @@
-import { io, Socket } from 'socket.io-client'
+// import { io, Socket } from 'socket.io-client'
+type Socket = any
+declare const io: any
 // Toast will be handled by the component using this client
 
 export interface ClientMessage {

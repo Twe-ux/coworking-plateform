@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
+// import { io, Socket } from 'socket.io-client'
+type Socket = any
+declare const io: any
 
 export default function TestSocketPage() {
   const [socket, setSocket] = useState<Socket | null>(null)
@@ -31,17 +33,17 @@ export default function TestSocketPage() {
       setMessages(prev => [...prev, 'Déconnecté du serveur'])
     })
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on('connect_error', (error: any) => {
       setStatus(`Erreur: ${error.message}`)
       setMessages(prev => [...prev, `Erreur de connexion: ${error.message}`])
     })
 
-    newSocket.on('error', (error) => {
+    newSocket.on('error', (error: any) => {
       setMessages(prev => [...prev, `Erreur serveur: ${error.message}`])
     })
 
     // Messages de test
-    newSocket.on('new_message', (data) => {
+    newSocket.on('new_message', (data: any) => {
       setMessages(prev => [...prev, `Message reçu: ${JSON.stringify(data)}`])
     })
 

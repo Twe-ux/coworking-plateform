@@ -219,7 +219,7 @@ export function BookingCalendar() {
   }
 
   const uniqueSpaces = useMemo(() => {
-    const spaces = [...new Set(bookings.map((b) => b.spaceId.name))]
+    const spaces = Array.from(new Set(bookings.map((b) => b.spaceId.name)))
     return spaces.sort()
   }, [bookings])
 

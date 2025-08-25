@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Validation des paramètres
-    if (filters.page < 1) filters.page = 1
-    if (filters.limit < 1 || filters.limit > 100) filters.limit = 50
+    if (filters.page && filters.page < 1) filters.page = 1
+    if (filters.limit && (filters.limit < 1 || filters.limit > 100)) filters.limit = 50
 
     // Construction de la requête MongoDB
     const query: any = { isActive: true }
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calcul de la pagination
-    const skip = (filters.page - 1) * filters.limit
+    const skip = ((filters.page || 1) - 1) * (filters.limit || 50)
 
     // Exécution des requêtes en parallèle
     const [timeEntries, totalCount] = await Promise.all([
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
         .populate('employeeId', 'firstName lastName role color')
         .sort({ date: -1, clockIn: -1 })
         .skip(skip)
-        .limit(filters.limit)
+        .limit(filters.limit || 50)
         .lean(),
       TimeEntry.countDocuments(query),
     ])
@@ -155,16 +155,16 @@ export async function GET(request: NextRequest) {
     )
 
     // Calcul de la pagination
-    const totalPages = Math.ceil(totalCount / filters.limit)
-    const hasNext = filters.page < totalPages
-    const hasPrev = filters.page > 1
+    const totalPages = Math.ceil(totalCount / (filters.limit || 50))
+    const hasNext = (filters.page || 1) < totalPages
+    const hasPrev = (filters.page || 1) > 1
 
     const response: PaginatedResponse<TimeEntryType> = {
       success: true,
       data: formattedTimeEntries,
       pagination: {
-        page: filters.page,
-        limit: filters.limit,
+        page: filters.page || 1,
+        limit: filters.limit || 50,
         total: totalCount,
         totalPages,
         hasNext,
@@ -277,8 +277,8 @@ export async function POST(request: NextRequest) {
 
     // Formater la réponse
     const populatedEmployee = (newTimeEntry as any).employeeId
-    const formattedTimeEntry: TimeEntryType = {
-      id: newTimeEntry._id.toString(),
+    const formattedTimeEntry = {
+      id: (newTimeEntry as any)._id.toString(),
       employeeId: populatedEmployee._id
         ? populatedEmployee._id.toString()
         : populatedEmployee.toString(),
@@ -292,21 +292,21 @@ export async function POST(request: NextRequest) {
               role: populatedEmployee.role,
             }
           : undefined,
-      date: newTimeEntry.date,
-      clockIn: newTimeEntry.clockIn,
-      clockOut: newTimeEntry.clockOut,
-      shiftNumber: newTimeEntry.shiftNumber,
-      totalHours: newTimeEntry.totalHours,
-      status: newTimeEntry.status,
-      hasError: newTimeEntry.hasError,
-      errorType: newTimeEntry.errorType,
-      errorMessage: newTimeEntry.errorMessage,
-      isActive: newTimeEntry.isActive,
-      createdAt: newTimeEntry.createdAt,
-      updatedAt: newTimeEntry.updatedAt,
+      date: (newTimeEntry as any).date,
+      clockIn: (newTimeEntry as any).clockIn,
+      clockOut: (newTimeEntry as any).clockOut,
+      shiftNumber: (newTimeEntry as any).shiftNumber,
+      totalHours: (newTimeEntry as any).totalHours,
+      status: (newTimeEntry as any).status,
+      hasError: (newTimeEntry as any).hasError,
+      errorType: (newTimeEntry as any).errorType,
+      errorMessage: (newTimeEntry as any).errorMessage,
+      isActive: (newTimeEntry as any).isActive,
+      createdAt: (newTimeEntry as any).createdAt,
+      updatedAt: (newTimeEntry as any).updatedAt,
     }
 
-    return NextResponse.json<ApiResponse<TimeEntryType>>(
+    return NextResponse.json<ApiResponse<any>>(
       {
         success: true,
         data: formattedTimeEntry,

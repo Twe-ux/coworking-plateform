@@ -243,7 +243,7 @@ export function ArticleContent({ article }: ArticleContentProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {navigator.share && (
+                    {typeof navigator !== 'undefined' && (navigator as any).share && (
                       <DropdownMenuItem onClick={handleNativeShare}>
                         <Share2 className="h-4 w-4 mr-2" />
                         Partager

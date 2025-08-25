@@ -46,7 +46,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
 
   // Generate breadcrumb based on current path
   const generateBreadcrumb = () => {
-    const segments = pathname.split('/').filter(Boolean)
+    const segments = pathname || ''.split('/').filter(Boolean)
     const breadcrumbs: { label: string; href: string; current?: boolean }[] = []
 
     if (segments.length > 1) {
@@ -145,13 +145,13 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Dashboard',
               url: '/dashboard/admin',
               icon: Home,
-              isActive: pathname === '/dashboard/admin',
+              isActive: (pathname || '') === '/dashboard/admin',
             },
             {
               title: 'Réservations',
               url: '/dashboard/admin/bookings',
               icon: Calendar,
-              isActive: pathname.startsWith('/dashboard/admin/bookings'),
+              isActive: (pathname || '').startsWith('/dashboard/admin/bookings'),
               items: [
                 {
                   title: 'Toutes les réservations',
@@ -167,7 +167,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Espaces',
               url: '/dashboard/admin/spaces',
               icon: Building,
-              isActive: pathname.startsWith('/dashboard/admin/spaces'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/spaces'),
               items: [
                 {
                   title: 'Gérer les espaces',
@@ -183,19 +183,19 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Utilisateurs',
               url: '/dashboard/admin/users',
               icon: Users,
-              isActive: pathname.startsWith('/dashboard/admin/users'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/users'),
             },
             {
               title: 'Analytics',
               url: '/dashboard/admin/analytics',
               icon: BarChart3,
-              isActive: pathname.startsWith('/dashboard/admin/analytics'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/analytics'),
             },
             {
               title: 'Blog & CMS',
               url: '/dashboard/admin/blog',
               icon: FileText,
-              isActive: pathname.startsWith('/dashboard/admin/blog'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/blog'),
               items: [
                 {
                   title: "Vue d'ensemble",
@@ -219,13 +219,13 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Plannification',
               url: '/dashboard/admin/schedule',
               icon: Users,
-              isActive: pathname.startsWith('/dashboard/admin/schedule'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/schedule'),
             },
             {
               title: 'Produits',
               url: '/dashboard/admin/products',
               icon: Coffee,
-              isActive: pathname.startsWith('/dashboard/admin/products'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/products'),
               items: [
                 {
                   title: 'Categories',
@@ -237,7 +237,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Paramètres',
               url: '/dashboard/admin/settings',
               icon: Settings,
-              isActive: pathname.startsWith('/dashboard/admin/settings'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/settings'),
             },
           ],
         }
@@ -250,37 +250,37 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Dashboard Manager',
               url: '/dashboard/manager',
               icon: Shield,
-              isActive: pathname === '/dashboard/manager',
+              isActive: (pathname || '') === '/dashboard/manager',
             },
             {
               title: 'Équipe',
               url: '/dashboard/manager/team',
               icon: Users,
-              isActive: pathname.startsWith('/dashboard/manager/team'),
+              isActive: (pathname || '').startsWith('/dashboard/manager/team'),
             },
             {
               title: 'Plannification',
               url: '/dashboard/manager/schedule',
               icon: Users,
-              isActive: pathname.startsWith('/dashboard/manager/schedule'),
+              isActive: pathname || ''.startsWith('/dashboard/manager/schedule'),
             },
             {
               title: 'Réservations',
               url: '/dashboard/manager/bookings',
               icon: Calendar,
-              isActive: pathname.startsWith('/dashboard/manager/bookings'),
+              isActive: pathname || ''.startsWith('/dashboard/manager/bookings'),
             },
             {
               title: 'Blog & CMS',
               url: '/dashboard/admin/blog',
               icon: FileText,
-              isActive: pathname.startsWith('/dashboard/admin/blog'),
+              isActive: pathname || ''.startsWith('/dashboard/admin/blog'),
             },
             {
               title: 'Rapports',
               url: '/dashboard/manager/reports',
               icon: BarChart3,
-              isActive: pathname.startsWith('/dashboard/manager/reports'),
+              isActive: pathname || ''.startsWith('/dashboard/manager/reports'),
             },
           ],
         }
@@ -293,25 +293,25 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Dashboard Staff',
               url: '/dashboard/staff',
               icon: UserCheck,
-              isActive: pathname === '/dashboard/staff',
+              isActive: (pathname || '') === '/dashboard/staff',
             },
             {
               title: 'Mes Tâches',
               url: '/dashboard/staff/tasks',
               icon: FileText,
-              isActive: pathname.startsWith('/dashboard/staff/tasks'),
+              isActive: pathname || ''.startsWith('/dashboard/staff/tasks'),
             },
             {
               title: 'Réservations',
               url: '/dashboard/staff/bookings',
               icon: Calendar,
-              isActive: pathname.startsWith('/dashboard/staff/bookings'),
+              isActive: pathname || ''.startsWith('/dashboard/staff/bookings'),
             },
             {
               title: 'Plannification',
               url: '/dashboard/staff/schedule',
               icon: Users,
-              isActive: pathname.startsWith('/dashboard/staff/schedule'),
+              isActive: pathname || ''.startsWith('/dashboard/staff/schedule'),
             },
           ],
         }
@@ -325,7 +325,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider className="min-h-screen" defaultOpen={false}>
-      <AppSidebar data={data} variant="floating" collapsible="icon" />
+      <AppSidebar data={data as any} variant="floating" collapsible="icon" />
       <SidebarInset className="min-h-screen pt-4 pl-20">
         <header className="flex h-8 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="px-é flex items-center gap-2">

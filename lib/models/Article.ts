@@ -312,7 +312,7 @@ const articleSchema = new Schema<IArticle>(
       virtuals: true,
       transform: function (doc, ret) {
         // Optimiser l'output JSON
-        delete ret.__v
+        delete (ret as any).__v
         return ret
       },
     },
@@ -458,13 +458,19 @@ articleSchema.methods.createRevision = function (
 articleSchema.statics.findPublished = function (limit: number = 10) {
   return this.find({
     status: 'published',
-    $or: [
-      { scheduledPublishAt: { $lte: new Date() } },
-      { scheduledPublishAt: { $exists: false } },
-    ],
-    $or: [
-      { expiresAt: { $gt: new Date() } },
-      { expiresAt: { $exists: false } },
+    $and: [
+      {
+        $or: [
+          { scheduledPublishAt: { $lte: new Date() } },
+          { scheduledPublishAt: { $exists: false } },
+        ]
+      },
+      {
+        $or: [
+          { expiresAt: { $gt: new Date() } },
+          { expiresAt: { $exists: false } },
+        ]
+      }
     ],
   })
     .populate('author', 'firstName lastName email image')
@@ -646,7 +652,7 @@ interface ArticleStaticMethods {
 }
 
 // Exporter le modèle
-export const Article = models.Article || model<IArticle, {}, {}, {}, any, ArticleStaticMethods>('Article', articleSchema)
+export const Article = models.Article || model<IArticle>('Article', articleSchema)
 
 // Export par défaut
 export default Article

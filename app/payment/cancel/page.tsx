@@ -11,7 +11,7 @@ export default function PaymentCancelPage() {
 
   useEffect(() => {
     // Optionnel: Nettoyer la réservation en attente de paiement
-    const bookingId = searchParams.get('booking_id')
+    const bookingId = searchParams?.get('booking_id')
     if (bookingId) {
       // On pourrait faire un appel API pour nettoyer la réservation
       // mais généralement on laisse les réservations payment_pending expirer

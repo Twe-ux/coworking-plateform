@@ -72,7 +72,7 @@ const SPACE_MAP = {
 
 export default function SpaceDetailPage() {
   const params = useParams()
-  const spaceId = params.id as string
+  const spaceId = params?.id as string
 
   const space = SPACE_MAP[spaceId as keyof typeof SPACE_MAP]
 

@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
+// import { io, Socket } from 'socket.io-client'
+type Socket = any
+declare const io: any
 
 export default function SimpleChatPage() {
   const [socket, setSocket] = useState<Socket | null>(null)
@@ -33,7 +35,7 @@ export default function SimpleChatPage() {
         }
       }
     } catch (error) {
-      addLog(`Erreur: ${error.message}`)
+      addLog(`Erreur: ${(error as any).message}`)
     }
   }
 
@@ -54,21 +56,21 @@ export default function SimpleChatPage() {
       addLog(`✅ Connecté (${newSocket.id})`)
     })
 
-    newSocket.on('disconnect', (reason) => {
+    newSocket.on('disconnect', (reason: any) => {
       setConnected(false)
       addLog(`❌ Déconnecté: ${reason}`)
     })
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on('connect_error', (error: any) => {
       addLog(`❌ Erreur: ${error.message}`)
     })
 
-    newSocket.on('new_message', (message) => {
+    newSocket.on('new_message', (message: any) => {
       addLog(`📨 Nouveau message`)
       setMessages(prev => [...prev, message])
     })
 
-    newSocket.on('channel_history', (data) => {
+    newSocket.on('channel_history', (data: any) => {
       addLog(`📜 Historique reçu: ${data.messages.length} messages`)
       setMessages(data.messages)
     })

@@ -22,7 +22,7 @@ import {
   Layers,
   Settings,
   Eye,
-  TouchPad,
+  Touchpad,
   ArrowRight,
   Copy,
 } from 'lucide-react'
@@ -301,7 +301,7 @@ html {
             value="interactions"
             className="flex items-center space-x-1"
           >
-            <TouchPad className="h-4 w-4" />
+            <Touchpad className="h-4 w-4" />
             <span className="hidden sm:block">Interactions</span>
           </TabsTrigger>
           <TabsTrigger

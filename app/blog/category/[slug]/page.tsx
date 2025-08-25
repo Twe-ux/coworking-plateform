@@ -65,13 +65,13 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const categoryUrl = `${baseUrl}/blog/category/${category.slug}`
   
   // Utiliser les métadonnées SEO personnalisées ou générer des valeurs par défaut
-  const seoTitle = category.seoMetadata?.title || `${category.name} - Blog CoWorking Platform`
-  const seoDescription = category.seoMetadata?.description || 
+  const seoTitle = (category as any).seoMetadata?.title || `${category.name} - Blog CoWorking Platform`
+  const seoDescription = (category as any).seoMetadata?.description || 
     category.description || 
     `Découvrez tous les articles de la catégorie ${category.name}. ${category.stats?.articleCount || 0} articles disponibles.`
   
   const keywords = [
-    ...(category.seoMetadata?.keywords || []),
+    ...((category as any).seoMetadata?.keywords || []),
     category.name,
     'blog',
     'coworking',
@@ -84,14 +84,14 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     keywords,
     authors: [{ name: 'CoWorking Platform' }],
     openGraph: {
-      title: category.seoMetadata?.ogTitle || seoTitle,
-      description: category.seoMetadata?.ogDescription || seoDescription,
+      title: (category as any).seoMetadata?.ogTitle || seoTitle,
+      description: (category as any).seoMetadata?.ogDescription || seoDescription,
       type: 'website',
       url: categoryUrl,
       siteName: 'CoWorking Platform Blog',
       locale: 'fr_FR',
-      images: category.seoMetadata?.ogImage ? [{
-        url: category.seoMetadata.ogImage,
+      images: (category as any).seoMetadata?.ogImage ? [{
+        url: (category as any).seoMetadata.ogImage,
         width: 1200,
         height: 630,
         alt: category.name,
@@ -99,12 +99,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     },
     twitter: {
       card: 'summary_large_image',
-      title: category.seoMetadata?.twitterTitle || seoTitle,
-      description: category.seoMetadata?.twitterDescription || seoDescription,
-      images: category.seoMetadata?.twitterImage ? [category.seoMetadata.twitterImage] : undefined,
+      title: (category as any).seoMetadata?.twitterTitle || seoTitle,
+      description: (category as any).seoMetadata?.twitterDescription || seoDescription,
+      images: (category as any).seoMetadata?.twitterImage ? [(category as any).seoMetadata.twitterImage] : undefined,
     },
     alternates: {
-      canonical: category.seoMetadata?.canonicalUrl || categoryUrl,
+      canonical: (category as any).seoMetadata?.canonicalUrl || categoryUrl,
     },
     other: {
       'article:section': category.name,

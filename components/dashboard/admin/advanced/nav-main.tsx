@@ -53,7 +53,7 @@ export function NavMain({
           const isItemActive =
             item.url === '/dashboard/admin'
               ? pathname === item.url
-              : pathname === item.url || pathname.startsWith(item.url + '/')
+              : pathname === item.url || pathname?.startsWith(item.url + '/')
 
           return (
             <Collapsible

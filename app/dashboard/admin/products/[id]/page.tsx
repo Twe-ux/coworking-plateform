@@ -102,10 +102,10 @@ export default function EditProductPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
-    if (params.id) {
+    if (params?.id) {
       fetchProduct(params.id as string)
     }
-  }, [params.id])
+  }, [params?.id])
 
   const fetchProduct = async (id: string) => {
     try {
@@ -377,7 +377,7 @@ export default function EditProductPage() {
 
       console.log('Updating product with data:', submitData)
 
-      const response = await fetch(`/api/products/${params.id}`, {
+      const response = await fetch(`/api/products/${params?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -408,7 +408,7 @@ export default function EditProductPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
 
     try {
-      const response = await fetch(`/api/products/${params.id}`, {
+      const response = await fetch(`/api/products/${params?.id}`, {
         method: 'DELETE'
       })
 

@@ -33,10 +33,10 @@ export function BlogFilters({ categories, className = '' }: BlogFiltersProps) {
   const [isOpen, setIsOpen] = useState(true)
   
   // État actuel des filtres
-  const currentCategory = searchParams.get('category')
-  const currentContentType = searchParams.get('contentType')
-  const currentTags = searchParams.get('tags')?.split(',').filter(Boolean) || []
-  const currentFeatured = searchParams.get('featured') === 'true'
+  const currentCategory = searchParams?.get('category')
+  const currentContentType = searchParams?.get('contentType')
+  const currentTags = searchParams?.get('tags')?.split(',').filter(Boolean) || []
+  const currentFeatured = searchParams?.get('featured') === 'true'
   
   // Types de contenu disponibles
   const contentTypes = [
@@ -64,7 +64,7 @@ export function BlogFilters({ categories, className = '' }: BlogFiltersProps) {
   )
 
   const updateFilter = (key: string, value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() || '')
     
     if (value === null || value === '') {
       params.delete(key)

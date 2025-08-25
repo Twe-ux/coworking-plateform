@@ -68,11 +68,11 @@ export default function EditCategoryPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
-    if (params.id) {
-      fetchCategory(params.id as string)
+    if (params?.id) {
+      fetchCategory(params?.id as string)
       fetchParentCategories()
     }
-  }, [params.id])
+  }, [params?.id])
 
   const fetchCategory = async (id: string) => {
     try {
@@ -114,7 +114,7 @@ export default function EditCategoryPage() {
       if (data.success) {
         // Exclure la catégorie actuelle de la liste des parents possibles
         const filteredCategories = data.data.categories.filter(
-          (cat: Category) => cat._id !== params.id
+          (cat: Category) => cat._id !== params?.id
         )
         setParentCategories(filteredCategories)
       }
@@ -175,7 +175,7 @@ export default function EditCategoryPage() {
         parentCategoryId: formData.parentCategoryId || null
       }
 
-      const response = await fetch(`/api/product-categories/${params.id}`, {
+      const response = await fetch(`/api/product-categories/${params?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -215,7 +215,7 @@ export default function EditCategoryPage() {
     if (!confirm(confirmMessage)) return
 
     try {
-      const response = await fetch(`/api/product-categories/${params.id}`, {
+      const response = await fetch(`/api/product-categories/${params?.id}`, {
         method: 'DELETE'
       })
 
@@ -313,7 +313,7 @@ export default function EditCategoryPage() {
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600">
-                {originalCategory.isActive ? 'Active' : 'Inactive'}
+                {(originalCategory as any).isActive ? 'Active' : 'Inactive'}
               </div>
               <div className="text-sm text-muted-foreground">Statut</div>
             </div>

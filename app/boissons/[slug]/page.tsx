@@ -85,10 +85,10 @@ export default function ProductDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
-    if (params.slug) {
+    if (params?.slug) {
       fetchProduct(params.slug as string)
     }
-  }, [params.slug])
+  }, [params?.slug])
 
   const fetchProduct = async (slug: string) => {
     try {

@@ -15,12 +15,12 @@ function PaymentFormContent() {
   const [error, setError] = useState('')
 
   // Récupérer les paramètres de l'URL
-  const bookingId = searchParams.get('booking_id')
-  const amount = parseFloat(searchParams.get('amount') || '0')
-  const spaceName = searchParams.get('space_name') || 'Espace'
-  const date = searchParams.get('date') || ''
-  const startTime = searchParams.get('start_time') || ''
-  const endTime = searchParams.get('end_time') || ''
+  const bookingId = searchParams?.get('booking_id')
+  const amount = parseFloat(searchParams?.get('amount') || '0')
+  const spaceName = searchParams?.get('space_name') || 'Espace'
+  const date = searchParams?.get('date') || ''
+  const startTime = searchParams?.get('start_time') || ''
+  const endTime = searchParams?.get('end_time') || ''
 
   useEffect(() => {
     if (!bookingId || !amount) {

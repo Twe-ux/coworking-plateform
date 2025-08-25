@@ -11,7 +11,7 @@ import {
   SecurityAuditLog,
   UserRole,
 } from '@/types/auth'
-import crypto from 'crypto'
+import * as crypto from 'crypto'
 import { getServerSession } from 'next-auth'
 import { NextRequest } from 'next/server'
 import { authOptions } from './auth'

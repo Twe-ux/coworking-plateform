@@ -72,14 +72,14 @@ async function generateDailyReport(dateParam?: string | null): Promise<NextRespo
   const targetDate = dateParam ? new Date(dateParam) : new Date()
   
   try {
-    const report = await TimeEntry.getDailyReport(targetDate)
+    const report = await (TimeEntry as any).getDailyReport(targetDate)
     
     const dailyReport: DailyTimeReport = {
       date: targetDate,
       employees: report,
-      totalActiveShifts: report.reduce((sum, emp) => sum + emp.activeShifts, 0),
-      totalCompletedShifts: report.reduce((sum, emp) => sum + (emp.shifts.length - emp.activeShifts), 0),
-      totalHoursWorked: report.reduce((sum, emp) => sum + emp.totalHours, 0),
+      totalActiveShifts: report.reduce((sum: any, emp: any) => sum + emp.activeShifts, 0),
+      totalCompletedShifts: report.reduce((sum: any, emp: any) => sum + (emp.shifts.length - emp.activeShifts), 0),
+      totalHoursWorked: report.reduce((sum: any, emp: any) => sum + emp.totalHours, 0),
     }
 
     return NextResponse.json<ApiResponse<DailyTimeReport>>({
@@ -113,7 +113,7 @@ async function generateEmployeeStats(
   const endDate = endDateParam ? new Date(endDateParam) : new Date()
 
   try {
-    const [statsResult] = await TimeEntry.getEmployeeHours(employeeId, startDate, endDate)
+    const [statsResult] = await (TimeEntry as any).getEmployeeHours(employeeId, startDate, endDate)
     
     // Compter les shifts actifs
     const activeShifts = await TimeEntry.countDocuments({

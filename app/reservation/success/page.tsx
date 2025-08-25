@@ -29,7 +29,7 @@ export default function PaymentSuccessPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const sessionId = searchParams.get('session_id')
+    const sessionId = searchParams?.get('session_id')
 
     if (!sessionId) {
       setError('Session de paiement invalide')

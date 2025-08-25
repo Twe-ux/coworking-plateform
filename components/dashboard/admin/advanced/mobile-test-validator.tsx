@@ -18,7 +18,7 @@ import {
   XCircle,
   AlertCircle,
   Eye,
-  Touch,
+  Hand as Touch,
   Accessibility,
   Zap,
 } from 'lucide-react'

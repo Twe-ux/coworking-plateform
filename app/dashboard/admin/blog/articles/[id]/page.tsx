@@ -182,10 +182,10 @@ export default function EditArticlePage() {
   })
 
   const fetchArticle = useCallback(async () => {
-    if (!params.id) return
+    if (!params?.id) return
 
     try {
-      const response = await fetch(`/api/articles/${params.id}`)
+      const response = await fetch(`/api/articles/${params?.id}`)
       const data = await response.json()
 
       if (data.success && data.data) {
@@ -224,7 +224,7 @@ export default function EditArticlePage() {
     } finally {
       setIsLoading(false)
     }
-  }, [params.id, form, toast, router])
+  }, [params?.id, form, toast, router])
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -259,8 +259,8 @@ export default function EditArticlePage() {
     setIsSubmitting(true)
     try {
       // Convert tags string to array if needed
-      if (typeof data.tags === 'string') {
-        data.tags = data.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+      if (typeof (data as any).tags === 'string') {
+        (data as any).tags = (data as any).tags.split(',').map((tag: any) => tag.trim()).filter(Boolean)
       }
 
       // Set status based on action
@@ -609,7 +609,7 @@ export default function EditArticlePage() {
                       <FormItem>
                         <FormControl>
                           <MDXEditor
-                            value={field.value}
+                            value={field.value || ''}
                             onChange={field.onChange}
                           />
                         </FormControl>

@@ -148,8 +148,8 @@ export default function ArticlesPage() {
 
       if (data.success) {
         setArticles(data.data)
-        setTotal(data.meta.total)
-        setTotalPages(data.meta.totalPages)
+        setTotal((data as any).meta?.total || 0)
+        setTotalPages((data as any).meta?.totalPages || 1)
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des articles:', error)

@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
+// import { io, Socket } from 'socket.io-client'
+type Socket = any
+declare const io: any
 import { useSession } from 'next-auth/react'
 
 export default function DebugMessagingPage() {
@@ -31,7 +33,7 @@ export default function DebugMessagingPage() {
         addLog(`❌ Erreur API: ${data.error}`)
       }
     } catch (error) {
-      addLog(`❌ Erreur réseau: ${error.message}`)
+      addLog(`❌ Erreur réseau: ${(error as any).message}`)
     }
   }
 
@@ -61,7 +63,7 @@ export default function DebugMessagingPage() {
         addLog(`❌ Erreur création: ${data.message || data.error}`)
       }
     } catch (error) {
-      addLog(`❌ Erreur réseau: ${error.message}`)
+      addLog(`❌ Erreur réseau: ${(error as any).message}`)
     }
   }
 
@@ -77,7 +79,7 @@ export default function DebugMessagingPage() {
     addLog(`👤 Session trouvée: ${session.user.name}`)
 
     // Initialiser Socket.IO
-    const newSocket = io({
+    const newSocket = (io as any)({
       path: '/api/socket/',
       transports: ['websocket', 'polling'],
       auth: {
@@ -90,17 +92,17 @@ export default function DebugMessagingPage() {
       addLog(`✅ WebSocket connecté (ID: ${newSocket.id})`)
     })
 
-    newSocket.on('disconnect', (reason) => {
+    newSocket.on('disconnect', (reason: any) => {
       setConnected(false)
       addLog(`❌ WebSocket déconnecté: ${reason}`)
     })
 
-    newSocket.on('connect_error', (error) => {
-      addLog(`❌ Erreur connexion WebSocket: ${error.message}`)
+    newSocket.on('connect_error', (error: any) => {
+      addLog(`❌ Erreur connexion WebSocket: ${error?.message || error}`)
     })
 
-    newSocket.on('error', (error) => {
-      addLog(`❌ Erreur serveur: ${error.message}`)
+    newSocket.on('error', (error: any) => {
+      addLog(`❌ Erreur serveur: ${error?.message || error}`)
     })
 
     setSocket(newSocket)

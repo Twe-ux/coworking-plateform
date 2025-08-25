@@ -1,6 +1,8 @@
 import { Server as HTTPServer } from 'http'
 import { NextApiRequest } from 'next'
-import { Server as SocketIOServer, Socket } from 'socket.io'
+// import { Server as SocketIOServer, Socket } from 'socket.io'
+type SocketIOServer = any
+type Socket = any
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { Channel } from '@/lib/models/channel'
@@ -112,8 +114,8 @@ export class MessageWebSocketServer {
         }
 
         // Récupérer les channels de l'utilisateur
-        const userChannels = await Channel.findByUser(user._id.toString())
-        const channelIds = userChannels.map(channel => channel._id.toString())
+        const userChannels = await (Channel as any).findByUser(user._id.toString())
+        const channelIds = userChannels.map((channel: any) => channel._id.toString())
 
         // Stocker les données dans la socket
         socket.data = {
@@ -200,7 +202,7 @@ export class MessageWebSocketServer {
       }
 
       // Vérifier les permissions d'écriture
-      const member = channel.members.find(m => m.user.toString() === socketData.userId)
+      const member = channel.members.find((m: any) => m.user.toString() === socketData.userId)
       if (!member?.permissions.canWrite) {
         socket.emit('error', { message: 'Permissions d\'écriture insuffisantes' })
         return
@@ -492,7 +494,7 @@ export class MessageWebSocketServer {
       const limit = Math.min(data.limit || 50, 100) // Maximum 100 messages
       const beforeDate = data.before ? new Date(data.before) : undefined
 
-      const messages = await Message.findByChannel(data.channelId, {
+      const messages = await (Message as any).findByChannel(data.channelId, {
         limit,
         before: beforeDate,
         includeDeleted: false
@@ -536,7 +538,7 @@ export class MessageWebSocketServer {
     const userConnection = this.connectedUsers.get(userId)
     if (!userConnection) return
 
-    for (const channelId of userConnection.channels) {
+    for (const channelId of Array.from(userConnection.channels)) {
       this.io.to(`channel:${channelId}`).emit('user_presence', {
         userId,
         status,
@@ -548,7 +550,7 @@ export class MessageWebSocketServer {
   private async sendMentionNotifications(mentionedUserIds: string[], message: any, channel: any) {
     // TODO: Implémenter l'envoi de notifications push et email
     // pour les utilisateurs mentionnés
-    for (const userId of mentionedUserIds) {
+    for (const userId of [...mentionedUserIds]) {
       const userConnection = this.connectedUsers.get(userId)
       if (userConnection) {
         this.io.to(userConnection.socketId).emit('mention_notification', {

@@ -51,10 +51,10 @@ export function BlogHeader({
   }
 
   const featuredCategories = categories
-    .filter((cat) => cat.stats?.articleCount && cat.stats.articleCount > 0)
+    .filter((cat: any) => cat.stats?.articleCount && cat.stats.articleCount > 0)
     .slice(0, 6)
   const mainCategories = categories.filter(
-    (cat) =>
+    (cat: any) =>
       !cat.parentCategory &&
       cat.stats?.articleCount &&
       cat.stats.articleCount > 0
@@ -108,7 +108,7 @@ export function BlogHeader({
                   <ChevronDown className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56">
-                  {mainCategories.map((category) => (
+                  {mainCategories.map((category: any) => (
                     <DropdownMenuItem key={category._id} asChild>
                       <Link
                         href={`/blog/category/${category.slug}`}
@@ -237,7 +237,7 @@ export function BlogHeader({
                         Catégories
                       </h3>
                       <div className="flex flex-col space-y-1">
-                        {mainCategories.map((category) => (
+                        {mainCategories.map((category: any) => (
                           <Link
                             key={category._id}
                             href={`/blog/category/${category.slug}`}
@@ -301,7 +301,7 @@ export function BlogHeader({
               <span className="text-muted-foreground text-xs font-medium whitespace-nowrap">
                 CATÉGORIES POPULAIRES
               </span>
-              {featuredCategories.map((category) => (
+              {featuredCategories.map((category: any) => (
                 <Link
                   key={category._id}
                   href={`/blog/category/${category.slug}`}

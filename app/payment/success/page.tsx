@@ -29,10 +29,10 @@ export default function PaymentSuccessPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const sessionId = searchParams.get('session_id') // Stripe Checkout (ancien système)
-    const paymentIntent = searchParams.get('payment_intent') // Stripe Elements (nouveau système)
-    const bookingId = searchParams.get('booking_id')
-    const paymentMethod = searchParams.get('payment_method')
+    const sessionId = searchParams?.get('session_id') // Stripe Checkout (ancien système)
+    const paymentIntent = searchParams?.get('payment_intent') // Stripe Elements (nouveau système)
+    const bookingId = searchParams?.get('booking_id')
+    const paymentMethod = searchParams?.get('payment_method')
 
     console.log('🔍 Payment Success - Paramètres URL:', {
       sessionId,

@@ -277,9 +277,9 @@ export default function CommentsPage() {
 
   // Filters state
   const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    status: searchParams.get('status') || 'pending',
-    articleId: searchParams.get('articleId') || 'all',
+    search: searchParams?.get('search') || '',
+    status: searchParams?.get('status') || 'pending',
+    articleId: searchParams?.get('articleId') || 'all',
   })
 
   const fetchComments = async () => {
@@ -572,7 +572,7 @@ export default function CommentsPage() {
                 <CardTitle className="text-sm font-medium">
                   {option.label}
                 </CardTitle>
-                <Icon className="text-muted-foreground h-4 w-4" />
+                {Icon && <Icon className="text-muted-foreground h-4 w-4" />}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{count}</div>

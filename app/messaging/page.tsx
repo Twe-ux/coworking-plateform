@@ -394,7 +394,7 @@ export default function MessagingPage() {
                 className="relative overflow-hidden"
                 collapsible="icon"
                 onViewChange={handleViewChange}
-                activeView={currentView}
+                activeView={currentView as any}
               />
 
               <motion.div
@@ -407,7 +407,7 @@ export default function MessagingPage() {
                   onChatSelect={setSelectedChat}
                   onUserProfileSelect={setSelectedUserProfile}
                   selectedChatId={selectedChat?.id}
-                  currentView={currentView}
+                  currentView={currentView as any}
                 />
               </motion.div>
 

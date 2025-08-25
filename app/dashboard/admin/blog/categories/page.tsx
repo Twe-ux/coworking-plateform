@@ -140,7 +140,6 @@ function CategoryTreeItem({ category, level, onEdit, onDelete, onToggleActive }:
         <Switch
           checked={category.isActive}
           onCheckedChange={(checked) => onToggleActive(category.id, checked)}
-          size="sm"
         />
 
         {/* Actions Menu */}
@@ -468,8 +467,8 @@ export default function CategoriesPage() {
     categories.forEach(category => {
       const cat = categoryMap.get(category.id)!
       if (category.parentCategoryId && categoryMap.has(category.parentCategoryId)) {
-        const parent = categoryMap.get(category.parentCategoryId)!
-        parent.children!.push(cat)
+        const parent: any = categoryMap.get(category.parentCategoryId)!
+        parent.children.push(cat)
       } else {
         tree.push(cat)
       }

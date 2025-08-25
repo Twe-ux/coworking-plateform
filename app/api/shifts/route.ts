@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
     }
 
     const transformedShift = {
-      id: (populatedShift._id as any).toString(),
+      id: ((populatedShift as any)._id as any).toString(),
       employeeId: (populatedShift as any).employeeId._id.toString(),
       employee: {
         id: (populatedShift as any).employeeId._id.toString(),

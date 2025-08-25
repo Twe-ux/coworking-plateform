@@ -44,7 +44,7 @@ export default function TestEmailPage() {
       const data = await response.json()
       setResult(data)
     } catch (error) {
-      setResult({ success: false, error: error.message })
+      setResult({ success: false, error: (error as any).message })
     } finally {
       setIsLoading(false)
     }
@@ -79,7 +79,7 @@ export default function TestEmailPage() {
       const data = await response.json()
       setResult(data)
     } catch (error) {
-      setResult({ success: false, error: error.message })
+      setResult({ success: false, error: (error as any).message })
     } finally {
       setIsLoading(false)
     }

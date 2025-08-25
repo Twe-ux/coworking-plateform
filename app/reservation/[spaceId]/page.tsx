@@ -6,7 +6,7 @@ import { useSpaces } from '@/hooks/useSpaces'
 
 export default function SpaceReservationPage() {
   const params = useParams()
-  const spaceId = params.spaceId as string
+  const spaceId = params?.spaceId as string
   const { spaces, isLoading, error } = useSpaces()
 
   // Trouver l'espace par son ID
@@ -67,5 +67,5 @@ export default function SpaceReservationPage() {
   }
 
   // Aller directement à BookingFlow avec l'espace présélectionné (étape 2)
-  return <BookingFlow preSelectedSpace={space} />
+  return <BookingFlow preSelectedSpace={space as any} />
 }

@@ -1,6 +1,6 @@
 import { UserRole } from '@/types/auth'
-import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
+import * as bcrypt from 'bcryptjs'
+import * as crypto from 'crypto'
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import {
@@ -320,11 +320,11 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.name = user.name
         token.email = user.email
-        token.role = user.role
-        token.firstName = user.firstName
-        token.lastName = user.lastName
-        token.permissions = user.permissions
-        token.isActive = user.isActive
+        token.role = (user as any).role
+        token.firstName = (user as any).firstName
+        token.lastName = (user as any).lastName
+        token.permissions = (user as any).permissions
+        token.isActive = (user as any).isActive
         token.image = user.image
         token.csrfToken = generateCSRFToken()
         token.expiresAt = Date.now() + 24 * 60 * 60 * 1000 // 24 heures

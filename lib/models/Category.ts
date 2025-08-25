@@ -92,7 +92,7 @@ const categorySchema = new Schema<ICategory>(
     icon: {
       type: String,
       trim: true,
-      maxlength: [50, 'Le nom de l\'icône ne peut dépasser 50 caractères'],
+      maxlength: [50, 'Le nom de l\'icône ne peut dépasser 50 caractères'] as any,
       validate: {
         validator: function (value: string) {
           return !value || /^[a-zA-Z0-9-_]+$/.test(value)
@@ -362,7 +362,7 @@ categorySchema.statics.buildCategoryTree = async function () {
   const tree: any[] = []
 
   // Créer une map de toutes les catégories
-  categories.forEach(category => {
+  categories.forEach((category: any) => {
     categoryMap.set(category._id.toString(), {
       ...category,
       children: []
@@ -370,7 +370,7 @@ categorySchema.statics.buildCategoryTree = async function () {
   })
 
   // Construire l'arbre
-  categories.forEach(category => {
+  categories.forEach((category: any) => {
     const categoryNode = categoryMap.get(category._id.toString())
     
     if (category.parentCategory) {
@@ -405,12 +405,12 @@ categorySchema.statics.reorderCategories = async function (
 
 // Validation pour éviter les références circulaires
 categorySchema.pre('validate', async function (next) {
-  if (this.parentCategory && this._id) {
+  if ((this as any).parentCategory && (this as any)._id) {
     // Vérifier que la catégorie parent n'est pas elle-même ou un descendant
-    let current = await (this.constructor as any).findById(this.parentCategory)
+    let current = await (this.constructor as any).findById((this as any).parentCategory)
     
     while (current) {
-      if (current._id.toString() === this._id.toString()) {
+      if (current._id.toString() === (this as any)._id.toString()) {
         return next(new Error('Une catégorie ne peut pas être sa propre parente'))
       }
       current = current.parentCategory ? 
@@ -423,8 +423,8 @@ categorySchema.pre('validate', async function (next) {
 
 // Middleware pre-save pour générer le slug automatiquement
 categorySchema.pre('save', function (next) {
-  if (this.isModified('name') && !this.slug) {
-    this.slug = this.name
+  if (this.isModified('name') && !(this as any).slug) {
+    (this as any).slug = (this as any).name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
