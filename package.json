@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Plateforme de coworking unifiée avec Next.js 14",
+  "packageManager": "pnpm@10.10.0",
   "scripts": {
     "dev": "node scripts/dev-with-socket.js",
     "dev:start": "next dev",
