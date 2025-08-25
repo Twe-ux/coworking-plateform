@@ -311,3 +311,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// Force Node.js runtime for WebSocket and database compatibility
+export const runtime = 'nodejs'

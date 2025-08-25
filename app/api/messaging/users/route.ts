@@ -69,3 +69,6 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+// Force Node.js runtime for database compatibility
+export const runtime = 'nodejs'
