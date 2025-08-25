@@ -58,7 +58,6 @@ const connectionLimiter = new RateLimiterMemory({
 })
 
 const typingLimiter = new RateLimiterMemory({
-  keyGenerator: (socket: Socket) => (socket.data as SocketData).userId,
   points: 10, // 10 événements typing
   duration: 10, // par 10 secondes
 })
@@ -86,7 +85,7 @@ export class MessageWebSocketServer {
 
   private async setupMiddleware() {
     // Middleware d'authentification
-    this.io.use(async (socket, next) => {
+    this.io.use(async (socket: any, next: any) => {
       try {
         const req = socket.request as any
         const session = await getServerSession(req, {} as any, authOptions)
