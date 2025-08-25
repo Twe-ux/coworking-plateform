@@ -13,7 +13,7 @@ export default defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
     video: true,
-    screenshot: true,
+    // screenshot: true, // Not a valid EndToEndConfigOptions property
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     responseTimeout: 10000,
