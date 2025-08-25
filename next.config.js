@@ -4,6 +4,10 @@ const nextConfig = {
     // Disable ESLint during builds for now
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    // Option d'urgence : ignorer les erreurs TypeScript pour les déploiements de test
+    ignoreBuildErrors: process.env.SKIP_TYPE_CHECK === 'true',
+  },
   images: {
     remotePatterns: [
       {

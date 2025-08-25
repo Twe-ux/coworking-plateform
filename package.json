@@ -11,6 +11,8 @@
     "dev:manual": "npm --loglevel=error run dev:start",
     "dev:verbose": "next dev",
     "build": "next build",
+    "build:deploy": "tsc --project tsconfig.deploy.json --noEmit && next build",
+    "build:loose": "SKIP_TYPE_CHECK=true next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",

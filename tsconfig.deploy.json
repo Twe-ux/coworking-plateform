@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Désactiver le mode strict pour les déploiements de test
+    "strict": false,
+    
+    // Désactiver les vérifications strictes individuelles
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    
+    // Permettre les propriétés non utilisées
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    
+    // Ignorer les erreurs de types sur les propriétés
+    "suppressImplicitAnyIndexErrors": true,
+    
+    // Moins strict sur les imports
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    
+    // Ignorer les erreurs d'assignation
+    "suppressExcessPropertyErrors": true
+  }
+}

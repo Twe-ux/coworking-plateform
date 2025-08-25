@@ -84,7 +84,7 @@ export async function GET(
 
     // Transform _id to id for frontend compatibility
     const categoryObj = category.toObject()
-    const responseData = {
+    const { _id, parentCategory, ...responseData } = {
       ...categoryObj,
       id: categoryObj._id.toString(),
       parentCategoryId: categoryObj.parentCategory?._id?.toString(),
@@ -99,10 +99,6 @@ export async function GET(
       hasSubCategories: subCategories.length > 0,
       articlesCount: categoryObj.stats?.articleCount || 0,
     }
-    
-    // Remove the original _id fields to avoid confusion
-    delete responseData._id
-    delete responseData.parentCategory
 
     return createSuccessResponse(
       responseData,
@@ -305,16 +301,12 @@ export async function PUT(
 
     // Transform the response for frontend compatibility
     const categoryObj = updatedCategory.toObject()
-    const responseData = {
+    const { _id, parentCategory, ...responseData } = {
       ...categoryObj,
       id: categoryObj._id.toString(),
       parentCategoryId: categoryObj.parentCategory?._id?.toString(),
       articlesCount: categoryObj.stats?.articleCount || 0,
     }
-    
-    // Remove the original _id fields to avoid confusion
-    delete responseData._id
-    delete responseData.parentCategory
 
     return createSuccessResponse(
       responseData,
