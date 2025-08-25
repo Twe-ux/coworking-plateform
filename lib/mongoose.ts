@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("Variable d'environnement MONGODB_URI manquante")
-}
-
 const MONGODB_URI = process.env.MONGODB_URI
+
+if (!MONGODB_URI && process.env.NODE_ENV !== 'development') {
+  console.warn("Variable d'environnement MONGODB_URI manquante - certaines fonctionnalités seront limitées")
+}
 const MONGODB_DB = process.env.MONGODB_DB || 'coworking-platform'
 
 interface MongooseConnection {
@@ -43,6 +43,10 @@ const mongooseOptions: mongoose.ConnectOptions = {
  * @returns Promise<mongoose.Mongoose>
  */
 export async function connectMongoose(): Promise<mongoose.Mongoose> {
+  if (!MONGODB_URI) {
+    throw new Error("Variable d'environnement MONGODB_URI manquante")
+  }
+  
   // Si déjà connecté, retourner la connexion existante
   if (cached.conn) {
     return cached.conn

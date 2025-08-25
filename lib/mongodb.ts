@@ -1,11 +1,11 @@
 import { MongoClient, Db, MongoClientOptions } from 'mongodb'
 import mongoose from 'mongoose'
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("Variable d'environnement MONGODB_URI manquante")
-}
-
 const uri = process.env.MONGODB_URI
+
+if (!uri && process.env.NODE_ENV !== 'development') {
+  console.warn("Variable d'environnement MONGODB_URI manquante - certaines fonctionnalités seront limitées")
+}
 const databaseName = process.env.MONGODB_DB || 'coworking-platform'
 
 // Configuration optimisée pour la production avec timeouts plus généreux
@@ -28,27 +28,29 @@ let clientPromise: Promise<MongoClient>
 // Cache pour les connexions par base de données
 const dbCache = new Map<string, Db>()
 
-if (process.env.NODE_ENV === 'development') {
-  // En développement, utiliser une variable globale pour conserver la valeur
-  // à travers les rechargements de module causés par HMR (Hot Module Replacement).
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>
-    _mongoDbCache?: Map<string, Db>
-  }
+if (uri) {
+  if (process.env.NODE_ENV === 'development') {
+    // En développement, utiliser une variable globale pour conserver la valeur
+    // à travers les rechargements de module causés par HMR (Hot Module Replacement).
+    let globalWithMongo = global as typeof globalThis & {
+      _mongoClientPromise?: Promise<MongoClient>
+      _mongoDbCache?: Map<string, Db>
+    }
 
-  if (!globalWithMongo._mongoClientPromise) {
+    if (!globalWithMongo._mongoClientPromise) {
+      client = new MongoClient(uri, options)
+      globalWithMongo._mongoClientPromise = client.connect()
+    }
+    if (!globalWithMongo._mongoDbCache) {
+      globalWithMongo._mongoDbCache = new Map<string, Db>()
+    }
+
+    clientPromise = globalWithMongo._mongoClientPromise
+  } else {
+    // En production, il est préférable de ne pas utiliser de variable globale.
     client = new MongoClient(uri, options)
-    globalWithMongo._mongoClientPromise = client.connect()
+    clientPromise = client.connect()
   }
-  if (!globalWithMongo._mongoDbCache) {
-    globalWithMongo._mongoDbCache = new Map<string, Db>()
-  }
-
-  clientPromise = globalWithMongo._mongoClientPromise
-} else {
-  // En production, il est préférable de ne pas utiliser de variable globale.
-  client = new MongoClient(uri, options)
-  clientPromise = client.connect()
 }
 
 /**
@@ -59,6 +61,10 @@ if (process.env.NODE_ENV === 'development') {
 export async function connectToDatabase(
   dbName?: string
 ): Promise<{ client: MongoClient; db: Db }> {
+  if (!uri) {
+    throw new Error("Variable d'environnement MONGODB_URI manquante")
+  }
+  
   let retryCount = 0
   const maxRetries = 3
 
@@ -234,6 +240,10 @@ if (!cached) {
 }
 
 export default async function dbConnect(): Promise<typeof mongoose> {
+  if (!uri) {
+    throw new Error("Variable d'environnement MONGODB_URI manquante")
+  }
+  
   if (cached.conn) {
     return cached.conn
   }
