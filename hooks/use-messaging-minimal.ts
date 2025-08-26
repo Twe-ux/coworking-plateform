@@ -162,12 +162,72 @@ export function useMessaging(): UseMessagingReturn {
     return () => clearInterval(keepAlive)
   }, [session])
 
-  // Placeholder functions that do nothing
-  const sendMessage = useCallback(() => {
-    console.log('Messaging temporarily disabled for deployment')
-  }, [])
+  const sendMessage = useCallback(async (
+    channelId: string, 
+    content: string, 
+    messageType: string = 'text', 
+    attachments: any[] = []
+  ) => {
+    if (!session?.user?.id || !channelId || !content.trim()) {
+      console.error('❌ Données manquantes pour l\'envoi')
+      return
+    }
 
-  const loadMessages = useCallback(() => {}, [])
+    try {
+      console.log('📨 Envoi message:', { channelId, content })
+
+      const response = await fetch('/api/messaging/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelId,
+          content: content.trim(),
+          messageType,
+          attachments
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Erreur ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('✅ Message envoyé:', data.message._id)
+
+      setMessages(prev => [...prev, data.message])
+
+    } catch (error) {
+      console.error('❌ Erreur envoi message:', error)
+    }
+  }, [session])
+
+  const loadMessages = useCallback(async (channelId: string) => {
+    if (!session?.user?.id || !channelId) {
+      console.error('❌ Données manquantes pour charger les messages')
+      return
+    }
+
+    try {
+      console.log('📥 Chargement messages pour channel:', channelId)
+
+      const response = await fetch(`/api/messaging/messages?channelId=${channelId}&limit=50`)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Erreur ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('✅ Messages chargés:', data.messages.length)
+
+      setMessages(data.messages || [])
+
+    } catch (error) {
+      console.error('❌ Erreur chargement messages:', error)
+      setMessages([])
+    }
+  }, [session])
   const loadMoreMessages = useCallback(() => {}, [])
   const joinChannel = useCallback(() => {}, [])
   const leaveChannel = useCallback(() => {}, [])

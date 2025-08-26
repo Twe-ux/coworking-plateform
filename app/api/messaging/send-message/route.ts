@@ -4,31 +4,33 @@ import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
 import mongoose from 'mongoose'
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    console.log('📥 API récupération messages...')
+    console.log('📨 API envoi message...')
 
     const session = await getServerSession(authOptions)
+    console.log('📋 Session:', session?.user?.email || 'Aucune session')
+
     if (!session?.user) {
       return NextResponse.json(
-        { error: 'Non authentifié' },
+        { error: 'Non authentifié', message: 'Session requise' },
         { status: 401 }
       )
     }
 
-    const url = new URL(request.url)
-    const channelId = url.searchParams.get('channelId')
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100)
-    const before = url.searchParams.get('before')
+    await connectMongoose()
 
-    if (!channelId) {
+    const body = await request.json()
+    console.log('📦 Données reçues:', body)
+
+    const { channelId, content, messageType = 'text', attachments = [] } = body
+
+    if (!channelId || !content?.trim()) {
       return NextResponse.json(
-        { error: 'Channel ID requis' },
+        { error: 'Validation', message: 'Channel ID et contenu requis' },
         { status: 400 }
       )
     }
-
-    await connectMongoose()
 
     const db = mongoose.connection.db
     if (!db) {
@@ -65,54 +67,55 @@ export async function GET(request: NextRequest) {
 
     if (!isMember) {
       return NextResponse.json(
-        { error: 'Accès refusé' },
+        { error: 'Accès refusé', message: 'Vous n\'êtes pas membre de ce channel' },
         { status: 403 }
       )
     }
 
-    let query: any = {
-      channel: new mongoose.Types.ObjectId(channelId)
+    const newMessage = {
+      content: content.trim(),
+      messageType,
+      sender: user._id,
+      channel: new mongoose.Types.ObjectId(channelId),
+      attachments,
+      reactions: [],
+      readBy: [{ user: user._id, readAt: new Date() }],
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
-    if (before) {
-      query.createdAt = { $lt: new Date(before) }
+    const messageResult = await messagesCollection.insertOne(newMessage)
+
+    await channelsCollection.updateOne(
+      { _id: new mongoose.Types.ObjectId(channelId) },
+      { 
+        $set: { lastActivity: new Date() },
+        $inc: { messageCount: 1 }
+      }
+    )
+
+    const messageWithSender = {
+      ...newMessage,
+      _id: messageResult.insertedId,
+      sender: {
+        _id: user._id,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        email: user.email
+      }
     }
 
-    const messages = await messagesCollection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray()
-
-    const senderIds = [...new Set(messages.map(msg => msg.sender.toString()))]
-    const senders = await usersCollection
-      .find({ _id: { $in: senderIds.map(id => new mongoose.Types.ObjectId(id)) } })
-      .project({ _id: 1, name: 1, firstName: 1, lastName: 1, avatar: 1, email: 1 })
-      .toArray()
-
-    const sendersMap = new Map(senders.map(sender => [sender._id.toString(), sender]))
-
-    const messagesWithSenders = messages
-      .map(msg => ({
-        ...msg,
-        sender: sendersMap.get(msg.sender.toString()) || {
-          _id: msg.sender,
-          name: 'Utilisateur supprimé',
-          email: 'deleted@example.com'
-        }
-      }))
-      .reverse()
-
-    console.log(`✅ ${messagesWithSenders.length} messages récupérés`)
+    console.log('✅ Message créé:', messageResult.insertedId)
 
     return NextResponse.json({
       success: true,
-      messages: messagesWithSenders,
-      hasMore: messages.length === limit
+      message: messageWithSender
     })
 
   } catch (error) {
-    console.error('❌ Erreur récupération messages:', error)
+    console.error('❌ Erreur envoi message:', error)
     return NextResponse.json(
       {
         error: 'Erreur serveur',
