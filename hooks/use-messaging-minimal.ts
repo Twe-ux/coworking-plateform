@@ -233,7 +233,36 @@ export function useMessaging(): UseMessagingReturn {
   const leaveChannel = useCallback(() => {}, [])
   const startTyping = useCallback(() => {}, [])
   const stopTyping = useCallback(() => {}, [])
-  const markMessagesAsRead = useCallback(() => {}, [])
+  const markMessagesAsRead = useCallback(async (channelId: string, messageIds?: string[]) => {
+    if (!session?.user?.id || !channelId) {
+      console.error('❌ Données manquantes pour marquer comme lus')
+      return
+    }
+
+    try {
+      console.log('👁️ Marquage messages comme lus:', { channelId, messageIds })
+
+      const response = await fetch('/api/messaging/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelId,
+          messageIds
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Erreur ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('✅ Messages marqués comme lus:', data.markedCount)
+
+    } catch (error) {
+      console.error('❌ Erreur marquage lecture:', error)
+    }
+  }, [session])
   const clearMessages = useCallback(() => {}, [])
   const disconnect = useCallback(() => {}, [])
   const reconnect = useCallback(() => {}, [])

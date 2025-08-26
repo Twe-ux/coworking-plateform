@@ -9,7 +9,10 @@ export async function GET(request: NextRequest) {
     console.log('📥 API récupération messages...')
 
     const session = await getServerSession(authOptions)
+    console.log('👤 Session:', session?.user?.email)
+    
     if (!session?.user) {
+      console.log('❌ Pas de session')
       return NextResponse.json(
         { error: 'Non authentifié' },
         { status: 401 }
@@ -17,11 +20,15 @@ export async function GET(request: NextRequest) {
     }
 
     const url = new URL(request.url)
+    console.log('🔗 URL complète:', url.toString())
     const channelId = url.searchParams.get('channelId')
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100)
     const before = url.searchParams.get('before')
 
+    console.log('📋 Paramètres:', { channelId, limit, before })
+
     if (!channelId) {
+      console.log('❌ Channel ID manquant')
       return NextResponse.json(
         { error: 'Channel ID requis' },
         { status: 400 }

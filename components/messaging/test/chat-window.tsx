@@ -100,7 +100,22 @@ export function ChatWindow({
   // Synchroniser les messages du hook avec l'état local
   useEffect(() => {
     setMessages(hookMessages || [])
-  }, [hookMessages])
+    
+    // Marquer automatiquement les messages comme lus après un délai
+    if (hookMessages && hookMessages.length > 0 && chatId && session?.user?.id) {
+      const unreadMessages = hookMessages.filter(msg => 
+        msg.sender._id !== session.user.id && 
+        !msg.readBy?.some(read => read.user === session.user.id)
+      )
+      
+      if (unreadMessages.length > 0) {
+        setTimeout(() => {
+          const unreadIds = unreadMessages.map(msg => msg._id)
+          markMessagesAsRead(chatId, unreadIds)
+        }, 2000) // Délai de 2 secondes pour simuler la lecture
+      }
+    }
+  }, [hookMessages, chatId, session?.user?.id, markMessagesAsRead])
 
   // Scroll automatique vers le dernier message (zone de chat seulement)
   const scrollToBottom = useCallback(() => {
@@ -136,42 +151,19 @@ export function ChatWindow({
         console.error('❌ Erreur chargement messages:', error)
         setIsLoading(false)
       })
-      
-      // Original code disabled for deployment:
-      // loadMessages(chatId).then((msgs: any) => {
-      //   setMessages(msgs || [])
 
-      //   // Marquer les messages des autres comme lus
-      //   if (msgs && msgs.length > 0) {
-      //     const unreadMessageIds = msgs
-      //       .filter(
-      //         (msg: any) =>
-      //           msg.sender._id !== session?.user?.id &&
-      //           !msg.readBy?.some((read: any) => read.user === session?.user?.id)
-      //       )
-      //       .map((msg: any) => msg._id)
+      // Recharger les messages périodiquement pour la synchronisation
+      const refreshInterval = setInterval(() => {
+        if (chatId) {
+          loadMessages(chatId)
+        }
+      }, 5000) // Toutes les 5 secondes
 
-      //     if (unreadMessageIds.length > 0) {
-      //       setTimeout(() => {
-      //         markMessagesAsRead(chatId, unreadMessageIds)
-      //       }, 1500) // Délai pour simuler la lecture
-      //     }
-      //   }
-
-      //   setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
-      //   setIsLoading(false)
-      // })
+      return () => {
+        clearInterval(refreshInterval)
+      }
     }
-  }, [
-    chatId,
-    socket,
-    isConnected,
-    joinChannel,
-    loadMessages,
-    markMessagesAsRead,
-    session?.user?.id,
-    scrollToBottom,
-  ])
+  }, [chatId, loadMessages, joinChannel])
 
   // Écouter les nouveaux messages
   useEffect(() => {
