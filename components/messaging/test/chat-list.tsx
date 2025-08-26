@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { useMessaging } from '@/hooks/use-messaging'
+import { useMessaging } from '@/hooks/use-messaging-minimal'
 import { useNotifications } from '@/hooks/use-notifications'
 
 interface Channel {
@@ -159,13 +159,29 @@ export function ChatList({
     return () => clearInterval(refreshStatuses)
   }, [session?.user?.id, currentView])
 
-  // Forcer la resynchronisation quand on passe à la vue contacts
+  // Forcer la resynchronisation quand on passe à la vue contacts ou messages
   useEffect(() => {
     if (currentView === 'contacts') {
       console.log('🔄 Switching to contacts view, refreshing user statuses from DB')
       loadUsers() // Recharger depuis la DB au lieu de Socket.io
+    } else if (currentView === 'messages') {
+      console.log('🔄 Switching to messages view, refreshing DMs from DB')
+      loadDirectMessages() // Recharger immédiatement les DMs
     }
   }, [currentView])
+
+  // Recharger les DMs périodiquement pour détecter les nouveaux
+  useEffect(() => {
+    if (currentView === 'messages' && session?.user) {
+      console.log('🔄 Messages view active, setting up DM refresh interval')
+      const interval = setInterval(() => {
+        console.log('🔄 Refreshing DMs...')
+        loadDirectMessages()
+      }, 5000) // Toutes les 5 secondes
+
+      return () => clearInterval(interval)
+    }
+  }, [currentView, session?.user?.id])
 
   const getChannelIcon = (channel: Channel) => {
     switch (channel.type) {

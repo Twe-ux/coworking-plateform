@@ -46,10 +46,10 @@ export function useNotifications() {
     // Charger initialement
     loadNotificationCounts()
 
-    // Recharger toutes les 10 secondes
+    // Recharger toutes les 5 secondes pour plus de réactivité
     const interval = setInterval(() => {
       loadNotificationCounts()
-    }, 10000)
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [session?.user?.id, loadNotificationCounts])
