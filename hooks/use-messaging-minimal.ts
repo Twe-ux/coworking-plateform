@@ -87,6 +87,7 @@ export function useMessaging(): UseMessagingReturn {
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([])
   const [userStatuses, setUserStatuses] = useState<UserStatus[]>([])
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
+  const [currentTypingUsers, setCurrentTypingUsers] = useState<string[]>([])
 
   // Update user presence on session change
   useEffect(() => {
@@ -240,8 +241,53 @@ export function useMessaging(): UseMessagingReturn {
   const loadMoreMessages = useCallback(() => {}, [])
   const joinChannel = useCallback(() => {}, [])
   const leaveChannel = useCallback(() => {}, [])
-  const startTyping = useCallback(() => {}, [])
-  const stopTyping = useCallback(() => {}, [])
+  const startTyping = useCallback(async (channelId: string) => {
+    if (!session?.user?.id || !channelId) return
+
+    try {
+      await fetch('/api/messaging/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelId,
+          isTyping: true
+        })
+      })
+    } catch (error) {
+      console.error('❌ Erreur start typing:', error)
+    }
+  }, [session])
+
+  const stopTyping = useCallback(async (channelId: string) => {
+    if (!session?.user?.id || !channelId) return
+
+    try {
+      await fetch('/api/messaging/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelId,
+          isTyping: false
+        })
+      })
+    } catch (error) {
+      console.error('❌ Erreur stop typing:', error)
+    }
+  }, [session])
+
+  const loadTypingUsers = useCallback(async (channelId: string) => {
+    if (!session?.user?.id || !channelId) return
+
+    try {
+      const response = await fetch(`/api/messaging/typing?channelId=${channelId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentTypingUsers(data.typingUsers || [])
+      }
+    } catch (error) {
+      console.error('❌ Erreur load typing:', error)
+    }
+  }, [session])
   const markMessagesAsRead = useCallback(async (channelId: string, messageIds?: string[]) => {
     if (!session?.user?.id || !channelId) {
       console.error('❌ Données manquantes pour marquer comme lus')
@@ -333,6 +379,8 @@ export function useMessaging(): UseMessagingReturn {
     createDirectMessage,
     startTyping,
     stopTyping,
+    loadTypingUsers,
+    currentTypingUsers,
     userStatuses,
     onlineUsers,
     markMessagesAsRead,

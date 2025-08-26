@@ -426,6 +426,7 @@ export default function MessagingPage() {
                     chatAvatar={selectedChat?.avatar}
                     isOnline={selectedChat?.isOnline}
                     userProfile={selectedUserProfile}
+                    prefilledMessage={selectedChat?.prefilledMessage}
                     onStartChatWithUser={() => {
                       if (selectedUserProfile) {
                         handleStartChatWithUser(selectedUserProfile._id)

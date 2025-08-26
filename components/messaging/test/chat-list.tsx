@@ -47,7 +47,7 @@ interface ChatListProps {
   onChatSelect: (chat: any) => void
   onUserProfileSelect: (user: User) => void
   selectedChatId?: string
-  currentView: 'messages' | 'contacts' | 'channels'
+  currentView: 'messages' | 'contacts' | 'channels' | 'ai'
 }
 
 export function ChatList({
@@ -534,6 +534,96 @@ export function ChatList({
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Vue IA */}
+        {currentView === 'ai' && (
+          <div className="p-4">
+            {/* Header IA */}
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
+                <Bot className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Assistant IA</h2>
+              <p className="text-sm text-gray-600">
+                Votre assistant personnel pour tout ce qui concerne le coworking
+              </p>
+            </div>
+
+            {/* Fonctionnalités de l'IA */}
+            <div className="mb-6">
+              <h3 className="mb-3 text-sm font-semibold text-gray-700">
+                🚀 Fonctionnalités
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { icon: '🏢', text: 'Aide à la réservation d\'espaces' },
+                  { icon: '💰', text: 'Informations sur les tarifs' },
+                  { icon: '⏰', text: 'Horaires et disponibilités' },
+                  { icon: '📍', text: 'Services et équipements' },
+                  { icon: '📞', text: 'Support et assistance' },
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3 rounded-lg bg-gray-50 p-2">
+                    <span className="text-lg">{feature.icon}</span>
+                    <span className="text-sm text-gray-700">{feature.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Questions suggérées */}
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-gray-700">
+                💡 Questions suggérées
+              </h3>
+              <div className="space-y-2">
+                {[
+                  'Quels sont vos tarifs ?',
+                  'Comment réserver un espace ?',
+                  'Quels services proposez-vous ?',
+                  'Quels sont vos horaires d\'ouverture ?',
+                  'Y a-t-il du WiFi gratuit ?',
+                  'Proposez-vous des salles de réunion ?',
+                ].map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      // Sélectionner le chat IA et pré-remplir la question
+                      onChatSelect({
+                        id: 'ai-assistant',
+                        name: 'Assistant IA Personnel',
+                        isOnline: true,
+                        isDirect: false,
+                        prefilledMessage: question
+                      })
+                    }}
+                    className="w-full rounded-lg border border-purple-200 bg-purple-50 p-3 text-left text-sm text-purple-700 transition-colors hover:bg-purple-100"
+                  >
+                    <span className="mr-2">❓</span>
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Bouton pour commencer */}
+            <div className="mt-6">
+              <button
+                onClick={() => {
+                  onChatSelect({
+                    id: 'ai-assistant',
+                    name: 'Assistant IA Personnel',
+                    isOnline: true,
+                    isDirect: false,
+                  })
+                }}
+                className="w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 font-medium text-white transition-opacity hover:opacity-90"
+              >
+                <Bot className="mr-2 inline h-4 w-4" />
+                Commencer une conversation
+              </button>
+            </div>
           </div>
         )}
       </ScrollArea>

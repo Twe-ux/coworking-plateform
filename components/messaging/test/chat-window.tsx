@@ -68,6 +68,7 @@ interface ChatWindowProps {
   isOnline?: boolean
   userProfile?: UserProfile
   onStartChatWithUser?: () => void
+  prefilledMessage?: string
 }
 
 export function ChatWindow({
@@ -77,6 +78,7 @@ export function ChatWindow({
   isOnline,
   userProfile,
   onStartChatWithUser,
+  prefilledMessage,
 }: ChatWindowProps) {
   const { data: session } = useSession()
   const [newMessage, setNewMessage] = useState('')
@@ -97,6 +99,10 @@ export function ChatWindow({
     joinChannel,
     markMessagesAsRead,
     messages: hookMessages,
+    startTyping,
+    stopTyping,
+    loadTypingUsers,
+    currentTypingUsers,
   } = useMessaging()
   
   const { loadNotificationCounts } = useNotifications()
@@ -122,6 +128,21 @@ export function ChatWindow({
       }
     }
   }, [hookMessages, chatId, session?.user?.id, markMessagesAsRead])
+
+  // Pré-remplir le message quand prefilledMessage change
+  useEffect(() => {
+    if (prefilledMessage) {
+      setNewMessage(prefilledMessage)
+      // Focus sur le champ de saisie après pré-remplissage
+      setTimeout(() => {
+        const input = document.querySelector('input[placeholder*="Envoyer un message"]') as HTMLInputElement
+        if (input) {
+          input.focus()
+          input.setSelectionRange(input.value.length, input.value.length)
+        }
+      }, 100)
+    }
+  }, [prefilledMessage])
 
   // Scroll automatique vers le dernier message (zone de chat seulement)
   const scrollToBottom = useCallback(() => {
@@ -174,6 +195,21 @@ export function ChatWindow({
       }
     }
   }, [chatId, loadMessages, joinChannel, loadNotificationCounts])
+
+  // Recharger les indicateurs de frappe périodiquement
+  useEffect(() => {
+    if (!chatId) return
+
+    // Charger initialement
+    loadTypingUsers(chatId)
+
+    // Recharger toutes les 2 secondes
+    const typingInterval = setInterval(() => {
+      loadTypingUsers(chatId)
+    }, 2000)
+
+    return () => clearInterval(typingInterval)
+  }, [chatId, loadTypingUsers])
 
   // Écouter les nouveaux messages
   useEffect(() => {
@@ -290,15 +326,6 @@ export function ChatWindow({
           setIsTyping(false)
           loadMessages(chatId) // Recharger pour voir la réponse IA
         }, typingDuration)
-      } else {
-        // Pour les DMs normaux, simuler brièvement que l'autre utilisateur écrit
-        setTimeout(() => {
-          setTypingUsers([chatName || 'Utilisateur'])
-          setTimeout(() => {
-            setTypingUsers([])
-            loadMessages(chatId) // Recharger pour synchronisation
-          }, 1500) // Animation plus courte pour les vrais utilisateurs
-        }, 500) // Délai avant que "l'autre utilisateur" commence à écrire
       }
       
       setTimeout(scrollToBottom, 100) // Scroll après envoi
@@ -309,19 +336,21 @@ export function ChatWindow({
     }
   }, [newMessage, chatId, chatName, sendSocketMessage, scrollToBottom, loadMessages])
 
-  const handleTyping = () => {
-    if (!socket || !chatId) return
+  const handleTyping = useCallback(() => {
+    if (!chatId) return
 
-    socket.emit('typing_start', { channelId: chatId })
+    // Envoyer l'indicateur de frappe via l'API
+    startTyping(chatId)
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
 
+    // Arrêter automatiquement après 3 secondes
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing_stop', { channelId: chatId })
-    }, 2000)
-  }
+      stopTyping(chatId)
+    }, 3000)
+  }, [chatId, startTyping, stopTyping])
 
   const getUserDisplayName = (user: UserProfile) => {
     if (user.firstName && user.lastName) {
@@ -698,7 +727,7 @@ export function ChatWindow({
               </AnimatePresence>
 
               {/* Indicateur de frappe */}
-              {typingUsers.length > 0 && (
+              {currentTypingUsers.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -708,7 +737,7 @@ export function ChatWindow({
                   <div className="flex flex-col items-center">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
-                        {typingUsers[0]
+                        {currentTypingUsers[0]
                           ?.split(' ')
                           .map((n) => n[0])
                           .join('') || 'U'}
