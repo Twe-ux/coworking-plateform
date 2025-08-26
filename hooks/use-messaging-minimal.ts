@@ -179,9 +179,43 @@ export function useMessaging(): UseMessagingReturn {
   const reconnect = useCallback(() => {}, [])
   const updateChannel = useCallback(() => {}, [])
 
-  const createDirectMessage = useCallback(async () => {
-    return null
-  }, [])
+  const createDirectMessage = useCallback(async (targetUserId: string) => {
+    if (!session?.user?.id) {
+      console.error('❌ Pas de session pour créer un DM')
+      return null
+    }
+
+    try {
+      console.log('🚀 Création DM avec utilisateur:', targetUserId)
+      
+      const response = await fetch('/api/messaging/simple-create-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `DM avec utilisateur ${targetUserId}`,
+          type: 'direct',
+          targetUserId: targetUserId
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.channel) {
+        console.log('✅ DM créé/récupéré:', data.channel)
+        return { id: data.channel._id.toString() }
+      }
+      
+      throw new Error('Réponse invalide de l\'API')
+      
+    } catch (error) {
+      console.error('❌ Erreur création DM:', error)
+      return null
+    }
+  }, [session])
 
   const createChannel = useCallback(async () => {
     return false
