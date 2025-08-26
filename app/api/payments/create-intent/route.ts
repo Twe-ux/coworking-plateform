@@ -6,10 +6,12 @@ import { connectMongoose } from '@/lib/mongoose'
 import { Booking } from '@/lib/models'
 import Stripe from 'stripe'
 
-// Initialiser Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-})
+// Initialiser Stripe seulement si la clé existe
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-07-30.basil',
+    })
+  : null
 
 // Schema de validation
 const createIntentSchema = z.object({
@@ -23,6 +25,14 @@ const createIntentSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    // Vérifier que Stripe est configuré
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Service de paiement non configuré', code: 'STRIPE_NOT_CONFIGURED' },
+        { status: 503 }
+      )
+    }
+
     // Vérifier l'authentification
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {

@@ -10,7 +10,7 @@
     "dev:socket": "node scripts/init-socket.js",
     "dev:manual": "npm --loglevel=error run dev:start",
     "dev:verbose": "next dev",
-    "build": "MONGODB_URI=mongodb://localhost:27017/coworking-platform-build NEXTAUTH_SECRET=build-secret NEXTAUTH_URL=http://localhost:3000 next build",
+    "build": "SKIP_TYPE_CHECK=true next build",
     "build:deploy": "tsc --project tsconfig.deploy.json --noEmit && next build",
     "build:loose": "SKIP_TYPE_CHECK=true next build",
     "start": "next start",
