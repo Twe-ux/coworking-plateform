@@ -6,84 +6,112 @@ import mongoose from 'mongoose'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('📊 API compteurs notifications...')
+
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Non authentifié' },
+        { status: 401 }
+      )
     }
 
     await connectMongoose()
+
     const db = mongoose.connection.db
     if (!db) {
       throw new Error('Database connection not established')
     }
+
     const messagesCollection = db.collection('messages')
     const channelsCollection = db.collection('channels')
+    const usersCollection = db.collection('users')
 
-    // Récupérer tous les channels où l'utilisateur est membre
+    const user = await usersCollection.findOne({ email: session.user.email })
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Utilisateur non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    // Trouver tous les channels dont l'utilisateur est membre
     const userChannels = await channelsCollection
       .find({
-        'members.user': new mongoose.Types.ObjectId(session.user.id),
-        isActive: { $ne: false },
+        'members.user': user._id,
+        isDeleted: { $ne: true }
       })
       .toArray()
 
-    const channelIds = userChannels.map((ch) => ch._id)
+    const channelIds = userChannels.map(channel => channel._id)
 
-    // Compter les messages non lus par channel
+    // Compter les messages non lus dans chaque channel
     const unreadByChannel = await messagesCollection
       .aggregate([
         {
           $match: {
             channel: { $in: channelIds },
-            sender: { $ne: new mongoose.Types.ObjectId(session.user.id) }, // Pas mes messages
-            'readBy.user': {
-              $ne: new mongoose.Types.ObjectId(session.user.id),
-            }, // Pas encore lu
-            isDeleted: { $ne: true },
-          },
+            'readBy.user': { $ne: user._id },
+            sender: { $ne: user._id } // Ne pas compter ses propres messages
+          }
         },
         {
           $group: {
             _id: '$channel',
-            count: { $sum: 1 },
-          },
-        },
+            count: { $sum: 1 }
+          }
+        }
       ])
       .toArray()
 
     // Construire le breakdown par channel
     const channelBreakdown: Record<string, number> = {}
-    let messagesDMs = 0
-    let channelsCount = 0
+    let totalDMs = 0
+    let totalChannels = 0
 
-    unreadByChannel.forEach((result) => {
-      const channelId = result._id.toString()
-      const count = result.count
-
+    unreadByChannel.forEach(item => {
+      const channelId = item._id.toString()
+      const count = item.count
+      
       channelBreakdown[channelId] = count
 
       // Trouver le type de channel
-      const channel = userChannels.find((ch) => ch._id.toString() === channelId)
-      if (channel?.type === 'direct' || channel?.type === 'dm') {
-        messagesDMs += count
-      } else {
-        channelsCount += count
+      const channel = userChannels.find(c => c._id.toString() === channelId)
+      if (channel) {
+        if (channel.type === 'direct') {
+          totalDMs += count
+        } else {
+          totalChannels += count
+        }
       }
     })
 
-    const totalUnread = messagesDMs + channelsCount
+    const totalUnread = totalDMs + totalChannels
+
+    const counts = {
+      totalUnread,
+      messagesDMs: totalDMs,
+      channels: totalChannels,
+      channelBreakdown
+    }
+
+    console.log('📊 Compteurs calculés:', counts)
 
     return NextResponse.json({
       success: true,
-      counts: {
-        totalUnread,
-        messagesDMs,
-        channels: channelsCount,
-        channelBreakdown,
-      },
+      counts
     })
+
   } catch (error) {
-    console.error('Erreur compteurs notifications:', error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    console.error('❌ Erreur compteurs notifications:', error)
+    return NextResponse.json(
+      {
+        error: 'Erreur serveur',
+        message: (error as any).message,
+      },
+      { status: 500 }
+    )
   }
 }
+
+export const runtime = 'nodejs'

@@ -101,7 +101,7 @@ export function ChatWindow({
   useEffect(() => {
     setMessages(hookMessages || [])
     
-    // Marquer automatiquement les messages comme lus après un délai
+    // Marquer automatiquement les messages comme lus après un délai (seulement les messages des AUTRES)
     if (hookMessages && hookMessages.length > 0 && chatId && session?.user?.id) {
       const unreadMessages = hookMessages.filter(msg => 
         msg.sender._id !== session.user.id && 
@@ -109,10 +109,12 @@ export function ChatWindow({
       )
       
       if (unreadMessages.length > 0) {
+        console.log('🔍 Messages non lus détectés:', unreadMessages.length)
         setTimeout(() => {
           const unreadIds = unreadMessages.map(msg => msg._id)
+          console.log('👁️ Marquage automatique de lecture:', unreadIds)
           markMessagesAsRead(chatId, unreadIds)
-        }, 2000) // Délai de 2 secondes pour simuler la lecture
+        }, 3000) // Délai de 3 secondes pour simuler la lecture
       }
     }
   }, [hookMessages, chatId, session?.user?.id, markMessagesAsRead])
@@ -157,7 +159,7 @@ export function ChatWindow({
         if (chatId) {
           loadMessages(chatId)
         }
-      }, 5000) // Toutes les 5 secondes
+      }, 2000) // Toutes les 2 secondes pour plus de fluidité
 
       return () => {
         clearInterval(refreshInterval)
@@ -256,7 +258,7 @@ export function ChatWindow({
     }
   }, [socket, chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!newMessage.trim() || !chatId) return
 
     const messageContent = newMessage.trim()
@@ -270,10 +272,12 @@ export function ChatWindow({
     try {
       await sendSocketMessage(chatId, messageContent)
       setTimeout(scrollToBottom, 100) // Scroll après envoi
+      // Recharger les messages après envoi pour synchronisation
+      setTimeout(() => loadMessages(chatId), 500)
     } catch (error) {
       console.error('❌ Erreur envoi message:', error)
     }
-  }
+  }, [newMessage, chatId, sendSocketMessage, scrollToBottom, loadMessages])
 
   const handleTyping = () => {
     if (!socket || !chatId) return

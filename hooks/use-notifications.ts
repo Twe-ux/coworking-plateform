@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { useMessaging } from './use-messaging'
+import { useMessaging } from './use-messaging-minimal'
 
 interface NotificationCounts {
   totalUnread: number
@@ -39,7 +39,22 @@ export function useNotifications() {
     }
   }, [session?.user?.id])
 
-  // Écouter les mises à jour en temps réel
+  // Recharger les notifications périodiquement (pas de socket en mode minimal)
+  useEffect(() => {
+    if (!session?.user?.id) return
+
+    // Charger initialement
+    loadNotificationCounts()
+
+    // Recharger toutes les 10 secondes
+    const interval = setInterval(() => {
+      loadNotificationCounts()
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [session?.user?.id, loadNotificationCounts])
+
+  // Ancienne logique socket désactivée pour le mode minimal
   useEffect(() => {
     if (!socket || !isConnected) return
 

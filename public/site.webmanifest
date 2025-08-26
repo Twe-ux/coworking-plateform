@@ -1,16 +1,21 @@
 {
-  "name": "Cow or King Café - Coworking Strasbourg",
-  "short_name": "Cow or King Café",
-  "description": "Votre espace de coworking au cœur de Strasbourg. Trois ambiances uniques dans un cadre exceptionnel.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#8B4513",
-  "theme_color": "#D2691E",
+  "name": "Coworking Platform",
+  "short_name": "Coworking",
+  "description": "Plateforme de coworking moderne",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  ]
+  ],
+  "theme_color": "#8B4513",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
 }

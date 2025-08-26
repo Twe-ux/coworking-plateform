@@ -204,22 +204,31 @@ export function useMessaging(): UseMessagingReturn {
 
   const loadMessages = useCallback(async (channelId: string) => {
     if (!session?.user?.id || !channelId) {
-      console.error('❌ Données manquantes pour charger les messages')
+      console.error('❌ Données manquantes pour charger les messages', { session: !!session?.user?.id, channelId })
       return
     }
 
     try {
       console.log('📥 Chargement messages pour channel:', channelId)
+      const url = `/api/messaging/messages?channelId=${encodeURIComponent(channelId)}&limit=50`
+      console.log('🔗 URL de requête:', url)
 
-      const response = await fetch(`/api/messaging/messages?channelId=${channelId}&limit=50`)
+      const response = await fetch(url)
+      console.log('📡 Réponse status:', response.status)
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || `Erreur ${response.status}`)
+        const errorText = await response.text()
+        console.error('❌ Erreur API:', response.status, errorText)
+        try {
+          const errorData = JSON.parse(errorText)
+          throw new Error(errorData.message || `Erreur ${response.status}`)
+        } catch {
+          throw new Error(`Erreur ${response.status}: ${errorText}`)
+        }
       }
 
       const data = await response.json()
-      console.log('✅ Messages chargés:', data.messages.length)
+      console.log('✅ Messages chargés:', data.messages?.length || 0)
 
       setMessages(data.messages || [])
 
