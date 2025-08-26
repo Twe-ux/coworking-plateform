@@ -246,8 +246,8 @@ export function ChatList({
   const filteredUsers = availableUsers
     .filter(
       (user) =>
-        // Seulement les utilisateurs en ligne
-        getUserOnlineStatus(user._id) &&
+        // Seulement les utilisateurs en ligne (utilise directement la DB)
+        user.isOnline &&
         (getUserDisplayName(user)
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
@@ -474,7 +474,7 @@ export function ChatList({
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        {getUserOnlineStatus(user._id) && (
+                        {user.isOnline && (
                           <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 animate-pulse rounded-full border-2 border-white bg-green-500"></div>
                         )}
                       </div>
