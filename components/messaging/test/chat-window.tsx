@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useMessaging } from '@/hooks/use-messaging-minimal'
+import { useNotifications } from '@/hooks/use-notifications'
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -82,6 +83,7 @@ export function ChatWindow({
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [typingUsers, setTypingUsers] = useState<string[]>([])
+  const [isTyping, setIsTyping] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -96,6 +98,8 @@ export function ChatWindow({
     markMessagesAsRead,
     messages: hookMessages,
   } = useMessaging()
+  
+  const { loadNotificationCounts } = useNotifications()
 
   // Synchroniser les messages du hook avec l'état local
   useEffect(() => {
@@ -149,6 +153,8 @@ export function ChatWindow({
       // Charger l'historique des messages
       loadMessages(chatId).then(() => {
         setIsLoading(false)
+        // Rafraîchir les notifications immédiatement après ouverture du chat
+        loadNotificationCounts()
       }).catch((error) => {
         console.error('❌ Erreur chargement messages:', error)
         setIsLoading(false)
@@ -165,7 +171,7 @@ export function ChatWindow({
         clearInterval(refreshInterval)
       }
     }
-  }, [chatId, loadMessages, joinChannel])
+  }, [chatId, loadMessages, joinChannel, loadNotificationCounts])
 
   // Écouter les nouveaux messages
   useEffect(() => {
@@ -271,13 +277,26 @@ export function ChatWindow({
 
     try {
       await sendSocketMessage(chatId, messageContent)
+      
+      // Si c'est un channel IA, déclencher l'animation d'écriture
+      const isAIChannel = chatName?.includes('Assistant IA') || chatName?.includes('IA')
+      if (isAIChannel) {
+        setIsTyping(true)
+        // Simuler l'écriture de l'IA pendant 2-4 secondes
+        const typingDuration = Math.random() * 2000 + 2000
+        setTimeout(() => {
+          setIsTyping(false)
+          loadMessages(chatId) // Recharger pour voir la réponse IA
+        }, typingDuration)
+      }
+      
       setTimeout(scrollToBottom, 100) // Scroll après envoi
       // Recharger les messages après envoi pour synchronisation
       setTimeout(() => loadMessages(chatId), 500)
     } catch (error) {
       console.error('❌ Erreur envoi message:', error)
     }
-  }, [newMessage, chatId, sendSocketMessage, scrollToBottom, loadMessages])
+  }, [newMessage, chatId, chatName, sendSocketMessage, scrollToBottom, loadMessages])
 
   const handleTyping = () => {
     if (!socket || !chatId) return
@@ -692,6 +711,37 @@ export function ChatWindow({
                 </motion.div>
               )}
 
+              {/* Indicateur de frappe IA */}
+              {isTyping && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mr-auto mb-2 flex max-w-[80%] items-end gap-3"
+                >
+                  <div className="flex flex-col items-center">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-xs text-white">
+                        <Bot className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="flex min-h-[48px] items-center rounded-2xl rounded-bl-md border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500" />
+                      <div
+                        className="h-2 w-2 animate-bounce rounded-full bg-purple-600"
+                        style={{ animationDelay: '0.1s' }}
+                      />
+                      <div
+                        className="h-2 w-2 animate-bounce rounded-full bg-pink-500"
+                        style={{ animationDelay: '0.2s' }}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
@@ -713,12 +763,12 @@ export function ChatWindow({
                 }
               }}
               placeholder={`Envoyer un message${chatName ? ` dans ${chatName}` : ''}...`}
-              disabled={!isConnected}
+              disabled={!isConnected || isTyping}
               className="flex-1"
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!isConnected || !newMessage.trim()}
+              disabled={!isConnected || !newMessage.trim() || isTyping}
               size="icon"
             >
               <Send className="h-4 w-4" />
