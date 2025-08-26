@@ -153,8 +153,10 @@ export function ChatWindow({
       // Charger l'historique des messages
       loadMessages(chatId).then(() => {
         setIsLoading(false)
-        // Rafraîchir les notifications immédiatement après ouverture du chat
-        loadNotificationCounts()
+        // Marquer immédiatement tous les messages de ce chat comme lus
+        markMessagesAsRead(chatId)
+        // Rafraîchir les notifications instantanément
+        setTimeout(() => loadNotificationCounts(), 100)
       }).catch((error) => {
         console.error('❌ Erreur chargement messages:', error)
         setIsLoading(false)
@@ -278,7 +280,7 @@ export function ChatWindow({
     try {
       await sendSocketMessage(chatId, messageContent)
       
-      // Si c'est un channel IA, déclencher l'animation d'écriture
+      // Si c'est un channel IA, déclencher l'animation d'écriture IA
       const isAIChannel = chatName?.includes('Assistant IA') || chatName?.includes('IA')
       if (isAIChannel) {
         setIsTyping(true)
@@ -288,6 +290,15 @@ export function ChatWindow({
           setIsTyping(false)
           loadMessages(chatId) // Recharger pour voir la réponse IA
         }, typingDuration)
+      } else {
+        // Pour les DMs normaux, simuler brièvement que l'autre utilisateur écrit
+        setTimeout(() => {
+          setTypingUsers([chatName || 'Utilisateur'])
+          setTimeout(() => {
+            setTypingUsers([])
+            loadMessages(chatId) // Recharger pour synchronisation
+          }, 1500) // Animation plus courte pour les vrais utilisateurs
+        }, 500) // Délai avant que "l'autre utilisateur" commence à écrire
       }
       
       setTimeout(scrollToBottom, 100) // Scroll après envoi
@@ -328,6 +339,17 @@ export function ChatWindow({
 
   const isMyMessage = (message: Message) => {
     return message.sender._id === session?.user?.id
+  }
+
+  // Fonction pour déterminer la couleur du message basée sur l'utilisateur
+  const getMessageColor = (message: Message, isMe: boolean) => {
+    if (isMe) {
+      // L'utilisateur actuel utilise toujours le bleu
+      return 'rounded-2xl rounded-br-md bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+    } else {
+      // Les autres utilisateurs utilisent le vert
+      return 'rounded-2xl rounded-bl-md bg-gradient-to-r from-green-500 to-green-600 text-white'
+    }
   }
 
   const isLastMyMessage = (message: Message, index: number) => {
@@ -649,16 +671,14 @@ export function ChatWindow({
                           <div
                             className={cn(
                               'relative max-w-md px-4 py-2 break-words shadow-sm',
-                              isMe
-                                ? 'rounded-2xl rounded-br-md bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-                                : 'rounded-2xl rounded-bl-md border border-gray-200 bg-white text-gray-900'
+                              getMessageColor(message, isMe)
                             )}
                           >
                             <p className="text-sm whitespace-pre-wrap">
                               {message.content}
                             </p>
                             {isMe && (
-                              <span className="mt-1 block text-xs text-blue-100">
+                              <span className="mt-1 block text-xs text-white/70">
                                 {formatTime(message.createdAt)}
                               </span>
                             )}
