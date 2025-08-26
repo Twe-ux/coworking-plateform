@@ -115,18 +115,18 @@ export function ChatList({
       const data = await response.json()
 
       if (data.success) {
-        // Filtrer l'utilisateur actuel et synchroniser avec les statuts en ligne
+        // Filtrer l'utilisateur actuel et utiliser directement le statut depuis la DB
         const users = data.users
           .filter((user: User) => user._id !== session?.user?.id)
           .map((user: User) => ({
             ...user,
-            isOnline: getUserOnlineStatus(user._id) || user.isOnline || false,
+            isOnline: user.isOnline || false, // Utiliser directement le statut de la DB
           }))
         setAvailableUsers(users)
         console.log(
-          '👥 Utilisateurs chargés avec statuts:',
+          '👥 Utilisateurs chargés avec statuts DB:',
           users.map(
-            (u: User) => `${u.name}: ${u.isOnline ? 'en ligne' : 'hors ligne'}`
+            (u: User) => `${u.name}: ${u.isOnline ? '🟢 en ligne' : '⚫ hors ligne'}`
           )
         )
       }
@@ -145,33 +145,27 @@ export function ChatList({
     }
   }, [session?.user?.id])
 
+  // Rafraîchir les statuts utilisateurs toutes les 10 secondes
+  useEffect(() => {
+    if (!session?.user) return
+
+    const refreshStatuses = setInterval(() => {
+      if (currentView === 'contacts') {
+        console.log('🔄 Rafraîchissement périodique des statuts utilisateurs...')
+        loadUsers()
+      }
+    }, 10000) // Toutes les 10 secondes
+
+    return () => clearInterval(refreshStatuses)
+  }, [session?.user?.id, currentView])
+
   // Forcer la resynchronisation quand on passe à la vue contacts
   useEffect(() => {
-    if (currentView === 'contacts' && socket && isConnected) {
-      console.log(
-        '🔄 Switching to contacts view, requesting fresh online users list'
-      )
-      socket.emit('request_online_users')
+    if (currentView === 'contacts') {
+      console.log('🔄 Switching to contacts view, refreshing user statuses from DB')
+      loadUsers() // Recharger depuis la DB au lieu de Socket.io
     }
-  }, [currentView, socket, isConnected])
-
-  // Rafraîchir les statuts des utilisateurs quand les statuts en ligne changent
-  useEffect(() => {
-    if (availableUsers.length > 0) {
-      console.log('🔄 Mise à jour des statuts utilisateurs:', {
-        onlineUsers: Array.from(onlineUsers),
-        totalUsers: availableUsers.length,
-      })
-
-      // Mettre à jour les statuts sans recharger depuis l'API
-      setAvailableUsers((prevUsers) =>
-        prevUsers.map((user) => ({
-          ...user,
-          isOnline: getUserOnlineStatus(user._id),
-        }))
-      )
-    }
-  }, [onlineUsers, getUserOnlineStatus])
+  }, [currentView])
 
   const getChannelIcon = (channel: Channel) => {
     switch (channel.type) {

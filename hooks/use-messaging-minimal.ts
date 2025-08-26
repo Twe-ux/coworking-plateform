@@ -77,16 +77,90 @@ interface UseMessagingReturn {
   reconnect: () => void
 }
 
-// Minimal hook that returns empty/default values for deployment
+// Minimal hook with basic presence management
 export function useMessaging(): UseMessagingReturn {
   const { data: session } = useSession()
   
-  // Default empty states
+  // States
   const [isConnected, setIsConnected] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([])
   const [userStatuses, setUserStatuses] = useState<UserStatus[]>([])
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
+
+  // Update user presence on session change
+  useEffect(() => {
+    const updatePresence = async (status: 'online' | 'offline') => {
+      if (!session?.user?.id) return
+      
+      try {
+        const response = await fetch('/api/messaging/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        })
+        
+        if (response.ok) {
+          console.log(`✅ Statut mis à jour: ${status}`)
+          setIsConnected(status === 'online')
+        } else {
+          console.error(`❌ Erreur mise à jour statut: ${response.status}`)
+        }
+      } catch (error) {
+        console.error('❌ Erreur mise à jour présence:', error)
+      }
+    }
+
+    if (session?.user) {
+      // Set user as online when session is active
+      updatePresence('online')
+
+      // Set user as offline when page unloads
+      const handleBeforeUnload = () => {
+        navigator.sendBeacon('/api/messaging/presence', JSON.stringify({ status: 'offline' }))
+      }
+
+      // Set user as offline when page becomes hidden
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden') {
+          updatePresence('offline')
+        } else if (document.visibilityState === 'visible') {
+          updatePresence('online')
+        }
+      }
+
+      window.addEventListener('beforeunload', handleBeforeUnload)
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        // Set offline on cleanup
+        updatePresence('offline')
+      }
+    }
+  }, [session])
+
+  // Periodic presence update to keep user online
+  useEffect(() => {
+    if (!session?.user?.id) return
+
+    const keepAlive = setInterval(async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          await fetch('/api/messaging/presence', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'online' })
+          })
+        } catch (error) {
+          console.error('❌ Erreur keep-alive présence:', error)
+        }
+      }
+    }, 30000) // Every 30 seconds
+
+    return () => clearInterval(keepAlive)
+  }, [session])
 
   // Placeholder functions that do nothing
   const sendMessage = useCallback(() => {
