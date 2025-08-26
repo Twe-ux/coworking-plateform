@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useMessaging } from '@/hooks/use-messaging'
+import { useMessaging } from '@/hooks/use-messaging-minimal'
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -94,7 +94,13 @@ export function ChatWindow({
     loadMessages,
     joinChannel,
     markMessagesAsRead,
+    messages: hookMessages,
   } = useMessaging()
+
+  // Synchroniser les messages du hook avec l'état local
+  useEffect(() => {
+    setMessages(hookMessages || [])
+  }, [hookMessages])
 
   // Scroll automatique vers le dernier message (zone de chat seulement)
   const scrollToBottom = useCallback(() => {
@@ -116,18 +122,20 @@ export function ChatWindow({
 
   // Charger les messages quand on sélectionne un chat
   useEffect(() => {
-    if (chatId && socket && isConnected) {
+    if (chatId) {
       setIsLoading(true)
       setMessages([])
 
       // Rejoindre le channel
       joinChannel(chatId)
 
-      // Charger l'historique (simplified for deployment)
-      loadMessages(chatId)
-      // For deployment, just set empty messages and finish loading
-      setMessages([])
-      setTimeout(() => setIsLoading(false), 100)
+      // Charger l'historique des messages
+      loadMessages(chatId).then(() => {
+        setIsLoading(false)
+      }).catch((error) => {
+        console.error('❌ Erreur chargement messages:', error)
+        setIsLoading(false)
+      })
       
       // Original code disabled for deployment:
       // loadMessages(chatId).then((msgs: any) => {
@@ -257,7 +265,7 @@ export function ChatWindow({
   }, [socket, chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !chatId || !socket || !isConnected) return
+    if (!newMessage.trim() || !chatId) return
 
     const messageContent = newMessage.trim()
     setNewMessage('')
@@ -266,15 +274,12 @@ export function ChatWindow({
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
-    if (socket) {
-      socket.emit('typing_stop', { channelId: chatId })
-    }
 
     try {
       await sendSocketMessage(chatId, messageContent)
       setTimeout(scrollToBottom, 100) // Scroll après envoi
     } catch (error) {
-      console.error('Erreur envoi message:', error)
+      console.error('❌ Erreur envoi message:', error)
     }
   }
 
