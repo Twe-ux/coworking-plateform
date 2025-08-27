@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Socket.IO avec Auth</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Test Socket.IO avec Auth</h1>
+    <div id="status">Tentative de connexion...</div>
+    <div id="messages"></div>
+    <button onclick="testConnect()">Se connecter</button>
+    
+    <script>
+        let socket = null;
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+
+        function addMessage(msg) {
+            const p = document.createElement('p');
+            p.innerHTML = new Date().toLocaleTimeString() + ' - ' + msg;
+            messagesDiv.appendChild(p);
+        }
+
+        function testConnect() {
+            if (socket) {
+                socket.disconnect();
+            }
+
+            console.log('🚀 Test connexion Socket.IO...');
+            statusDiv.innerHTML = '🔄 Connexion en cours...';
+            
+            socket = io('http://localhost:3001/api/socket', {
+                auth: {
+                    sessionToken: 'test-token',
+                    userId: '68937e9a67fd70e1283b0378', // Admin ID existant
+                    userRole: 'admin',
+                    userName: 'Test Admin',
+                    userEmail: 'admin@example.com'
+                },
+                transports: ['websocket', 'polling'],
+                timeout: 10000
+            });
+
+            socket.on('connect', () => {
+                console.log('✅ Socket.IO Connected!', socket.id);
+                statusDiv.innerHTML = '✅ Connecté (ID: ' + socket.id + ')';
+                statusDiv.style.color = 'green';
+                addMessage('✅ Connexion réussie !');
+                
+                // Tester un événement
+                socket.emit('request_online_users');
+            });
+
+            socket.on('disconnect', (reason) => {
+                console.log('❌ Socket.IO Disconnected:', reason);
+                statusDiv.innerHTML = '❌ Déconnecté (' + reason + ')';
+                statusDiv.style.color = 'red';
+                addMessage('❌ Déconnexion: ' + reason);
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('❌ Socket.IO Error:', error);
+                statusDiv.innerHTML = '❌ Erreur: ' + error.message;
+                statusDiv.style.color = 'red';
+                addMessage('❌ Erreur: ' + error.message);
+            });
+
+            socket.on('online_users_list', (data) => {
+                console.log('👥 Online users:', data);
+                addMessage('👥 Utilisateurs en ligne: ' + data.users.length);
+            });
+
+            socket.on('error', (error) => {
+                console.error('🚫 Server Error:', error);
+                addMessage('🚫 Erreur serveur: ' + JSON.stringify(error));
+            });
+        }
+
+        // Auto-connect
+        setTimeout(testConnect, 1000);
+    </script>
+</body>
+</html>

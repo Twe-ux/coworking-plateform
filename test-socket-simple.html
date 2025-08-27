@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Socket.IO Simple</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+    <div id="status">Connexion en cours...</div>
+    <div id="messages"></div>
+    
+    <script>
+        console.log('🚀 Initialisation du client Socket.IO...');
+        
+        const socket = io('/api/socket', {
+            auth: {
+                sessionToken: 'test',
+                userId: 'test-user',
+                userRole: 'client',
+                userName: 'Test User',
+                userEmail: 'test@example.com'
+            },
+            transports: ['websocket', 'polling']
+        });
+
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+
+        function addMessage(msg) {
+            const p = document.createElement('p');
+            p.innerHTML = new Date().toLocaleTimeString() + ' - ' + msg;
+            messagesDiv.appendChild(p);
+        }
+
+        socket.on('connect', () => {
+            console.log('✅ Socket.IO Connected!');
+            statusDiv.innerHTML = '✅ Connecté au Socket.IO';
+            statusDiv.style.color = 'green';
+            addMessage('Socket.IO connecté avec succès');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('❌ Socket.IO Disconnected');
+            statusDiv.innerHTML = '❌ Déconnecté';
+            statusDiv.style.color = 'red';
+            addMessage('Socket.IO déconnecté');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('❌ Socket.IO Error:', error);
+            statusDiv.innerHTML = '❌ Erreur: ' + error.message;
+            statusDiv.style.color = 'red';
+            addMessage('Erreur: ' + error.message);
+        });
+
+        socket.on('error', (error) => {
+            console.error('🚫 Server Error:', error);
+            addMessage('Erreur serveur: ' + error.message);
+        });
+
+        console.log('📡 Client configuré');
+    </script>
+</body>
+</html>

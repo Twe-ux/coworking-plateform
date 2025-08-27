@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { useMessaging } from '@/hooks/use-messaging-minimal'
+import { useMessaging } from '@/hooks/use-messaging-nextws'
 import { useNotifications } from '@/hooks/use-notifications'
 
 interface Channel {
@@ -145,19 +145,8 @@ export function ChatList({
     }
   }, [session?.user?.id])
 
-  // Rafraîchir les statuts utilisateurs toutes les 10 secondes
-  useEffect(() => {
-    if (!session?.user) return
-
-    const refreshStatuses = setInterval(() => {
-      if (currentView === 'contacts') {
-        console.log('🔄 Rafraîchissement périodique des statuts utilisateurs...')
-        loadUsers()
-      }
-    }, 20000) // Toutes les 20 secondes (réduit pour économiser la DB)
-
-    return () => clearInterval(refreshStatuses)
-  }, [session?.user?.id, currentView])
+  // WebSocket gère maintenant les statuts utilisateurs en temps réel
+  // Plus besoin de polling périodique
 
   // Forcer la resynchronisation quand on passe à la vue contacts ou messages
   useEffect(() => {
@@ -170,18 +159,8 @@ export function ChatList({
     }
   }, [currentView])
 
-  // Recharger les DMs périodiquement pour détecter les nouveaux
-  useEffect(() => {
-    if (currentView === 'messages' && session?.user) {
-      console.log('🔄 Messages view active, setting up DM refresh interval')
-      const interval = setInterval(() => {
-        console.log('🔄 Refreshing DMs...')
-        loadDirectMessages()
-      }, 10000) // Toutes les 10 secondes (réduit pour économiser la DB)
-
-      return () => clearInterval(interval)
-    }
-  }, [currentView, session?.user?.id])
+  // WebSocket gère maintenant les mises à jour en temps réel
+  // Plus besoin de polling pour les DMs
 
   const getChannelIcon = (channel: Channel) => {
     switch (channel.type) {

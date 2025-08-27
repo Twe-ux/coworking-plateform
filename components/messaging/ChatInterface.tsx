@@ -41,12 +41,7 @@ import { MessageInput } from './MessageInput'
 import { EmojiPicker } from './EmojiPicker'
 import { AttachmentUpload } from './AttachmentUpload'
 
-import {
-  getWebSocketClient,
-  ClientMessage,
-  UserPresence,
-  TypingIndicator as TypingData,
-} from '@/lib/websocket/client'
+import { useMessaging } from '@/hooks/use-messaging'
 import { useSession } from 'next-auth/react'
 
 interface Channel {
@@ -83,21 +78,27 @@ export function ChatInterface({
   onChannelChange,
 }: ChatInterfaceProps) {
   const { data: session } = useSession()
-  const wsClient = getWebSocketClient()
   const { toast } = useToast()
+  
+  // Hook de messaging next-ws
+  const {
+    messages,
+    sendMessage,
+    loadMessages,
+    joinChannel,
+    leaveChannel,
+    isConnected,
+    startTyping,
+    stopTyping,
+    currentTypingUsers,
+    onlineUsers,
+    markMessagesAsRead,
+  } = useMessaging()
 
-  // États
+  // États locaux
   const [channels, setChannels] = useState<Channel[]>(initialChannels)
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null)
-  const [messages, setMessages] = useState<ClientMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isConnected, setIsConnected] = useState(false)
-  const [userPresence, setUserPresence] = useState<Map<string, UserPresence>>(
-    new Map()
-  )
-  const [typingUsers, setTypingUsers] = useState<Map<string, TypingData>>(
-    new Map()
-  )
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false)
 
@@ -110,30 +111,10 @@ export function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  // Initialisation WebSocket
+  // Scroll automatique quand de nouveaux messages arrivent
   useEffect(() => {
-    const initializeWebSocket = async () => {
-      try {
-        await wsClient.connect()
-        setIsConnected(true)
-      } catch (error) {
-        console.error('Erreur de connexion WebSocket:', error)
-        toast({
-          title: 'Erreur de connexion',
-          description: 'Impossible de se connecter au chat en temps réel',
-          variant: 'destructive',
-        })
-      }
-    }
-
-    if (session?.user) {
-      initializeWebSocket()
-    }
-
-    return () => {
-      wsClient.disconnect()
-    }
-  }, [session])
+    scrollToBottom()
+  }, [messages, scrollToBottom])
 
   // Gestionnaires d'événements WebSocket
   useEffect(() => {

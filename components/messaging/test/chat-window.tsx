@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useMessaging } from '@/hooks/use-messaging-minimal'
+import { useMessaging } from '@/hooks/use-messaging-nextws'
 import { useNotifications } from '@/hooks/use-notifications'
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -101,15 +101,31 @@ export function ChatWindow({
     messages: hookMessages,
     startTyping,
     stopTyping,
-    loadTypingUsers,
     currentTypingUsers,
   } = useMessaging()
   
   const { loadNotificationCounts } = useNotifications()
 
-  // Synchroniser les messages du hook avec l'état local
+  // Synchroniser les messages du hook avec l'état local ET détecter les nouveaux messages
   useEffect(() => {
+    console.log('📥 Hook messages updated:', hookMessages?.length, 'messages')
     setMessages(hookMessages || [])
+    
+    // Auto-scroll vers le bas pour les nouveaux messages
+    setTimeout(() => {
+      if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTo({
+          top: scrollAreaRef.current.scrollHeight,
+          behavior: 'smooth',
+        })
+      } else if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest',
+        })
+      }
+    }, 100)
     
     // Marquer automatiquement les messages comme lus après un délai (seulement les messages des AUTRES)
     if (hookMessages && hookMessages.length > 0 && chatId && session?.user?.id) {
@@ -168,139 +184,20 @@ export function ChatWindow({
       setIsLoading(true)
       setMessages([])
 
-      // Rejoindre le channel
+      // Rejoindre le channel via WebSocket - cela déclenche l'envoi de l'historique
+      console.log('🚪 Joining channel via WebSocket:', chatId)
       joinChannel(chatId)
-
-      // Charger l'historique des messages
-      loadMessages(chatId).then(() => {
+      
+      // Le WebSocket va nous envoyer 'channel_history' automatiquement
+      // Pas besoin d'appel API REST
+      setTimeout(() => {
         setIsLoading(false)
-        // Marquer immédiatement tous les messages de ce chat comme lus
-        markMessagesAsRead(chatId)
-        // Rafraîchir les notifications instantanément
-        setTimeout(() => loadNotificationCounts(), 100)
-      }).catch((error) => {
-        console.error('❌ Erreur chargement messages:', error)
-        setIsLoading(false)
-      })
-
-      // Recharger les messages périodiquement pour la synchronisation
-      const refreshInterval = setInterval(() => {
-        if (chatId) {
-          loadMessages(chatId)
-        }
-      }, 5000) // Toutes les 5 secondes (réduit pour économiser la DB)
-
-      return () => {
-        clearInterval(refreshInterval)
-      }
+      }, 1000) // Délai pour recevoir l'historique WebSocket
     }
-  }, [chatId, loadMessages, joinChannel, loadNotificationCounts])
+  }, [chatId, joinChannel])
 
-  // Recharger les indicateurs de frappe périodiquement
-  useEffect(() => {
-    if (!chatId) return
-
-    // Charger initialement
-    loadTypingUsers(chatId)
-
-    // Recharger toutes les 3 secondes (réduit pour économiser la DB)
-    const typingInterval = setInterval(() => {
-      loadTypingUsers(chatId)
-    }, 3000)
-
-    return () => clearInterval(typingInterval)
-  }, [chatId, loadTypingUsers])
-
-  // Écouter les nouveaux messages
-  useEffect(() => {
-    if (!socket) return
-
-    const handleNewMessage = (message: Message) => {
-      if (message.channel === chatId) {
-        setMessages((prev) => {
-          // Éviter les doublons
-          const exists = prev.find((m) => m._id === message._id)
-          if (exists) return prev
-          const newMessages = [...prev, message]
-
-          // Marquer automatiquement comme lu si ce n'est pas mon message
-          if (message.sender._id !== session?.user?.id && chatId) {
-            setTimeout(() => {
-              markMessagesAsRead(chatId, [message._id])
-            }, 1000) // Délai d'1 seconde pour simuler la lecture
-          }
-
-          return newMessages
-        })
-        setTimeout(scrollToBottom, 100) // Scroll vers le nouveau message
-      }
-    }
-
-    const handleChannelHistory = (data: {
-      channelId: string
-      messages: Message[]
-    }) => {
-      if (data.channelId === chatId) {
-        setMessages(data.messages || [])
-        setTimeout(scrollToBottom, 100) // Scroll vers le dernier message
-      }
-    }
-
-    const handleMessagesRead = (data: {
-      userId: string
-      messageIds: string[]
-      readAt: string
-    }) => {
-      console.log('👁️ ChatWindow: Messages read event received:', data)
-      setMessages((prev) =>
-        prev.map((message) => {
-          if (data.messageIds.includes(message._id)) {
-            // Ajouter le statut de lecture s'il n'existe pas déjà
-            const readBy = message.readBy || []
-            const alreadyRead = readBy.some((read) => read.user === data.userId)
-
-            if (!alreadyRead) {
-              console.log(
-                `👁️ Marking message ${message._id} as read by ${data.userId}`
-              )
-              return {
-                ...message,
-                readBy: [...readBy, { user: data.userId, readAt: data.readAt }],
-              }
-            }
-          }
-          return message
-        })
-      )
-    }
-
-    const handleTyping = (data: {
-      userId: string
-      userName: string
-      isTyping: boolean
-    }) => {
-      if (data.isTyping) {
-        setTypingUsers((prev) => [
-          ...prev.filter((name) => name !== data.userName),
-          data.userName,
-        ])
-      } else {
-        setTypingUsers((prev) => prev.filter((name) => name !== data.userName))
-      }
-    }
-
-    socket.on('new_message', handleNewMessage)
-    socket.on('channel_history', handleChannelHistory)
-    socket.on('user_typing', handleTyping)
-    socket.on('messages_read', handleMessagesRead)
-
-    return () => {
-      socket.off('new_message', handleNewMessage)
-      socket.off('channel_history', handleChannelHistory)
-      socket.off('user_typing', handleTyping)
-      socket.off('messages_read', handleMessagesRead)
-    }
-  }, [socket, chatId, markMessagesAsRead, session?.user?.id, scrollToBottom])
+  // Les messages et événements WebSocket sont maintenant gérés par le hook useMessaging
+  // Plus besoin de listener local redondant
 
   const handleSendMessage = useCallback(async () => {
     if (!newMessage.trim() || !chatId) return
@@ -314,7 +211,8 @@ export function ChatWindow({
     }
 
     try {
-      await sendSocketMessage(chatId, messageContent)
+      console.log('📤 Sending message via WebSocket:', messageContent)
+      sendSocketMessage(chatId, messageContent)
       
       // Si c'est un channel IA, déclencher l'animation d'écriture IA
       const isAIChannel = chatName?.includes('Assistant IA') || chatName?.includes('IA')
@@ -324,17 +222,16 @@ export function ChatWindow({
         const typingDuration = Math.random() * 2000 + 2000
         setTimeout(() => {
           setIsTyping(false)
-          loadMessages(chatId) // Recharger pour voir la réponse IA
+          // Pas besoin de recharger, le WebSocket nous enverra la réponse automatiquement
         }, typingDuration)
       }
       
       setTimeout(scrollToBottom, 100) // Scroll après envoi
-      // Recharger les messages après envoi pour synchronisation
-      setTimeout(() => loadMessages(chatId), 500)
+      // Plus besoin de recharger - le WebSocket nous envoie le message automatiquement
     } catch (error) {
       console.error('❌ Erreur envoi message:', error)
     }
-  }, [newMessage, chatId, chatName, sendSocketMessage, scrollToBottom, loadMessages])
+  }, [newMessage, chatId, chatName, sendSocketMessage, scrollToBottom])
 
   const handleTyping = useCallback(() => {
     if (!chatId) return
