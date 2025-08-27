@@ -1,9 +1,18 @@
 import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
+import { getCached, setCache } from '@/lib/cache'
 import { User } from '@/lib/models'
 
 export async function GET(request: NextRequest) {
   try {
+    // Vérifier le cache d'abord (30 minutes de cache pour les stats membres)
+    const cacheKey = 'stats-members'
+    const cached = getCached(cacheKey, 30 * 60 * 1000) // 30 minutes
+    if (cached) {
+      console.log('💾 Stats membres depuis le cache')
+      return Response.json(cached)
+    }
+
     await dbConnect()
 
     // Compter le nombre d'utilisateurs avec le rôle "client"
@@ -29,11 +38,16 @@ export async function GET(request: NextRequest) {
       lastUpdated: new Date().toISOString()
     }
 
-    return Response.json({
+    const result = {
       success: true,
       data: stats,
       message: 'Statistiques membres récupérées avec succès'
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return Response.json(result)
 
   } catch (error: any) {
     console.error('Erreur lors de la récupération des statistiques membres:', error)

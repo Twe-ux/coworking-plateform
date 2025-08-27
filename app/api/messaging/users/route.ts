@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
+import { getCached, setCache } from '@/lib/cache'
 import mongoose from 'mongoose'
 
 export async function GET(request: NextRequest) {
@@ -14,6 +15,14 @@ export async function GET(request: NextRequest) {
         { error: 'Non authentifié', message: 'Session requise' },
         { status: 401 }
       )
+    }
+
+    // Vérifier le cache d'abord (60 secondes de cache pour les utilisateurs)
+    const cacheKey = `users:${session.user.email}`
+    const cached = getCached(cacheKey, 60000)
+    if (cached) {
+      console.log('💾 Utilisateurs depuis le cache')
+      return NextResponse.json(cached)
     }
 
     // Connexion DB
@@ -57,10 +66,15 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
+    const result = {
       success: true,
       users: formattedUsers,
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
   } catch (error) {
     console.error('❌ Erreur récupération utilisateurs:', error)
     return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
+import { getCached, setCache } from '@/lib/cache'
 import mongoose from 'mongoose'
 
 export async function GET(request: NextRequest) {
@@ -14,6 +15,14 @@ export async function GET(request: NextRequest) {
         { error: 'Non authentifié' },
         { status: 401 }
       )
+    }
+
+    // Vérifier le cache d'abord (10 secondes de cache)
+    const cacheKey = `notification-counts:${session.user.email}`
+    const cached = getCached(cacheKey, 10000)
+    if (cached) {
+      console.log('💾 Compteurs notifications depuis le cache')
+      return NextResponse.json(cached)
     }
 
     await connectMongoose()
@@ -97,10 +106,15 @@ export async function GET(request: NextRequest) {
 
     console.log('📊 Compteurs calculés:', counts)
 
-    return NextResponse.json({
+    const result = {
       success: true,
       counts
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
 
   } catch (error) {
     console.error('❌ Erreur compteurs notifications:', error)

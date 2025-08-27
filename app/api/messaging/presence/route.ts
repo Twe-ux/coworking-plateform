@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
+import { getCached, setCache } from '@/lib/cache'
 import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
@@ -55,6 +56,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Statut mis à jour pour ${session.user.email}: ${status}`)
 
+    // Invalider le cache lors de la mise à jour
+    const cacheKey = `presence:${session.user.id}`
+    setCache(cacheKey, null, 0) // Invalider immédiatement
+
     return NextResponse.json({
       success: true,
       status: status,
@@ -86,6 +91,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Vérifier le cache d'abord (5 secondes de cache)
+    const cacheKey = `presence:${session.user.id}`
+    const cached = getCached(cacheKey, 5000)
+    if (cached) {
+      console.log('💾 Présence depuis le cache')
+      return NextResponse.json(cached)
+    }
+
     // Connexion DB
     await connectMongoose()
 
@@ -109,11 +122,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({
+    const result = {
       success: true,
       isOnline: user.isOnline || false,
       lastActive: user.lastActive
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
 
   } catch (error) {
     console.error('❌ Erreur récupération statut présence:', error)

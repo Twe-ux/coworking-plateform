@@ -188,7 +188,7 @@ export function ChatWindow({
         if (chatId) {
           loadMessages(chatId)
         }
-      }, 2000) // Toutes les 2 secondes pour plus de fluidité
+      }, 5000) // Toutes les 5 secondes (réduit pour économiser la DB)
 
       return () => {
         clearInterval(refreshInterval)
@@ -203,10 +203,10 @@ export function ChatWindow({
     // Charger initialement
     loadTypingUsers(chatId)
 
-    // Recharger toutes les 2 secondes
+    // Recharger toutes les 3 secondes (réduit pour économiser la DB)
     const typingInterval = setInterval(() => {
       loadTypingUsers(chatId)
-    }, 2000)
+    }, 3000)
 
     return () => clearInterval(typingInterval)
   }, [chatId, loadTypingUsers])

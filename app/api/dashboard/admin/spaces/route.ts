@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { UserRole } from '@/types/auth'
+import { getCached, setCache } from '@/lib/cache'
 import dbConnect from '@/lib/mongodb'
 import Space from '@/lib/models/space'
 import Booking from '@/lib/models/booking'
@@ -25,80 +26,89 @@ export async function GET() {
       )
     }
 
+    // Vérifier le cache d'abord (5 minutes de cache pour les espaces admin)
+    const cacheKey = `admin-spaces`
+    const cached = getCached(cacheKey, 5 * 60 * 1000) // 5 minutes
+    if (cached) {
+      console.log('💾 Espaces admin depuis le cache')
+      return NextResponse.json(cached)
+    }
+
     await dbConnect()
 
     // Récupérer tous les espaces
     const spaces = await Space.find().sort({ createdAt: -1 }).lean()
 
-    // Pour chaque espace, calculer les statistiques de réservation
-    const spacesWithStats = await Promise.all(
-      spaces.map(async (space: any) => {
-        // Compter les réservations
-        const bookingsCount = await Booking.countDocuments({
-          spaceName: space.name,
-          status: 'confirmed',
-        })
-
-        // Calculer le revenu total
-        const revenueResult = await Booking.aggregate([
-          {
-            $match: {
-              spaceName: space.name,
-              status: 'confirmed',
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              total: { $sum: '$totalPrice' },
-            },
-          },
-        ])
-        const totalRevenue =
-          revenueResult.length > 0 ? revenueResult[0].total : 0
-
-        // Dernière réservation
-        const lastBooking = await Booking.findOne(
-          { spaceName: space.name },
-          { date: 1 }
-        ).sort({ createdAt: -1 })
-
-        return {
-          _id: space._id?.toString() || space.id,
-          id: space.id,
-          name: space.name,
-          description: space.description || '',
-          location: space.location,
-          capacity: space.capacity,
-          pricePerHour: space.pricePerHour,
-          pricePerDay: space.pricePerDay,
-          pricePerWeek: space.pricePerWeek,
-          pricePerMonth: space.pricePerMonth,
-          features: space.features || [],
-          amenities: space.amenities || [],
-          image: space.image,
-          available: space.available,
-          rating: space.rating,
-          specialty: space.specialty,
-          isPopular: space.isPopular,
-          openingHours: space.openingHours,
-          bookingsCount,
-          totalRevenue: Math.round(totalRevenue),
-          lastBooking: lastBooking
-            ? new Date(lastBooking.date).toLocaleDateString('fr-FR')
-            : null,
-          createdAt: space.createdAt,
-          updatedAt: space.updatedAt,
+    // OPTIMISATION: Récupérer toutes les stats en une seule requête agrégée
+    const bookingStats = await Booking.aggregate([
+      {
+        $match: {
+          status: 'confirmed'
         }
-      })
+      },
+      {
+        $group: {
+          _id: '$spaceName',
+          bookingsCount: { $sum: 1 },
+          totalRevenue: { $sum: '$totalPrice' },
+          lastBookingDate: { $max: '$date' }
+        }
+      }
+    ])
+
+    // Créer une map pour un accès O(1)
+    const statsMap = new Map(
+      bookingStats.map(stat => [stat._id, stat])
     )
 
-    return NextResponse.json({
+    // Mapper les espaces avec leurs stats (évite N requêtes)
+    const spacesWithStats = spaces.map((space: any) => {
+      const stats = statsMap.get(space.name) || {
+        bookingsCount: 0,
+        totalRevenue: 0,
+        lastBookingDate: null
+      }
+
+      return {
+        _id: space._id?.toString() || space.id,
+        id: space.id,
+        name: space.name,
+        description: space.description || '',
+        location: space.location,
+        capacity: space.capacity,
+        pricePerHour: space.pricePerHour,
+        pricePerDay: space.pricePerDay,
+        pricePerWeek: space.pricePerWeek,
+        pricePerMonth: space.pricePerMonth,
+        features: space.features || [],
+        amenities: space.amenities || [],
+        image: space.image,
+        available: space.available,
+        rating: space.rating,
+        specialty: space.specialty,
+        isPopular: space.isPopular,
+        openingHours: space.openingHours,
+        bookingsCount: stats.bookingsCount,
+        totalRevenue: Math.round(stats.totalRevenue),
+        lastBooking: stats.lastBookingDate
+          ? new Date(stats.lastBookingDate).toLocaleDateString('fr-FR')
+          : null,
+        createdAt: space.createdAt,
+        updatedAt: space.updatedAt,
+      }
+    })
+
+    const result = {
       success: true,
       data: spacesWithStats,
       count: spacesWithStats.length,
       timestamp: new Date().toISOString(),
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
   } catch (error: any) {
     console.error('❌ Erreur API Spaces Admin:', error)
     return NextResponse.json(

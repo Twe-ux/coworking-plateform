@@ -73,13 +73,13 @@ export function useTodayStats(): UseTodayStatsReturn {
   useEffect(() => {
     fetchStats()
     
-    // Rafraîchir toutes les 10 minutes pendant les heures d'ouverture
+    // Rafraîchir toutes les 30 minutes pendant les heures d'ouverture (réduit pour économiser DB)
     const interval = setInterval(() => {
       const currentHour = new Date().getHours()
       if (currentHour >= 8 && currentHour <= 20) {
         fetchStats()
       }
-    }, 10 * 60 * 1000) // 10 minutes
+    }, 30 * 60 * 1000) // 30 minutes
 
     return () => clearInterval(interval)
   }, [])

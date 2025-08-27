@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectMongoose } from '@/lib/mongoose'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { getCached, setCache } from '@/lib/cache'
 import mongoose from 'mongoose'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
+    
+    // Vérifier le cache d'abord (30 secondes de cache pour les channels)
+    const cacheKey = `channels:${session?.user?.id || 'anonymous'}`
+    const cached = getCached(cacheKey, 30000)
+    if (cached) {
+      console.log('💾 Channels depuis le cache')
+      return NextResponse.json(cached)
+    }
+
     await connectMongoose()
 
     console.log('🔍 Récupération des channels avec enrichissement DM...')
@@ -71,11 +81,16 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    return NextResponse.json({
+    const result = {
       success: true,
       count: enrichedChannels.length,
       channels: enrichedChannels,
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Erreur simple channels:', error)
     return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
+import { getCached, setCache } from '@/lib/cache'
 import mongoose from 'mongoose'
 
 export async function GET(request: NextRequest) {
@@ -33,6 +34,14 @@ export async function GET(request: NextRequest) {
         { error: 'Channel ID requis' },
         { status: 400 }
       )
+    }
+
+    // Vérifier le cache d'abord (5 secondes de cache)
+    const cacheKey = `messages:${channelId}:${limit}:${before || 'latest'}`
+    const cached = getCached(cacheKey, 5000)
+    if (cached) {
+      console.log('💾 Messages depuis le cache')
+      return NextResponse.json(cached)
     }
 
     await connectMongoose()
@@ -112,11 +121,16 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ ${messagesWithSenders.length} messages récupérés`)
 
-    return NextResponse.json({
+    const result = {
       success: true,
       messages: messagesWithSenders,
       hasMore: messages.length === limit
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
 
   } catch (error) {
     console.error('❌ Erreur récupération messages:', error)

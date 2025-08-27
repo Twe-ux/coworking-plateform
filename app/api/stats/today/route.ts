@@ -1,12 +1,21 @@
 import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
+import { getCached, setCache } from '@/lib/cache'
 import { Booking } from '@/lib/models'
 
 export async function GET(request: NextRequest) {
   try {
+    // Vérifier le cache d'abord (15 minutes de cache pour les stats du jour)
+    const today = new Date()
+    const cacheKey = `stats-today:${today.toDateString()}`
+    const cached = getCached(cacheKey, 15 * 60 * 1000) // 15 minutes
+    if (cached) {
+      console.log('💾 Stats du jour depuis le cache')
+      return Response.json(cached)
+    }
+
     await dbConnect()
 
-    const today = new Date()
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
 
@@ -62,11 +71,16 @@ export async function GET(request: NextRequest) {
       lastUpdated: new Date().toISOString()
     }
 
-    return Response.json({
+    const result = {
       success: true,
       data: stats,
       message: 'Statistiques du jour récupérées avec succès'
-    })
+    }
+
+    // Mettre en cache la réponse
+    setCache(cacheKey, result)
+
+    return Response.json(result)
 
   } catch (error: any) {
     console.error('Erreur lors de la récupération des statistiques du jour:', error)

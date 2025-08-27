@@ -154,7 +154,7 @@ export function ChatList({
         console.log('🔄 Rafraîchissement périodique des statuts utilisateurs...')
         loadUsers()
       }
-    }, 10000) // Toutes les 10 secondes
+    }, 20000) // Toutes les 20 secondes (réduit pour économiser la DB)
 
     return () => clearInterval(refreshStatuses)
   }, [session?.user?.id, currentView])
@@ -177,7 +177,7 @@ export function ChatList({
       const interval = setInterval(() => {
         console.log('🔄 Refreshing DMs...')
         loadDirectMessages()
-      }, 5000) // Toutes les 5 secondes
+      }, 10000) // Toutes les 10 secondes (réduit pour économiser la DB)
 
       return () => clearInterval(interval)
     }

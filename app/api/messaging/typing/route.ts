@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectMongoose } from '@/lib/mongoose'
+import { getCached, setCache } from '@/lib/cache'
 import mongoose from 'mongoose'
 
 // Store temporaire des indicateurs de frappe (en production, utiliser Redis)
@@ -71,6 +72,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Channel ID requis' }, { status: 400 })
     }
 
+    // Vérifier le cache d'abord (2 secondes de cache pour les indicateurs de frappe)
+    const cacheKey = `typing-users:${channelId}:${session.user.email}`
+    const cached = getCached(cacheKey, 2000)
+    if (cached) {
+      console.log('💾 Typing users depuis le cache')
+      return NextResponse.json(cached)
+    }
+
     await connectMongoose()
     const db = mongoose.connection.db
     const usersCollection = db.collection('users')
@@ -93,10 +102,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
+    const result = { 
       success: true, 
       typingUsers 
-    })
+    }
+
+    // Mettre en cache la réponse (courte durée pour les indicateurs temps réel)
+    setCache(cacheKey, result)
+
+    return NextResponse.json(result)
 
   } catch (error) {
     console.error('❌ Erreur get typing indicators:', error)
