@@ -170,9 +170,16 @@ export default function EmployeeScheduling({
     return positionedShifts
   }
 
+  // Fonction utilitaire pour normaliser les dates au timezone français
+  const getFrenchDate = (date: Date | string) => {
+    const d = typeof date === 'string' ? new Date(date) : date
+    return new Date(d.toLocaleString("en-US", {timeZone: "Europe/Paris"}))
+  }
+
   // Fonctions spécifiques pour la vue staff par semaines
   const getWeekStart = (date: Date) => {
-    const d = new Date(date)
+    // Utiliser la fonction utilitaire pour assurer le timezone français
+    const d = getFrenchDate(date)
     const day = d.getDay()
     // Ajuster pour que lundi soit le premier jour de la semaine (1-6, dimanche devient 7)
     const dayAdjusted = day === 0 ? 6 : day - 1
@@ -186,14 +193,17 @@ export default function EmployeeScheduling({
   }
 
   const getWeeksWithShifts = () => {
-    const today = new Date()
+    // Forcer le timezone français pour la cohérence entre local et production
+    const today = getFrenchDate(new Date())
     const currentWeekStart = getWeekStart(today)
 
     // Grouper les shifts par semaine
     const shiftsByWeek = new Map()
 
     schedules.forEach((shift) => {
-      const shiftWeekStart = getWeekStart(shift.date)
+      // Assurer que la date du shift utilise aussi le timezone français
+      const shiftDate = getFrenchDate(shift.date)
+      const shiftWeekStart = getWeekStart(shiftDate)
       const weekKey = shiftWeekStart.getTime()
 
       // Inclure la semaine courante et les semaines futures, plus 1 semaine passée pour contexte
