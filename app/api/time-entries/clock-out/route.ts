@@ -123,17 +123,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Définir l'heure de sortie avec timezone français
+    // Définir l'heure de sortie avec timezone correct  
     const clockOutTime = body.clockOut ? new Date(body.clockOut) : new Date()
-    // Ajuster pour le timezone français (UTC+1/+2)
-    const frenchClockOutTime = new Date(
-      clockOutTime.getTime() +
-        clockOutTime.getTimezoneOffset() * 60000 +
-        2 * 60 * 60000
-    )
+    // Utiliser directement l'heure locale du client (pas de conversion)
+    const localClockOutTime = clockOutTime
 
     // Valider que l'heure de sortie est après l'heure d'entrée
-    if (frenchClockOutTime <= timeEntry.clockIn) {
+    if (localClockOutTime <= timeEntry.clockIn) {
       return NextResponse.json<ApiResponse<null>>(
         {
           success: false,
@@ -145,7 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Mettre à jour le time entry
-    timeEntry.clockOut = frenchClockOutTime
+    timeEntry.clockOut = localClockOutTime
     timeEntry.totalHours = timeEntry.calculateTotalHours()
     timeEntry.status = 'completed'
 

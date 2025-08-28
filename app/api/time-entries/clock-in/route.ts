@@ -123,19 +123,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Créer le nouveau time entry avec timezone français
+    // Créer le nouveau time entry avec timezone correct
     const clockInTime = body.clockIn ? new Date(body.clockIn) : new Date()
-    // Ajuster pour le timezone français (UTC+1/+2)
-    const frenchTime = new Date(
-      clockInTime.getTime() +
-        clockInTime.getTimezoneOffset() * 60000 +
-        2 * 60 * 60000
-    )
+    // Utiliser directement l'heure locale du client (pas de conversion)
+    const localTime = clockInTime
 
     const timeEntryData = {
       employeeId: body.employeeId,
       date: startOfDay,
-      clockIn: frenchTime,
+      clockIn: localTime,
       status: 'active' as const,
       shiftNumber: (totalShifts + 1) as 1 | 2,
     }

@@ -174,7 +174,9 @@ export default function EmployeeScheduling({
   const getWeekStart = (date: Date) => {
     const d = new Date(date)
     const day = d.getDay()
-    const diff = d.getDate() - day
+    // Ajuster pour que lundi soit le premier jour de la semaine (1-6, dimanche devient 7)
+    const dayAdjusted = day === 0 ? 6 : day - 1
+    const diff = d.getDate() - dayAdjusted
     return new Date(d.setDate(diff))
   }
 
@@ -194,8 +196,9 @@ export default function EmployeeScheduling({
       const shiftWeekStart = getWeekStart(shift.date)
       const weekKey = shiftWeekStart.getTime()
 
-      // Seulement les semaines actuelles et futures
-      if (shiftWeekStart >= currentWeekStart) {
+      // Inclure la semaine courante et les semaines futures, plus 1 semaine passée pour contexte
+      const oneWeekAgo = new Date(currentWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000)
+      if (shiftWeekStart >= oneWeekAgo) {
         if (!shiftsByWeek.has(weekKey)) {
           shiftsByWeek.set(weekKey, [])
         }
