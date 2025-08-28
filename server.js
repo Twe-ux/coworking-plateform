@@ -6,7 +6,7 @@ const { getServerSession } = require('next-auth')
 const mongoose = require('mongoose')
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'localhost'
+const hostname = dev ? 'localhost' : '0.0.0.0'
 const port = process.env.PORT || 3000
 
 const app = next({ dev, hostname, port })
@@ -100,11 +100,21 @@ app.prepare().then(() => {
   const io = new Server(server, {
     path: '/api/socket/',
     cors: {
-      origin: dev ? 'http://localhost:3000' : process.env.NEXTAUTH_URL,
+      origin: dev 
+        ? 'http://localhost:3000' 
+        : [
+            process.env.NEXTAUTH_URL,
+            process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+            'https://*.northflank.app',
+            'https://coworking-plateform.vercel.app'
+          ].filter(Boolean),
       methods: ['GET', 'POST'],
       credentials: true
     },
-    transports: ['websocket', 'polling']
+    transports: ['websocket', 'polling'],
+    allowEIO3: true,
+    pingTimeout: 60000,
+    pingInterval: 25000
   })
 
   io.on('connection', (socket) => {

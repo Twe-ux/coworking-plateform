@@ -13,7 +13,7 @@
     "build": "SKIP_TYPE_CHECK=true next build",
     "build:deploy": "tsc --project tsconfig.deploy.json --noEmit && next build",
     "build:loose": "SKIP_TYPE_CHECK=true next build",
-    "start": "next start",
+    "start": "node server.js",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
