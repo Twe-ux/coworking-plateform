@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { useMessaging } from './use-messaging-nextws'
+import { useMessaging } from './use-messaging-socketio'
 
 interface NotificationCounts {
   totalUnread: number
@@ -13,7 +13,7 @@ interface NotificationCounts {
 
 export function useNotifications() {
   const { data: session } = useSession()
-  const { socket, isConnected, markMessagesAsRead } = useMessaging()
+  const { socket, isConnected } = useMessaging()
 
   const [notificationCounts, setNotificationCounts] =
     useState<NotificationCounts>({
@@ -23,127 +23,127 @@ export function useNotifications() {
       channelBreakdown: {},
     })
 
-  // Charger les compteurs initiaux
-  const loadNotificationCounts = useCallback(async () => {
+  // Load initial notification counts ONLY ONCE via REST API
+  const loadInitialNotificationCounts = useCallback(async () => {
     if (!session?.user?.id) return
 
     try {
+      console.log('📊 Loading initial notification counts from API (one-time only)')
       const response = await fetch('/api/messaging/notifications/counts')
       const data = await response.json()
 
       if (data.success) {
         setNotificationCounts(data.counts)
+        console.log('✅ Initial notification counts loaded:', data.counts)
       }
     } catch (error) {
-      console.error('Erreur chargement notifications:', error)
+      console.error('❌ Error loading initial notification counts:', error)
     }
   }, [session?.user?.id])
 
-  // Recharger les notifications périodiquement (réduit avec WebSocket)
-  useEffect(() => {
-    if (!session?.user?.id) return
-
-    // Charger initialement
-    loadNotificationCounts()
-
-    // Si WebSocket n'est pas connecté, faire du polling réduit
-    if (!isConnected) {
-      const interval = setInterval(() => {
-        loadNotificationCounts()
-      }, 30000) // 30 secondes au lieu de 15 quand WebSocket fonctionne
-
-      return () => clearInterval(interval)
-    }
-  }, [session?.user?.id, loadNotificationCounts, isConnected])
-
-  // Logique WebSocket next-ws pour les notifications
+  // Socket.IO real-time notification handling - NO POLLING!
   useEffect(() => {
     if (!socket || !isConnected) return
 
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        const message = JSON.parse(event.data)
-        
-        if (message.type === 'notification_increment') {
-          const data = message.data
-          setNotificationCounts((prev) => {
-            const newCounts = { ...prev }
+    console.log('🔔 Setting up real-time Socket.IO notification listeners')
 
-            // Mettre à jour le compteur par channel
-            newCounts.channelBreakdown = {
-              ...prev.channelBreakdown,
-              [data.channelId]: Math.max(
-                0,
-                (prev.channelBreakdown[data.channelId] || 0) + data.increment
-              ),
-            }
-
-            // Mettre à jour les totaux
-            if (data.channelType === 'direct' || data.channelType === 'dm') {
-              newCounts.messagesDMs = Math.max(0, prev.messagesDMs + data.increment)
-            } else {
-              newCounts.channels = Math.max(0, prev.channels + data.increment)
-            }
-
-            newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
-
-            return newCounts
-          })
-        }
-
-        if (message.type === 'notifications_read') {
-          const data = message.data
-          console.log('🔔 Notification read event received:', data)
-          setNotificationCounts((prev) => {
-            const channelCount = prev.channelBreakdown[data.channelId] || 0
-            if (channelCount === 0) return prev // Pas de changement nécessaire
-
-            const newCounts = { ...prev }
-
-            // Réinitialiser le compteur du channel
-            newCounts.channelBreakdown = {
-              ...prev.channelBreakdown,
-              [data.channelId]: 0,
-            }
-
-            // Déterminer si c'est un DM ou un channel et réduire le bon compteur
-            if (data.channelType === 'direct' || data.channelType === 'dm') {
-              newCounts.messagesDMs = Math.max(0, prev.messagesDMs - channelCount)
-            } else {
-              newCounts.channels = Math.max(0, prev.channels - channelCount)
-            }
-
-            newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
-
-            console.log('🔔 Notifications updated:', {
-              before: prev,
-              after: newCounts,
-              channelCount,
-            })
-
-            return newCounts
-          })
-        }
-      } catch (error) {
-        console.error('Erreur parsing message WebSocket notifications:', error)
-      }
+    const handleInitialNotificationCounts = (counts: any) => {
+      console.log('🔔 Initial notification counts received:', counts)
+      setNotificationCounts(counts)
     }
 
-    socket.addEventListener('message', handleMessage)
+    const handleNotificationIncrement = (data: any) => {
+      console.log('🔔 Notification increment received:', data)
+      setNotificationCounts((prev) => {
+        const newCounts = { ...prev }
+
+        // Update channel-specific counter
+        const currentCount = prev.channelBreakdown[data.channelId] || 0
+        newCounts.channelBreakdown = {
+          ...prev.channelBreakdown,
+          [data.channelId]: Math.max(0, currentCount + data.increment),
+        }
+
+        // Update totals based on channel type
+        if (data.channelType === 'direct' || data.channelType === 'dm') {
+          newCounts.messagesDMs = Math.max(0, prev.messagesDMs + data.increment)
+        } else {
+          newCounts.channels = Math.max(0, prev.channels + data.increment)
+        }
+
+        newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
+
+        console.log('📊 Notification counts updated:', {
+          increment: data.increment,
+          channelId: data.channelId,
+          channelType: data.channelType,
+          newCounts
+        })
+
+        return newCounts
+      })
+    }
+
+    const handleNotificationsRead = (data: any) => {
+      console.log('👁️ Notifications read event received:', data)
+      setNotificationCounts((prev) => {
+        const channelCount = prev.channelBreakdown[data.channelId] || 0
+        if (channelCount === 0) {
+          console.log('ℹ️ No notifications to clear for channel:', data.channelId)
+          return prev
+        }
+
+        const newCounts = { ...prev }
+
+        // Reset channel-specific counter
+        newCounts.channelBreakdown = {
+          ...prev.channelBreakdown,
+          [data.channelId]: 0,
+        }
+
+        // Reduce appropriate counter based on channel type
+        if (data.channelType === 'direct' || data.channelType === 'dm') {
+          newCounts.messagesDMs = Math.max(0, prev.messagesDMs - channelCount)
+        } else {
+          newCounts.channels = Math.max(0, prev.channels - channelCount)
+        }
+
+        newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
+
+        console.log('📊 Notifications cleared:', {
+          channelId: data.channelId,
+          channelType: data.channelType,
+          clearedCount: channelCount,
+          newCounts
+        })
+
+        return newCounts
+      })
+    }
+
+    // Add Socket.IO event listeners
+    socket.on('initial_notification_counts', handleInitialNotificationCounts)
+    socket.on('notification_increment', handleNotificationIncrement)
+    socket.on('notifications_read', handleNotificationsRead)
 
     return () => {
-      socket.removeEventListener('message', handleMessage)
+      // Remove event listeners on cleanup
+      socket.off('initial_notification_counts', handleInitialNotificationCounts)
+      socket.off('notification_increment', handleNotificationIncrement)
+      socket.off('notifications_read', handleNotificationsRead)
     }
   }, [socket, isConnected])
 
-  // Charger les compteurs au démarrage
+  // Load initial counts only once when component mounts or session changes
   useEffect(() => {
-    loadNotificationCounts()
-  }, [loadNotificationCounts])
+    if (session?.user?.id) {
+      loadInitialNotificationCounts()
+    }
+  }, [session?.user?.id, loadInitialNotificationCounts])
 
-  // Fonction pour marquer un channel comme lu avec synchronisation serveur
+  // Mark channel as read function with real-time Socket.IO updates
   const markChannelAsRead = useCallback(
-    async (channelId: string, channelType?: string) => {
+    (channelId: string, channelType?: string) => {
       console.log('🔔 markChannelAsRead called:', { channelId, channelType })
 
       if (!session?.user?.id) {
@@ -151,15 +151,11 @@ export function useNotifications() {
         return
       }
 
-      // Approche WebSocket-first : faire une mise à jour locale immédiate
-      // Le WebSocket se charge de synchroniser les messages lus côté serveur
-      console.log('🔔 Marking channel as read via local update (WebSocket-first approach)')
-      
-      // Mise à jour locale immédiate
+      // Optimistic UI update - immediately clear notifications for better UX
       setNotificationCounts((prev) => {
         const channelCount = prev.channelBreakdown[channelId] || 0
         if (channelCount === 0) {
-          console.log('✅ No unread messages in channel', channelId)
+          console.log('ℹ️ No unread messages in channel', channelId)
           return prev
         }
 
@@ -169,7 +165,7 @@ export function useNotifications() {
           [channelId]: 0,
         }
 
-        // Réduire le bon compteur selon le type
+        // Reduce appropriate counter
         if (channelType === 'direct' || channelType === 'dm') {
           newCounts.messagesDMs = Math.max(0, prev.messagesDMs - channelCount)
         } else {
@@ -178,19 +174,24 @@ export function useNotifications() {
 
         newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
 
-        console.log('🔔 Local update: new counts', newCounts, `(cleared ${channelCount} notifications)`)
+        console.log('📊 Optimistic notification update:', {
+          channelId,
+          clearedCount: channelCount,
+          newCounts
+        })
+
         return newCounts
       })
 
-      // Le marquage des messages individuels est géré par le composant ChatWindow
-      // qui utilise markMessagesAsRead via WebSocket quand il reçoit les messages
+      // The actual message read tracking is handled by the ChatWindow component
+      // which calls markMessagesAsRead via Socket.IO when messages are viewed
     },
-    [session?.user?.id, markMessagesAsRead]
+    [session?.user?.id]
   )
 
+  // Removed loadNotificationCounts from return since we no longer need manual refreshing
   return {
     notificationCounts,
-    loadNotificationCounts,
     markChannelAsRead,
   }
 }

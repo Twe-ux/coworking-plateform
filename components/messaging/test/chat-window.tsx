@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useMessaging } from '@/hooks/use-messaging-nextws'
+import { useMessaging } from '@/hooks/use-messaging'
 import { useNotifications } from '@/hooks/use-notifications'
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -94,7 +94,7 @@ export function ChatWindow({
   const {
     socket,
     isConnected,
-    sendMessage: sendSocketMessage,
+    sendMessage,
     loadMessages,
     joinChannel,
     markMessagesAsRead,
@@ -108,8 +108,16 @@ export function ChatWindow({
 
   // Synchroniser les messages du hook avec l'état local ET détecter les nouveaux messages
   useEffect(() => {
-    console.log('📥 Hook messages updated:', hookMessages?.length, 'messages')
-    setMessages(hookMessages || [])
+    console.log('📥 Hook messages updated:', hookMessages?.length, 'messages total')
+    
+    // CRITICAL FIX: Filtrer les messages pour le channel actuel uniquement
+    const channelMessages = chatId 
+      ? (hookMessages || []).filter(msg => msg.channel === chatId)
+      : []
+      
+    console.log('📥 Messages filtrés pour channel', chatId, ':', channelMessages.length, 'messages')
+    
+    setMessages(channelMessages)
     
     // Auto-scroll vers le bas pour les nouveaux messages
     setTimeout(() => {
@@ -128,8 +136,8 @@ export function ChatWindow({
     }, 100)
     
     // Marquer automatiquement les messages comme lus après un délai (seulement les messages des AUTRES)
-    if (hookMessages && hookMessages.length > 0 && chatId && session?.user?.id) {
-      const unreadMessages = hookMessages.filter(msg => 
+    if (channelMessages && channelMessages.length > 0 && chatId && session?.user?.id) {
+      const unreadMessages = channelMessages.filter(msg => 
         msg.sender._id !== session.user.id && 
         !msg.readBy?.some(read => read.user === session.user.id)
       )
@@ -209,10 +217,11 @@ export function ChatWindow({
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
+    stopTyping(chatId) // Arrêter l'indicateur de frappe immédiatement
 
     try {
       console.log('📤 Sending message via WebSocket:', messageContent)
-      sendSocketMessage(chatId, messageContent)
+      sendMessage(chatId, messageContent)
       
       // Si c'est un channel IA, déclencher l'animation d'écriture IA
       const isAIChannel = chatName?.includes('Assistant IA') || chatName?.includes('IA')
@@ -231,7 +240,7 @@ export function ChatWindow({
     } catch (error) {
       console.error('❌ Erreur envoi message:', error)
     }
-  }, [newMessage, chatId, chatName, sendSocketMessage, scrollToBottom])
+  }, [newMessage, chatId, chatName, sendMessage, stopTyping, scrollToBottom])
 
   const handleTyping = useCallback(() => {
     if (!chatId) return
