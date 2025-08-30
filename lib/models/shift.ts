@@ -5,7 +5,7 @@ export interface IShift extends Document {
   date: Date
   startTime: string
   endTime: string
-  type: 'morning' | 'afternoon' | 'evening' | 'night'
+  type: string
   location?: string
   notes?: string
   isActive: boolean
@@ -49,10 +49,8 @@ const ShiftSchema = new Schema<IShift>(
     type: {
       type: String,
       required: [true, 'Le type de créneau est requis'],
-      enum: {
-        values: ['morning', 'afternoon', 'evening', 'night'],
-        message: 'Type de créneau invalide',
-      },
+      trim: true,
+      maxlength: [50, 'Le type de créneau ne peut pas dépasser 50 caractères'],
     },
     location: {
       type: String,
@@ -89,14 +87,11 @@ ShiftSchema.pre('save', function (next) {
     const start = new Date(`2000-01-01 ${this.startTime}`)
     let end = new Date(`2000-01-01 ${this.endTime}`)
 
-    // Gérer les créneaux de nuit qui passent minuit
-    if (this.type === 'night' && end <= start) {
+    // Gérer les créneaux qui passent minuit (détection automatique)
+    if (end <= start) {
+      // Si l'heure de fin est inférieure ou égale à l'heure de début,
+      // c'est probablement un créneau de nuit qui passe minuit
       end.setDate(end.getDate() + 1)
-    }
-
-    if (end <= start && this.type !== 'night') {
-      next(new Error("L'heure de fin doit être postérieure à l'heure de début"))
-      return
     }
   }
   next()
@@ -107,7 +102,7 @@ ShiftSchema.methods.getDurationHours = function (): number {
   const start = new Date(`2000-01-01 ${this.startTime}`)
   let end = new Date(`2000-01-01 ${this.endTime}`)
 
-  if (this.type === 'night' && end <= start) {
+  if (end <= start) {
     end.setDate(end.getDate() + 1)
   }
 
@@ -129,11 +124,11 @@ ShiftSchema.methods.hasConflictWith = function (otherShift: IShift): boolean {
   const otherStart = new Date(`2000-01-01 ${otherShift.startTime}`)
   const otherEnd = new Date(`2000-01-01 ${otherShift.endTime}`)
 
-  // Gérer les créneaux de nuit
-  if (this.type === 'night' && thisEnd <= thisStart) {
+  // Gérer les créneaux qui passent minuit
+  if (thisEnd <= thisStart) {
     thisEnd.setDate(thisEnd.getDate() + 1)
   }
-  if (otherShift.type === 'night' && otherEnd <= otherStart) {
+  if (otherEnd <= otherStart) {
     otherEnd.setDate(otherEnd.getDate() + 1)
   }
 

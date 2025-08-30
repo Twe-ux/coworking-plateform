@@ -15,7 +15,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils'
 
 import { UserPresenceIndicator } from './UserPresenceIndicator'
-import { UserPresence } from '@/lib/websocket/client'
+// import { UserPresence } from '@/lib/websocket/client'
+type UserPresence = { userId: string; status: 'online' | 'offline'; lastSeen?: Date }
 
 interface Channel {
   _id: string

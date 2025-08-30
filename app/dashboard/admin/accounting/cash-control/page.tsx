@@ -160,7 +160,9 @@ export default function CashControl() {
         return;
       }
       try {
-        const res = await fetch(`/api/cash-entry/${id}`, {
+        console.log("Tentative de suppression de l'ID:", id);
+        const encodedId = encodeURIComponent(id);
+        const res = await fetch(`/api/cash-entry/${encodedId}`, {
           method: "DELETE",
         });
         if (!res.ok) throw new Error("Erreur lors de la suppression");
@@ -187,7 +189,7 @@ export default function CashControl() {
       setFormStatus(null);
       let dateToSend = form.date;
       if (dateToSend.includes("/")) {
-        dateToSend = dateToSend.replaceAll("/", "-");
+        dateToSend = dateToSend.replace(/\//g, "-");
       }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dateToSend)) {
         const d = new Date(dateToSend);
@@ -278,23 +280,25 @@ export default function CashControl() {
     [form, refetchCashEntries],
   );
 
-  const [pdfGenerated, setPdfGenerated] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const generatePDF = useCallback(async () => {
     if (typeof window === "undefined") return;
 
     try {
-      setPdfGenerated(false);
+      setIsGeneratingPDF(true);
       const { generateCashControlPDF } = await import("@/lib/pdf-utils");
       await generateCashControlPDF({
         data: mergedData,
         selectedMonth,
         selectedYear,
       });
+      setFormStatus("PDF généré avec succès !");
     } catch (error) {
       console.error("Erreur lors de la génération du PDF:", error);
-      setFormStatus("PDF generation pas encore implémentée. Veuillez installer @react-pdf/renderer.");
+      setFormStatus("Erreur lors de la génération du PDF");
+    } finally {
+      setIsGeneratingPDF(false);
     }
   }, [mergedData, selectedMonth, selectedYear]);
 
@@ -334,17 +338,8 @@ export default function CashControl() {
           </select>
         </div>
 
-        <Button onClick={generatePDF} disabled={!pdfGenerated && pdfUrl === null}>
-          {pdfGenerated && pdfUrl ? (
-            <a
-              href={pdfUrl}
-              download={`Journal de bord ${monthsList[selectedMonth ?? 0]} ${selectedYear}.pdf`}
-            >
-              Télécharger PDF
-            </a>
-          ) : (
-            "Générer PDF"
-          )}
+        <Button onClick={generatePDF} disabled={isGeneratingPDF || mergedData.length === 0}>
+          {isGeneratingPDF ? "Génération en cours..." : "Générer PDF"}
         </Button>
       </div>
       <DataTable

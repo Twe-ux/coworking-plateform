@@ -68,7 +68,7 @@ export default function SchedulePage() {
     date: Date
     startTime: string
     endTime: string
-    type: 'morning' | 'afternoon' | 'evening' | 'night'
+    type: string
     location?: string
   }) => {
     // Utiliser la date locale pour éviter les problèmes de fuseau horaire

@@ -16,7 +16,7 @@ export interface Shift {
   date: Date
   startTime: string
   endTime: string
-  type: 'morning' | 'afternoon' | 'evening' | 'night'
+  type: string
   location?: string
   notes?: string
   isActive: boolean
@@ -113,7 +113,7 @@ export function useShifts(options: UseShiftsOptions = {}) {
       date: string | Date
       startTime: string
       endTime: string
-      type: 'morning' | 'afternoon' | 'evening' | 'night'
+      type: string
       location?: string
       notes?: string
     }) => {
@@ -284,7 +284,7 @@ export function useShifts(options: UseShiftsOptions = {}) {
       const start = new Date(`2000-01-01 ${shift.startTime}`)
       let end = new Date(`2000-01-01 ${shift.endTime}`)
 
-      if (shift.type === 'night' && end <= start) {
+      if (end <= start) {
         end.setDate(end.getDate() + 1)
       }
 

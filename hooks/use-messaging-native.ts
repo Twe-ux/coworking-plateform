@@ -264,7 +264,7 @@ export function useMessaging(): UseMessagingReturn {
       case 'user_presence':
         console.log('👤 Présence utilisateur:', message.data)
         if (message.data.status === 'online') {
-          setOnlineUsers(prev => new Set([...prev, message.data.userId]))
+          setOnlineUsers(prev => new Set([...Array.from(prev), message.data.userId]))
         } else {
           setOnlineUsers(prev => {
             const newSet = new Set(prev)

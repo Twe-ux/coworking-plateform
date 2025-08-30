@@ -404,7 +404,7 @@ export async function SOCKET(socket: any, req: NextRequest) {
                   user: new mongoose.Types.ObjectId(userId),
                   readAt: new Date(),
                 },
-              },
+              } as any,
             }
           )
 
@@ -447,7 +447,7 @@ export async function SOCKET(socket: any, req: NextRequest) {
           socketUsers.delete(socket.id)
 
           // Clean up typing indicators
-          for (const [key, typing] of typingUsers.entries()) {
+          for (const [key, typing] of Array.from(typingUsers.entries())) {
             if (typing.userId === userId) {
               typingUsers.delete(key)
             }

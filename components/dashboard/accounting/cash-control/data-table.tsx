@@ -82,7 +82,19 @@ export function DataTable<TData, TValue>({
       alert("Impossible de supprimer : identifiant manquant");
       return;
     }
-    if (onDelete) onDelete({ ...row, _id: deleteId });
+    
+    // Confirmation avant suppression
+    const confirmDelete = window.confirm(`Êtes-vous sûr de vouloir supprimer les données du ${row.date} ?`);
+    if (!confirmDelete) {
+      return;
+    }
+    
+    console.log("Suppression de:", { deleteId, row });
+    if (onDelete) {
+      onDelete({ ...row, _id: deleteId });
+    } else {
+      console.error("Fonction onDelete non définie");
+    }
   };
 
   React.useEffect(() => {

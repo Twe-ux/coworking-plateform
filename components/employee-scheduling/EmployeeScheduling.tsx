@@ -26,7 +26,7 @@ export interface EmployeeSchedulingProps {
 const DEFAULT_EMPLOYEES: Employee[] = []
 
 // Shift type configurations
-const SHIFT_TYPES = {
+const SHIFT_TYPES: Record<string, { label: string; time: string; color: string }> = {
   morning: {
     label: 'Morning',
     time: '08:00-12:00',
@@ -83,22 +83,54 @@ export default function EmployeeScheduling({
 
   const startDateMemo = useMemo(() => {
     const start = new Date(firstDayOfMonth)
-    start.setDate(start.getDate() - firstDayOfMonth.getDay())
+    // Ajuster pour commencer par lundi (1) au lieu de dimanche (0)
+    const dayOfWeek = firstDayOfMonth.getDay()
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    start.setDate(start.getDate() - daysToSubtract)
     return start
   }, [firstDayOfMonth])
 
   const calendarDays = useMemo(() => {
     const days = []
     const current = new Date(startDateMemo)
-
-    for (let i = 0; i < 42; i++) {
-      // 6 weeks
-      days.push(new Date(current))
-      current.setDate(current.getDate() + 1)
+    
+    // Générer les jours semaine par semaine et arrêter quand on dépasse le mois
+    let weeksAdded = 0
+    const maxWeeks = 6 // Limite de sécurité
+    
+    while (weeksAdded < maxWeeks) {
+      const weekDays = []
+      
+      // Générer 7 jours pour cette semaine
+      for (let dayInWeek = 0; dayInWeek < 7; dayInWeek++) {
+        weekDays.push(new Date(current))
+        current.setDate(current.getDate() + 1)
+      }
+      
+      // Vérifier si cette semaine contient au moins un jour du mois courant
+      const hasCurrentMonthDay = weekDays.some(day => 
+        day.getMonth() === currentDate.getMonth() && 
+        day.getFullYear() === currentDate.getFullYear()
+      )
+      
+      if (hasCurrentMonthDay) {
+        // Ajouter cette semaine car elle contient au moins un jour du mois
+        days.push(...weekDays)
+        weeksAdded++
+      } else if (weeksAdded > 0) {
+        // Si on a déjà ajouté des semaines et qu'aucun jour de cette semaine 
+        // n'est dans le mois courant, on s'arrête
+        break
+      } else {
+        // Si c'est la première semaine et qu'elle ne contient aucun jour du mois,
+        // on continue (cas peu probable avec notre calcul de startDateMemo)
+        days.push(...weekDays)
+        weeksAdded++
+      }
     }
 
     return days
-  }, [startDateMemo])
+  }, [startDateMemo, currentDate])
 
   // Navigation functions
   const goToPreviousMonth = () => {
@@ -243,10 +275,16 @@ export default function EmployeeScheduling({
     weekEnd: Date
   ) => {
     const employeeShifts = schedules.filter(
-      (shift) =>
-        shift.employeeId === employeeId &&
-        shift.date >= weekStart &&
-        shift.date <= weekEnd
+      (shift) => {
+        if (shift.employeeId !== employeeId) return false
+        
+        // Comparer seulement les dates (pas l'heure) pour éviter les problèmes de timezone
+        const shiftDate = new Date(shift.date.getFullYear(), shift.date.getMonth(), shift.date.getDate())
+        const startDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate())
+        const endDate = new Date(weekEnd.getFullYear(), weekEnd.getMonth(), weekEnd.getDate())
+        
+        return shiftDate >= startDate && shiftDate <= endDate
+      }
     )
 
     return employeeShifts.reduce((totalHours, shift) => {
@@ -416,7 +454,7 @@ export default function EmployeeScheduling({
                     <div className="flex-1 rounded-lg border border-gray-400">
                       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-gray-400">
                         {/* En-têtes des jours */}
-                        {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(
+                        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(
                           (day, dayIndex) => (
                             <div
                               key={dayIndex}
@@ -622,8 +660,9 @@ export default function EmployeeScheduling({
                     )
 
                     // Calculer les dates de début et fin de la semaine pour le calcul des heures
-                    const weekStartDate = weekDays[0]
-                    const weekEndDate = weekDays[6]
+                    // Utiliser getWeekStart/getWeekEnd pour s'assurer qu'on calcule du lundi au dimanche
+                    const weekStartDate = getWeekStart(weekDays[0])
+                    const weekEndDate = getWeekEnd(weekDays[0])
 
                     return (
                       <div
@@ -664,7 +703,7 @@ export default function EmployeeScheduling({
               <div className="flex-1 rounded-lg border border-gray-400">
                 <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-gray-400">
                   {/* Day Headers */}
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
+                  {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(
                     (day) => (
                       <div
                         key={day}
@@ -792,7 +831,11 @@ export default function EmployeeScheduling({
                       {employeeShifts.length > 0 ? (
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                           {employeeShifts.map((shift) => {
-                            const shiftType = SHIFT_TYPES[shift.type]
+                            const shiftType = SHIFT_TYPES[shift.type] || {
+                              label: shift.type,
+                              time: `${shift.startTime}-${shift.endTime}`,
+                              color: 'bg-gray-100 text-gray-800 border-gray-200',
+                            }
 
                             return (
                               <div

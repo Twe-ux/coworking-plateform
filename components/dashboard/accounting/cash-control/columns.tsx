@@ -289,7 +289,8 @@ export const columns: ColumnDef<Payment>[] = [
       };
       const isEmpty =
         (!row.original.especes || row.original.especes === 0) &&
-        (!row.original.depenses || row.original.prestaB2B.length === 0) &&
+        (!row.original.virement || row.original.virement === 0) &&
+        (!row.original.prestaB2B || row.original.prestaB2B.length === 0) &&
         (!row.original.depenses || row.original.depenses.length === 0) &&
         (!row.original.cbClassique || row.original.cbClassique === 0) &&
         (!row.original.cbSansContact || row.original.cbSansContact === 0);
@@ -319,7 +320,7 @@ export const columns: ColumnDef<Payment>[] = [
                 Modifier
               </DropdownMenuItem>
               <DropdownMenuItem
-                variant="destructive"
+                className="text-red-600 focus:text-red-600"
                 onClick={() => onDelete && onDelete(row.original)}
               >
                 Supprimer

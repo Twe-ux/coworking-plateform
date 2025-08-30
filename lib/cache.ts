@@ -28,7 +28,7 @@ export function clearCache(pattern?: string): void {
   }
   
   // Supprimer les clés qui matchent le pattern
-  for (const key of cache.keys()) {
+  for (const key of Array.from(cache.keys())) {
     if (key.includes(pattern)) {
       cache.delete(key)
     }
@@ -38,7 +38,7 @@ export function clearCache(pattern?: string): void {
 // Nettoyer le cache périodiquement
 setInterval(() => {
   const now = Date.now()
-  for (const [key, value] of cache.entries()) {
+  for (const [key, value] of Array.from(cache.entries())) {
     // Supprimer les entrées de plus de 30 secondes
     if (now - value.timestamp > 30000) {
       cache.delete(key)

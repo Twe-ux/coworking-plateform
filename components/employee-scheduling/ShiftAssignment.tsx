@@ -50,7 +50,7 @@ export interface ShiftAssignmentProps {
     date: Date
     startTime: string
     endTime: string
-    type: 'morning' | 'afternoon' | 'evening' | 'night'
+    type: string
     location?: string
   }) => void
   onUpdate: (shiftId: string, shift: Partial<Shift>) => void
@@ -136,14 +136,27 @@ export default function ShiftAssignment({
     date: normalizeDate(existingShift?.date || selectedDate),
     startTime: existingShift?.startTime || '09:00',
     endTime: existingShift?.endTime || '17:00',
-    type: existingShift?.type || ('morning' as const),
+    type: existingShift?.type || 'morning',
     location: existingShift?.location || '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [shiftTypes, setShiftTypes] =
-    useState<Record<string, ShiftTypeConfig>>(DEFAULT_SHIFT_TYPES)
+  const [shiftTypes, setShiftTypes] = useState<Record<string, ShiftTypeConfig>>(() => {
+    // Charger les créneaux depuis localStorage (incluant les suppressions et modifications)
+    if (typeof window !== 'undefined') {
+      const savedShiftTypes = localStorage.getItem('allShiftTypes')
+      if (savedShiftTypes) {
+        try {
+          const parsed = JSON.parse(savedShiftTypes)
+          return parsed
+        } catch (error) {
+          console.warn('Erreur lors du chargement des créneaux:', error)
+        }
+      }
+    }
+    return DEFAULT_SHIFT_TYPES
+  })
   const [editingShiftType, setEditingShiftType] = useState<string | null>(null)
   const [newShiftType, setNewShiftType] = useState<ShiftTypeConfig>({
     label: '',
@@ -154,6 +167,13 @@ export default function ShiftAssignment({
   })
 
   const isEditing = !!existingShift
+
+  // Fonction pour sauvegarder tous les créneaux (incluant suppressions et modifications)
+  const saveAllShiftTypes = (types: Record<string, ShiftTypeConfig>) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('allShiftTypes', JSON.stringify(types))
+    }
+  }
 
   // Reset form when dialog opens/closes or shift changes
   React.useEffect(() => {
@@ -167,7 +187,7 @@ export default function ShiftAssignment({
         date: normalizeDate(existingShift?.date || selectedDate),
         startTime: existingShift?.startTime || '09:00',
         endTime: existingShift?.endTime || '17:00',
-        type: existingShift?.type || ('morning' as const),
+        type: existingShift?.type || 'morning',
         location: existingShift?.location || '',
       })
       setErrors({})
@@ -193,12 +213,13 @@ export default function ShiftAssignment({
       const start = new Date(`2000-01-01 ${formData.startTime}`)
       const end = new Date(`2000-01-01 ${formData.endTime}`)
 
-      // Handle overnight shifts
-      if (formData.type === 'night' && end < start) {
+      // Handle overnight shifts (détection automatique)
+      if (end <= start) {
         end.setDate(end.getDate() + 1)
       }
 
-      if (end <= start && formData.type !== 'night') {
+      // Plus de validation d'erreur car on gère automatiquement les créneaux de nuit
+      if (false) {
         newErrors.endTime = 'End time must be after start time'
       }
     }
@@ -209,17 +230,24 @@ export default function ShiftAssignment({
 
   const handleShiftTypeChange = (type: string) => {
     const shiftType = shiftTypes[type]
+    
+    if (!shiftType) {
+      console.error('Type de créneau introuvable:', type, 'Types disponibles:', Object.keys(shiftTypes))
+      return
+    }
+    
     const newFormData = {
       ...formData,
-      type: type as any,
+      type: type,
       startTime: shiftType.defaultStart,
       endTime: shiftType.defaultEnd,
     }
 
     setFormData(newFormData)
-
-    // Auto-validation si un employé est sélectionné
-    if (newFormData.employeeId && newFormData.employeeId.trim() !== '') {
+    
+    // Auto-soumettre si un employé est sélectionné et qu'on n'est pas en mode édition
+    if (newFormData.employeeId && newFormData.employeeId.trim() !== '' && !isEditing) {
+      console.log('Auto-soumission du créneau:', newFormData)
       // Valider et soumettre avec les nouvelles données
       setTimeout(() => {
         handleSubmitWithData(newFormData)
@@ -228,6 +256,7 @@ export default function ShiftAssignment({
   }
 
   const handleSubmitWithData = async (dataToSubmit = formData) => {
+    console.log('handleSubmitWithData appelée avec:', dataToSubmit)
     // Validation avec les données fournies
     const newErrors: Record<string, string> = {}
 
@@ -247,14 +276,12 @@ export default function ShiftAssignment({
       const start = new Date(`2000-01-01 ${dataToSubmit.startTime}`)
       const end = new Date(`2000-01-01 ${dataToSubmit.endTime}`)
 
-      // Handle overnight shifts
-      if (dataToSubmit.type === 'night' && end < start) {
+      // Handle overnight shifts (détection automatique)
+      if (end <= start) {
         end.setDate(end.getDate() + 1)
       }
 
-      if (end <= start && dataToSubmit.type !== 'night') {
-        newErrors.endTime = 'End time must be after start time'
-      }
+      // Plus de validation d'erreur car on gère automatiquement les créneaux de nuit
     }
 
     setErrors(newErrors)
@@ -274,9 +301,13 @@ export default function ShiftAssignment({
         location: dataToSubmit.location,
       }
 
+      console.log('Données du shift à sauvegarder:', shiftData)
+
       if (isEditing && existingShift) {
+        console.log('Mode édition - appel onUpdate')
         onUpdate(existingShift.id, shiftData)
       } else {
+        console.log('Mode création - appel onSave')
         onSave(shiftData)
       }
 
@@ -314,8 +345,8 @@ export default function ShiftAssignment({
     const start = new Date(`2000-01-01 ${formData.startTime}`)
     let end = new Date(`2000-01-01 ${formData.endTime}`)
 
-    // Handle overnight shifts
-    if (formData.type === 'night' && end < start) {
+    // Handle overnight shifts (détection automatique)
+    if (end <= start) {
       end.setDate(end.getDate() + 1)
     }
 
@@ -462,6 +493,7 @@ export default function ShiftAssignment({
                               const newTypes = { ...shiftTypes }
                               delete newTypes[key]
                               setShiftTypes(newTypes)
+                              saveAllShiftTypes(newTypes)
                             }}
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                           >
@@ -729,13 +761,15 @@ export default function ShiftAssignment({
                       label: e.target.value,
                     }))
                   } else if (editingShiftType) {
-                    setShiftTypes((prev) => ({
-                      ...prev,
+                    const newTypes = {
+                      ...shiftTypes,
                       [editingShiftType]: {
-                        ...prev[editingShiftType],
+                        ...shiftTypes[editingShiftType],
                         label: e.target.value,
                       },
-                    }))
+                    }
+                    setShiftTypes(newTypes)
+                    saveAllShiftTypes(newTypes)
                   }
                 }}
                 placeholder="e.g., Morning, Custom Shift"
@@ -759,13 +793,15 @@ export default function ShiftAssignment({
                         defaultStart: e.target.value,
                       }))
                     } else if (editingShiftType) {
-                      setShiftTypes((prev) => ({
-                        ...prev,
+                      const newTypes = {
+                        ...shiftTypes,
                         [editingShiftType]: {
-                          ...prev[editingShiftType],
+                          ...shiftTypes[editingShiftType],
                           defaultStart: e.target.value,
                         },
-                      }))
+                      }
+                      setShiftTypes(newTypes)
+                      saveAllShiftTypes(newTypes)
                     }
                   }}
                 />
@@ -787,13 +823,15 @@ export default function ShiftAssignment({
                         defaultEnd: e.target.value,
                       }))
                     } else if (editingShiftType) {
-                      setShiftTypes((prev) => ({
-                        ...prev,
+                      const newTypes = {
+                        ...shiftTypes,
                         [editingShiftType]: {
-                          ...prev[editingShiftType],
+                          ...shiftTypes[editingShiftType],
                           defaultEnd: e.target.value,
                         },
-                      }))
+                      }
+                      setShiftTypes(newTypes)
+                      saveAllShiftTypes(newTypes)
                     }
                   }}
                 />
@@ -816,13 +854,15 @@ export default function ShiftAssignment({
                         icon: e.target.value,
                       }))
                     } else if (editingShiftType) {
-                      setShiftTypes((prev) => ({
-                        ...prev,
+                      const newTypes = {
+                        ...shiftTypes,
                         [editingShiftType]: {
-                          ...prev[editingShiftType],
+                          ...shiftTypes[editingShiftType],
                           icon: e.target.value,
                         },
-                      }))
+                      }
+                      setShiftTypes(newTypes)
+                      saveAllShiftTypes(newTypes)
                     }
                   }}
                   placeholder="🌅"
@@ -842,13 +882,15 @@ export default function ShiftAssignment({
                               icon: emoji,
                             }))
                           } else if (editingShiftType) {
-                            setShiftTypes((prev) => ({
-                              ...prev,
+                            const newTypes = {
+                              ...shiftTypes,
                               [editingShiftType]: {
-                                ...prev[editingShiftType],
+                                ...shiftTypes[editingShiftType],
                                 icon: emoji,
                               },
-                            }))
+                            }
+                            setShiftTypes(newTypes)
+                            saveAllShiftTypes(newTypes)
                           }
                         }}
                       >
@@ -872,13 +914,15 @@ export default function ShiftAssignment({
                   if (editingShiftType === 'new') {
                     setNewShiftType((prev) => ({ ...prev, color: value }))
                   } else if (editingShiftType) {
-                    setShiftTypes((prev) => ({
-                      ...prev,
+                    const newTypes = {
+                      ...shiftTypes,
                       [editingShiftType]: {
-                        ...prev[editingShiftType],
+                        ...shiftTypes[editingShiftType],
                         color: value,
                       },
-                    }))
+                    }
+                    setShiftTypes(newTypes)
+                    saveAllShiftTypes(newTypes)
                   }
                 }}
               >
@@ -923,10 +967,14 @@ export default function ShiftAssignment({
                     const key = newShiftType.label
                       .toLowerCase()
                       .replace(/\s+/g, '_')
-                    setShiftTypes((prev) => ({
-                      ...prev,
+                    const newTypes = {
+                      ...shiftTypes,
                       [key]: newShiftType,
-                    }))
+                    }
+                    console.log('Ajout nouveau type de créneau:', key, newShiftType)
+                    console.log('Nouveaux types après ajout:', newTypes)
+                    setShiftTypes(newTypes)
+                    saveAllShiftTypes(newTypes)
                     setNewShiftType({
                       label: '',
                       defaultStart: '09:00',

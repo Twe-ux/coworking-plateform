@@ -247,7 +247,7 @@ export function useMessaging(): UseMessagingReturn {
 
       socket.on('user_presence', (data: { userId: string, userName: string, status: 'online' | 'offline', lastSeen?: Date }) => {
         if (data.status === 'online') {
-          setOnlineUsers(prev => new Set([...prev, data.userId]))
+          setOnlineUsers(prev => new Set([...Array.from(prev), data.userId]))
         } else {
           setOnlineUsers(prev => {
             const newSet = new Set(prev)

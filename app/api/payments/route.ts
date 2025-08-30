@@ -226,6 +226,13 @@ export async function GET(request: NextRequest) {
       // Nouveau système Stripe Elements : vérifier avec payment_intent
       console.log('🎯 Vérification PaymentIntent:', paymentIntentId)
 
+      if (!stripe) {
+        return NextResponse.json(
+          { success: false, error: 'Stripe not configured' },
+          { status: 500 }
+        )
+      }
+
       const paymentIntent =
         await stripe.paymentIntents.retrieve(paymentIntentId)
 
@@ -280,6 +287,13 @@ export async function GET(request: NextRequest) {
     } else if (sessionId) {
       // Ancien système Stripe Checkout : vérifier avec session_id
       console.log('🔄 Vérification Session Checkout:', sessionId)
+
+      if (!stripe) {
+        return NextResponse.json(
+          { success: false, error: 'Stripe not configured' },
+          { status: 500 }
+        )
+      }
 
       const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId)
 
