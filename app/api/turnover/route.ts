@@ -83,28 +83,28 @@ export async function GET() {
               $cond: [
                 { $ne: ["$vat-20.total-ttc", null] },
                 { $round: ["$vat-20.total-ttc", 2] },
-                undefined,
+                null,
               ],
             },
             10: {
               $cond: [
                 { $ne: ["$vat-10.total-ttc", null] },
                 { $round: ["$vat-10.total-ttc", 2] },
-                undefined,
+                null,
               ],
             },
             "5,5": {
               $cond: [
                 { $ne: ["$vat-55.total-ttc", null] },
                 { $round: ["$vat-55.total-ttc", 2] },
-                undefined,
+                null,
               ],
             },
             0: {
               $cond: [
                 { $ne: ["$vat-0.total-ttc", null] },
                 { $round: ["$vat-0.total-ttc", 2] },
-                undefined,
+                null,
               ],
             },
           },
@@ -113,28 +113,28 @@ export async function GET() {
               $cond: [
                 { $ne: ["$vat-20.total-ht", null] },
                 { $round: ["$vat-20.total-ht", 2] },
-                undefined,
+                null,
               ],
             },
             10: {
               $cond: [
                 { $ne: ["$vat-10.total-ht", null] },
                 { $round: ["$vat-10.total-ht", 2] },
-                undefined,
+                null,
               ],
             },
             "5,5": {
               $cond: [
                 { $ne: ["$vat-55.total-ht", null] },
                 { $round: ["$vat-55.total-ht", 2] },
-                undefined,
+                null,
               ],
             },
             0: {
               $cond: [
                 { $ne: ["$vat-0.total-ht", null] },
                 { $round: ["$vat-0.total-ht", 2] },
-                undefined,
+                null,
               ],
             },
           },
@@ -143,28 +143,28 @@ export async function GET() {
               $cond: [
                 { $ne: ["$vat-20.total-taxes", null] },
                 { $round: ["$vat-20.total-taxes", 2] },
-                undefined,
+                null,
               ],
             },
             10: {
               $cond: [
                 { $ne: ["$vat-10.total-taxes", null] },
                 { $round: ["$vat-10.total-taxes", 2] },
-                undefined,
+                null,
               ],
             },
             "5,5": {
               $cond: [
                 { $ne: ["$vat-55.total-taxes", null] },
                 { $round: ["$vat-55.total-taxes", 2] },
-                undefined,
+                null,
               ],
             },
             0: {
               $cond: [
                 { $ne: ["$vat-0.total-taxes", null] },
                 { $round: ["$vat-0.total-taxes", 2] },
-                undefined,
+                null,
               ],
             },
           },
