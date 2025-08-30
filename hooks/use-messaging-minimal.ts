@@ -59,6 +59,8 @@ interface UseMessagingReturn {
   // Typing indicators
   startTyping: (channelId: string) => void
   stopTyping: (channelId: string) => void
+  loadTypingUsers: (channelId: string) => Promise<void>
+  currentTypingUsers: string[]
   
   // User status (online/offline)
   userStatuses: UserStatus[]
