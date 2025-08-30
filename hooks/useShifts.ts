@@ -64,6 +64,21 @@ export function useShifts(options: UseShiftsOptions = {}) {
               ? new Date(shift.date) // Les dates sont maintenant stockées correctement en UTC
               : shift.date,
         }))
+        
+        // Debug pour créneaux mercredi après-midi
+        const wednesdayAfternoonShifts = shiftsWithDates.filter((shift: any) => {
+          const day = shift.date.getDay()
+          const startTime = shift.startTime
+          return day === 3 && startTime >= '14:30'
+        })
+        if (wednesdayAfternoonShifts.length > 0) {
+          console.log('🔍 useShifts: Créneaux mercredi après-midi trouvés:', 
+            wednesdayAfternoonShifts.map((s: any) => ({
+              date: s.date.toDateString(),
+              startTime: s.startTime,
+              employeeId: s.employeeId
+            })))
+        }
 
         // Éviter les re-renders inutiles en comparant le contenu
         setShifts((prev) => {

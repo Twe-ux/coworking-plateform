@@ -151,9 +151,16 @@ export default function EmployeeScheduling({
 
   // Get schedules for a specific date
   const getSchedulesForDate = (date: Date): Shift[] => {
-    return schedules.filter(
-      (schedule) => schedule.date.toDateString() === date.toDateString()
-    )
+    // Normaliser les dates avec le timezone français pour cohérence
+    const normalizedDate = getFrenchDate(date)
+    
+    const filtered = schedules.filter((schedule) => {
+      const normalizedScheduleDate = getFrenchDate(schedule.date)
+      return normalizedScheduleDate.toDateString() === normalizedDate.toDateString()
+    })
+    
+    
+    return filtered
   }
 
   // Get employee by id
@@ -163,20 +170,41 @@ export default function EmployeeScheduling({
 
   // Fonction pour déterminer si le créneau commence avant 14h30
   const isShiftBeforeCutoff = (startTime: string) => {
-    const [hours, minutes] = startTime.split(':').map(Number)
+    if (!startTime || typeof startTime !== 'string') {
+      console.warn('⚠️ Heure de début invalide:', startTime)
+      return false
+    }
+    
+    const timeParts = startTime.split(':')
+    if (timeParts.length !== 2) {
+      console.warn('⚠️ Format d\'heure invalide:', startTime)
+      return false
+    }
+    
+    const [hours, minutes] = timeParts.map(Number)
+    if (isNaN(hours) || isNaN(minutes)) {
+      console.warn('⚠️ Heures ou minutes non numériques:', startTime)
+      return false
+    }
+    
     const startTimeInMinutes = hours * 60 + minutes
     const cutoffTime = 14 * 60 + 30 // 14h30 en minutes
-
-    return startTimeInMinutes < cutoffTime
+    const isMorning = startTimeInMinutes < cutoffTime
+    
+    
+    return isMorning
   }
 
   // Organiser les shifts d'un employé par créneaux matin/après-midi
   const organizeShiftsByTimeSlots = (shifts: Shift[]) => {
+    const morning = shifts.filter((shift) => isShiftBeforeCutoff(shift.startTime))
+    const afternoon = shifts.filter((shift) => !isShiftBeforeCutoff(shift.startTime))
+    
+    
+    
     return {
-      morning: shifts.filter((shift) => isShiftBeforeCutoff(shift.startTime)),
-      afternoon: shifts.filter(
-        (shift) => !isShiftBeforeCutoff(shift.startTime)
-      ),
+      morning,
+      afternoon,
     }
   }
 
