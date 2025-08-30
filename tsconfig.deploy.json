@@ -16,14 +16,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     
-    // Ignorer les erreurs de types sur les propriétés
-    "suppressImplicitAnyIndexErrors": true,
-    
     // Moins strict sur les imports
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    
-    // Ignorer les erreurs d'assignation
-    "suppressExcessPropertyErrors": true
+    "esModuleInterop": true
   }
 }

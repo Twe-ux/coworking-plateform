@@ -232,7 +232,6 @@ export default function ShiftAssignment({
     const shiftType = shiftTypes[type]
     
     if (!shiftType) {
-      console.error('Type de créneau introuvable:', type, 'Types disponibles:', Object.keys(shiftTypes))
       return
     }
     
@@ -247,7 +246,6 @@ export default function ShiftAssignment({
     
     // Auto-soumettre si un employé est sélectionné et qu'on n'est pas en mode édition
     if (newFormData.employeeId && newFormData.employeeId.trim() !== '' && !isEditing) {
-      console.log('Auto-soumission du créneau:', newFormData)
       // Valider et soumettre avec les nouvelles données
       setTimeout(() => {
         handleSubmitWithData(newFormData)
@@ -256,7 +254,6 @@ export default function ShiftAssignment({
   }
 
   const handleSubmitWithData = async (dataToSubmit = formData) => {
-    console.log('handleSubmitWithData appelée avec:', dataToSubmit)
     // Validation avec les données fournies
     const newErrors: Record<string, string> = {}
 
@@ -301,13 +298,9 @@ export default function ShiftAssignment({
         location: dataToSubmit.location,
       }
 
-      console.log('Données du shift à sauvegarder:', shiftData)
-
       if (isEditing && existingShift) {
-        console.log('Mode édition - appel onUpdate')
         onUpdate(existingShift.id, shiftData)
       } else {
-        console.log('Mode création - appel onSave')
         onSave(shiftData)
       }
 
@@ -971,8 +964,6 @@ export default function ShiftAssignment({
                       ...shiftTypes,
                       [key]: newShiftType,
                     }
-                    console.log('Ajout nouveau type de créneau:', key, newShiftType)
-                    console.log('Nouveaux types après ajout:', newTypes)
                     setShiftTypes(newTypes)
                     saveAllShiftTypes(newTypes)
                     setNewShiftType({
