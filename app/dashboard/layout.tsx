@@ -23,6 +23,7 @@ import {
   Building,
   Calendar,
   Coffee,
+  Coins,
   FileText,
   Home,
   Settings,
@@ -65,6 +66,7 @@ function DashboardContent({ children }: DashboardLayoutProps) {
             calendar: 'Calendrier',
             products: 'Produits',
             schedule: 'Plannification',
+            accounting: 'Comptabilité',
           }
           breadcrumbs.push({
             label: pageLabels[segments[2]] || segments[2],
@@ -121,9 +123,10 @@ function DashboardContent({ children }: DashboardLayoutProps) {
 
     const baseNavigation = {
       user: {
-        name: (session?.user?.firstName && session?.user?.lastName) 
-          ? `${session.user.firstName} ${session.user.lastName}`
-          : session?.user?.name || 'Utilisateur',
+        name:
+          session?.user?.firstName && session?.user?.lastName
+            ? `${session.user.firstName} ${session.user.lastName}`
+            : session?.user?.name || 'Utilisateur',
         email: session?.user?.email || 'user@example.com',
         avatar:
           (session?.user as any)?.avatar ||
@@ -148,10 +151,19 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               isActive: (pathname || '') === '/dashboard/admin',
             },
             {
+              title: 'Comptabilité',
+              url: '/dashboard/admin/accounting',
+              icon: Coins,
+              isActive:
+                (pathname || '') === '/dashboard/admin/accounting/cash-control',
+            },
+            {
               title: 'Réservations',
               url: '/dashboard/admin/bookings',
               icon: Calendar,
-              isActive: (pathname || '').startsWith('/dashboard/admin/bookings'),
+              isActive: (pathname || '').startsWith(
+                '/dashboard/admin/bookings'
+              ),
               items: [
                 {
                   title: 'Toutes les réservations',
@@ -262,13 +274,15 @@ function DashboardContent({ children }: DashboardLayoutProps) {
               title: 'Plannification',
               url: '/dashboard/manager/schedule',
               icon: Users,
-              isActive: pathname || ''.startsWith('/dashboard/manager/schedule'),
+              isActive:
+                pathname || ''.startsWith('/dashboard/manager/schedule'),
             },
             {
               title: 'Réservations',
               url: '/dashboard/manager/bookings',
               icon: Calendar,
-              isActive: pathname || ''.startsWith('/dashboard/manager/bookings'),
+              isActive:
+                pathname || ''.startsWith('/dashboard/manager/bookings'),
             },
             {
               title: 'Blog & CMS',
