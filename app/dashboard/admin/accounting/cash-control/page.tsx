@@ -57,7 +57,7 @@ function formatDateYYYYMMDD(dateStr: string) {
 
 export default function CashControl() {
   const { data: turnoverData } = useChartData()
-  const { dataCash, refetch: refetchCashEntries } = useCashEntryData()
+  const { dataCash, refetch: refetchCashEntries, invalidate: invalidateCashEntries } = useCashEntryData()
 
   const data = turnoverData || []
 
@@ -167,6 +167,8 @@ export default function CashControl() {
         })
         if (!res.ok) throw new Error('Erreur lors de la suppression')
 
+        // Invalider le cache puis rafraîchir pour forcer la mise à jour
+        invalidateCashEntries()
         await refetchCashEntries()
         setFormStatus('Suppression réussie')
       } catch {
@@ -255,6 +257,8 @@ export default function CashControl() {
         if (result.success) {
           setFormStatus(form._id ? 'Modification réussie !' : 'Ajout réussi !')
 
+          // Invalider le cache puis rafraîchir pour forcer la mise à jour
+          invalidateCashEntries()
           await refetchCashEntries()
           setEditingRow(null)
           window.dispatchEvent(new CustomEvent('cash-modal-close'))

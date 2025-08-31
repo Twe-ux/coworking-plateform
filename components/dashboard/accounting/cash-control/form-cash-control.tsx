@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface Depense {
   label: string
@@ -35,6 +35,86 @@ export function FormCashControl({
   editingRow,
   onSubmit,
 }: FormCashControlProps) {
+  
+  // État pour savoir si l'utilisateur a modifié manuellement les espèces
+  const [isManuallyEdited, setIsManuallyEdited] = React.useState(false)
+  
+  // Fonction utilitaire pour arrondir les montants monétaires
+  const roundToDecimals = (value: number, decimals: number = 2): number => {
+    return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+  }
+  
+  // Fonction pour calculer automatiquement les espèces
+  const calculateEspeces = () => {
+    // Récupérer le TTC depuis editingRow avec arrondi
+    const ttc = roundToDecimals(Number(editingRow?.TTC) || 0, 2)
+    
+    // Calculer le total des prestations B2B avec arrondi
+    const totalPrestaB2B = roundToDecimals(
+      form.prestaB2B.reduce((sum, presta) => {
+        return sum + (Number(presta.value) || 0)
+      }, 0),
+      2
+    )
+    
+    // Calculer le total des dépenses avec arrondi
+    const totalDepenses = roundToDecimals(
+      form.depenses.reduce((sum, depense) => {
+        return sum + (Number(depense.value) || 0)
+      }, 0),
+      2
+    )
+    
+    // Arrondir chaque montant de paiement
+    const cbClassique = roundToDecimals(Number(form.cbClassique) || 0, 2)
+    const cbSansContact = roundToDecimals(Number(form.cbSansContact) || 0, 2)
+    const virement = roundToDecimals(Number(form.virement) || 0, 2)
+    
+    // Calculer les espèces selon la formule : TTC + prestaB2B - depenses - cbClassique - cbSansContact - virement
+    const calculatedEspeces = ttc + totalPrestaB2B - totalDepenses - cbClassique - cbSansContact - virement
+    
+    // Debug pour la ligne du 24-08-2025
+    if (editingRow?.date && editingRow.date.includes('2025/08/24')) {
+      console.log('🔍 DEBUG 24-08-2025:', {
+        date: editingRow.date,
+        ttc: ttc,
+        totalPrestaB2B: totalPrestaB2B,
+        totalDepenses: totalDepenses,
+        cbClassique: cbClassique,
+        cbSansContact: cbSansContact,
+        virement: virement,
+        calculatedEspeces: calculatedEspeces,
+        beforeRounding: calculatedEspeces,
+        afterRounding: roundToDecimals(calculatedEspeces, 2)
+      })
+    }
+    
+    // Arrondir le résultat final et ne pas permettre de valeurs négatives
+    const roundedEspeces = roundToDecimals(calculatedEspeces, 2)
+    return Math.max(0, roundedEspeces)
+  }
+  
+  // Mettre à jour automatiquement les espèces quand les autres champs changent (seulement si pas modifié manuellement)
+  useEffect(() => {
+    // Ne pas écraser si l'utilisateur a modifié manuellement
+    if (isManuallyEdited) return
+    
+    const newEspeces = calculateEspeces()
+    const currentEspeces = Number(form.especes) || 0
+    
+    // Comparer avec une tolérance pour éviter les problèmes de précision des flottants
+    if (Math.abs(currentEspeces - newEspeces) > 0.01) {
+      // Formater avec 2 décimales pour l'affichage
+      const formattedEspeces = newEspeces.toFixed(2)
+      setForm((f: any) => ({ ...f, especes: formattedEspeces }))
+    }
+  }, [form.prestaB2B, form.depenses, form.cbClassique, form.cbSansContact, form.virement, editingRow?.TTC, isManuallyEdited])
+  
+  // Réinitialiser le flag de modification manuelle quand on change de ligne
+  useEffect(() => {
+    setIsManuallyEdited(false)
+  }, [editingRow?._id])
+
   return (
     <form
       className="mb-8 flex flex-wrap items-end gap-4 rounded border bg-gray-50 p-4"
@@ -179,15 +259,39 @@ export function FormCashControl({
           setForm((f: any) => ({ ...f, cbSansContact: e.target.value }))
         }
       />
-      <input
-        type="number"
-        className="rounded border px-2 py-1"
-        placeholder="Espèces"
-        value={form.especes}
-        onChange={(e) =>
-          setForm((f: any) => ({ ...f, especes: e.target.value }))
-        }
-      />
+      <div className="flex flex-col">
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            step="0.01"
+            className="rounded border px-2 py-1 flex-1"
+            placeholder="Espèces"
+            value={form.especes}
+            onChange={(e) => {
+              setForm((f: any) => ({ ...f, especes: e.target.value }))
+              setIsManuallyEdited(true)
+            }}
+            title="Montant calculé automatiquement mais modifiable manuellement"
+          />
+          {isManuallyEdited && (
+            <button
+              type="button"
+              onClick={() => {
+                const autoValue = calculateEspeces().toFixed(2)
+                setForm((f: any) => ({ ...f, especes: autoValue }))
+                setIsManuallyEdited(false)
+              }}
+              className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+              title="Recalculer automatiquement"
+            >
+              Auto
+            </button>
+          )}
+        </div>
+        <span className={`text-xs mt-1 ${isManuallyEdited ? 'text-orange-500' : 'text-blue-500'}`}>
+          {isManuallyEdited ? 'Modifié manuellement' : 'Auto-calculé'}
+        </span>
+      </div>
       <input
         type="number"
         className="rounded border px-2 py-1"

@@ -37,7 +37,7 @@ class CashEntryCacheManager {
   private readonly CACHE_DURATION =
     process.env.NODE_ENV === "development"
       ? 5 * 60 * 1000
-      : 24 * 60 * 60 * 1000; // 5min dev, 24h prod
+      : 5 * 60 * 1000; // 5min en dev et prod pour éviter les problèmes de cache
   private readonly STORAGE_KEY = "cash-entry-cache-data";
 
   static getInstance(): CashEntryCacheManager {
@@ -188,6 +188,13 @@ class CashEntryCacheManager {
     instance.fetchCashEntries(true);
   }
 
+  static clearAllCache() {
+    const instance = CashEntryCacheManager.getInstance();
+    instance.invalidateCache();
+    console.log('🧹 Cache cash entries complètement nettoyé');
+    // Ne pas refetch immédiatement, laisser le composant le faire
+  }
+
   getCache(): CashEntry[] | null {
     return this.cache;
   }
@@ -231,6 +238,7 @@ export function useCashEntryData() {
   }, [cacheManager, handleCacheUpdate]);
 
   const refetch = useCallback(() => {
+    console.log('🔄 Force refresh du cache cash entries');
     return cacheManager.refreshCache();
   }, [cacheManager]);
 
