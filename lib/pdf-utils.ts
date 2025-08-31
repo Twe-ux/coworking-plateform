@@ -1,4 +1,5 @@
 // PDF generation utilities with @react-pdf/renderer implementation
+import React from "react";
 
 export interface PDFData {
   data: any[];
@@ -17,7 +18,6 @@ export async function generateCashControlPDF({
     // Import PDF renderer and component dynamically
     const { pdf } = await import("@react-pdf/renderer");
     const { default: PDFCashControl } = await import("@/lib/pdf/pdf-cash-control");
-    const React = await import("react");
 
     // Generate PDF
     const pdfElement = React.createElement(PDFCashControl, {
@@ -26,7 +26,9 @@ export async function generateCashControlPDF({
       selectedYear,
     });
     
+    console.log("PDF Element créé, génération du blob...");
     const blob = await pdf(pdfElement as React.ReactElement).toBlob();
+    console.log("Blob généré avec succès, taille:", blob.size);
 
     // Create download link
     const url = URL.createObjectURL(blob);
@@ -45,9 +47,17 @@ export async function generateCashControlPDF({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    console.log("PDF téléchargé avec succès");
   } catch (error) {
-    console.error("Erreur lors de la génération du PDF:", error);
-    throw error;
+    console.error("Erreur détaillée lors de la génération du PDF:", error);
+    
+    // Ajouter plus de détails sur l'erreur
+    if (error instanceof Error) {
+      console.error("Message d'erreur:", error.message);
+      console.error("Stack trace:", error.stack);
+    }
+    
+    throw new Error(`Erreur PDF: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
   }
 }
 

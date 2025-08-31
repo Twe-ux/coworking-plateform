@@ -283,20 +283,44 @@ export default function CashControl() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const generatePDF = useCallback(async () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      setFormStatus("Génération PDF uniquement disponible côté client");
+      return;
+    }
+
+    if (!mergedData || mergedData.length === 0) {
+      setFormStatus("Aucune donnée disponible pour générer le PDF");
+      return;
+    }
 
     try {
       setIsGeneratingPDF(true);
+      setFormStatus("Génération du PDF en cours...");
+      
+      console.log("Début de génération PDF avec", mergedData.length, "entrées");
       const { generateCashControlPDF } = await import("@/lib/pdf-utils");
+      
       await generateCashControlPDF({
         data: mergedData,
         selectedMonth,
         selectedYear,
       });
+      
       setFormStatus("PDF généré avec succès !");
     } catch (error) {
       console.error("Erreur lors de la génération du PDF:", error);
-      setFormStatus("Erreur lors de la génération du PDF");
+      
+      const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
+      setFormStatus(`Erreur PDF: ${errorMessage}`);
+      
+      // Afficher plus de détails dans la console pour debug
+      console.error("Détails complets de l'erreur:", {
+        error,
+        mergedDataLength: mergedData?.length,
+        selectedMonth,
+        selectedYear,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A'
+      });
     } finally {
       setIsGeneratingPDF(false);
     }

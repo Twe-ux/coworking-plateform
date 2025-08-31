@@ -311,13 +311,9 @@ export default function PDFCashControl({
     <Document pageMode="fullScreen">
       <Page style={styles.page} size="A4">
         <View style={styles.header} fixed>
-          <Image
-            src={"/logo.svg"}
-            style={{
-              width: 100,
-              height: 100,
-            }}
-          />
+          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}>
+            COWORKING PLATFORM
+          </Text>
           <Text style={{ fontSize: 18, fontWeight: "bold" }}>
             Journal de bord
           </Text>
