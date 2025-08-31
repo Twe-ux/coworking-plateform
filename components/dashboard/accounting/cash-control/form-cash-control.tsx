@@ -1,31 +1,31 @@
-import { Button } from "@/components/ui/button";
-import React from "react";
+import { Button } from '@/components/ui/button'
+import React from 'react'
 
 interface Depense {
-  label: string;
-  value: string | number;
+  label: string
+  value: string | number
 }
 
 interface Presta {
-  label: string;
-  value: string | number;
+  label: string
+  value: string | number
 }
 
 interface FormCashControlProps {
   form: {
-    _id: string;
-    date: string;
-    prestaB2B: Presta[];
-    depenses: Depense[];
-    virement: string | number;
-    especes: string | number;
-    cbClassique: string | number;
-    cbSansContact: string | number;
-  };
-  setForm: React.Dispatch<React.SetStateAction<any>>;
-  formStatus: string | null;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  editingRow: any;
+    _id: string
+    date: string
+    prestaB2B: Presta[]
+    depenses: Depense[]
+    virement: string | number
+    especes: string | number
+    cbClassique: string | number
+    cbSansContact: string | number
+  }
+  setForm: React.Dispatch<React.SetStateAction<any>>
+  formStatus: string | null
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  editingRow: any
 }
 
 export function FormCashControl({
@@ -53,7 +53,7 @@ export function FormCashControl({
                 setForm((f: any) => ({
                   ...f,
                   depenses: f.depenses.map((d: Depense, i: number) =>
-                    i === idx ? { ...d, label: e.target.value } : d,
+                    i === idx ? { ...d, label: e.target.value } : d
                   ),
                 }))
               }
@@ -67,7 +67,7 @@ export function FormCashControl({
                 setForm((f: any) => ({
                   ...f,
                   depenses: f.depenses.map((d: Depense, i: number) =>
-                    i === idx ? { ...d, value: e.target.value } : d,
+                    i === idx ? { ...d, value: e.target.value } : d
                   ),
                 }))
               }
@@ -92,7 +92,7 @@ export function FormCashControl({
           onClick={() =>
             setForm((f: any) => ({
               ...f,
-              depenses: [...f.depenses, { label: "", value: "" }],
+              depenses: [...f.depenses, { label: '', value: '' }],
             }))
           }
         >
@@ -113,7 +113,7 @@ export function FormCashControl({
                 setForm((f: any) => ({
                   ...f,
                   prestaB2B: f.prestaB2B.map((p: Presta, i: number) =>
-                    i === idx ? { ...p, label: e.target.value } : p,
+                    i === idx ? { ...p, label: e.target.value } : p
                   ),
                 }))
               }
@@ -127,7 +127,7 @@ export function FormCashControl({
                 setForm((f: any) => ({
                   ...f,
                   prestaB2B: f.prestaB2B.map((p: Presta, i: number) =>
-                    i === idx ? { ...p, value: e.target.value } : p,
+                    i === idx ? { ...p, value: e.target.value } : p
                   ),
                 }))
               }
@@ -139,7 +139,7 @@ export function FormCashControl({
                 setForm((f: any) => ({
                   ...f,
                   prestaB2B: f.prestaB2B.filter(
-                    (_: any, i: number) => i !== idx,
+                    (_: any, i: number) => i !== idx
                   ),
                 }))
               }
@@ -154,23 +154,13 @@ export function FormCashControl({
           onClick={() =>
             setForm((f: any) => ({
               ...f,
-              prestaB2B: [...f.prestaB2B, { label: "", value: "" }],
+              prestaB2B: [...f.prestaB2B, { label: '', value: '' }],
             }))
           }
         >
           + Ajouter une facture B2B
         </button>
       </div>
-      <input
-        type="number"
-        className="rounded border px-2 py-1"
-        placeholder="Virement"
-        value={form.virement}
-        onChange={(e) =>
-          setForm((f: any) => ({ ...f, virement: e.target.value }))
-        }
-      />
-
       <input
         type="number"
         className="rounded border px-2 py-1"
@@ -198,15 +188,24 @@ export function FormCashControl({
           setForm((f: any) => ({ ...f, especes: e.target.value }))
         }
       />
+      <input
+        type="number"
+        className="rounded border px-2 py-1"
+        placeholder="Virement"
+        value={form.virement}
+        onChange={(e) =>
+          setForm((f: any) => ({ ...f, virement: e.target.value }))
+        }
+      />
       <Button
         type="submit"
         className="bg-blue-600 text-white hover:bg-blue-700"
       >
-        {editingRow._id === "" ? "Ajouter" : "Modifier"}
+        {editingRow._id === '' ? 'Ajouter' : 'Modifier'}
       </Button>
       {formStatus && (
         <span className="ml-4 text-sm font-semibold">{formStatus}</span>
       )}
     </form>
-  );
+  )
 }
