@@ -113,31 +113,82 @@ export default function CashControl() {
 
   const mergedData = useMemo(() => {
     if (!filteredData || !dataCash) return []
-    return filteredData.map((turnoverItem: TurnoverItem) => {
-      // Les données utilisent le format YYYY/MM/DD, pas besoin de conversion
-      const turnoverDate = turnoverItem.date // déjà en format YYYY/MM/DD
-
-      // Chercher une entrée cashEntry correspondante
-      const cashEntry = dataCash.find(
-        (entry: unknown) => (entry as CashEntry)._id === turnoverDate
-      )
-
-      return {
+    
+    // Créer un Map pour stocker toutes les dates uniques
+    const allDatesMap = new Map()
+    
+    // Ajouter toutes les dates de turnover
+    filteredData.forEach((turnoverItem: TurnoverItem) => {
+      allDatesMap.set(turnoverItem.date, {
         ...turnoverItem,
-        ...cashEntry,
-        _id: cashEntry?._id || '',
-        date: turnoverDate,
-        TVA: (turnoverItem as TurnoverItem).TVA ?? 0,
-        // S'assurer que les champs cash entry sont définis
-        prestaB2B: cashEntry?.prestaB2B || [],
-        depenses: cashEntry?.depenses || [],
-        virement: cashEntry?.virement || null,
-        especes: cashEntry?.especes || null,
-        cbClassique: cashEntry?.cbClassique || null,
-        cbSansContact: cashEntry?.cbSansContact || null,
+        TVA: turnoverItem.TVA ?? 0,
+        source: 'turnover'
+      })
+    })
+    
+    // Ajouter toutes les dates de cashEntry qui correspondent aux filtres
+    dataCash.forEach((cashEntry: unknown) => {
+      const entry = cashEntry as CashEntry
+      const entryDate = entry.date || entry._id
+      
+      // Debug spécifique pour le 30-08-2025
+      if (entryDate && (entryDate.includes('2025/08/30') || entryDate.includes('2025-08-30'))) {
+        console.log('🔍 CashEntry 30-08-2025 trouvé:', entry)
+      }
+      
+      // Vérifier si cette date correspond aux filtres actuels
+      if (entryDate) {
+        const d = new Date(entryDate.replace(/\//g, '-'))
+        const yearMatch = selectedYear ? d.getFullYear() === selectedYear : true
+        const monthMatch = selectedMonth !== null ? d.getMonth() === selectedMonth : true
+        
+        if (yearMatch && monthMatch) {
+          // Si déjà présent, merger les données, sinon créer une nouvelle entrée
+          const existing = allDatesMap.get(entryDate)
+          if (existing) {
+            allDatesMap.set(entryDate, { ...existing, ...entry })
+          } else {
+            allDatesMap.set(entryDate, {
+              date: entryDate,
+              TTC: 0,
+              HT: 0,
+              TVA: 0,
+              ...entry,
+              source: 'cashEntry'
+            })
+          }
+          
+          // Debug pour le 30-08-2025
+          if (entryDate.includes('2025/08/30') || entryDate.includes('2025-08-30')) {
+            console.log('✅ 30-08-2025 ajouté au allDatesMap:', allDatesMap.get(entryDate))
+          }
+        }
       }
     })
-  }, [filteredData, dataCash])
+    
+    // Convertir le Map en tableau et formater
+    const result = Array.from(allDatesMap.values()).map((item: any) => ({
+      ...item,
+      _id: item._id || '',
+      prestaB2B: item.prestaB2B || [],
+      depenses: item.depenses || [],
+      virement: item.virement || null,
+      especes: item.especes || null,
+      cbClassique: item.cbClassique || null,
+      cbSansContact: item.cbSansContact || null,
+    })).sort((a, b) => new Date(a.date.replace(/\//g, '-')).getTime() - new Date(b.date.replace(/\//g, '-')).getTime())
+    
+    // Debug pour vérifier la présence du 30-08-2025
+    const august30 = result.find(item => item.date.includes('2025/08/30') || item.date.includes('2025-08-30'))
+    if (august30) {
+      console.log('✅ 30-08-2025 trouvé dans mergedData:', august30)
+    } else {
+      console.log('❌ 30-08-2025 manquant dans mergedData')
+      console.log('🔍 Dates disponibles en août 2025:', result.filter(item => item.date.includes('2025/08') || item.date.includes('2025-08')).map(item => item.date))
+    }
+    
+    return result
+  }, [filteredData, dataCash, selectedYear, selectedMonth])
 
   type CashEntryRow = {
     _id?: string
