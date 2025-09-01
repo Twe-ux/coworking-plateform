@@ -1,15 +1,17 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type Employee } from '@/hooks/useEmployees'
 import { type Shift } from '@/hooks/useShifts'
-import { Clock, User, Calendar, Target } from 'lucide-react'
+import { type TimeEntry } from '@/types/timeEntry'
+import { Calendar, Clock, Target, User } from 'lucide-react'
 import { useMemo } from 'react'
 
 interface EmployeeMonthlyCardProps {
   employees: Employee[]
   shifts: Shift[]
+  timeEntries: TimeEntry[]
   currentDate: Date // The month being displayed
   className?: string
 }
@@ -17,6 +19,7 @@ interface EmployeeMonthlyCardProps {
 export default function EmployeeMonthlyCard({
   employees,
   shifts,
+  timeEntries,
   currentDate,
   className = '',
 }: EmployeeMonthlyCardProps) {
@@ -66,6 +69,13 @@ export default function EmployeeMonthlyCard({
 
   // Calculate monthly statistics for each employee
   const employeeMonthlyStats = useMemo(() => {
+    const today = new Date()
+    const consultationDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    )
+
     return employees.map((employee) => {
       // Filter shifts for this employee within the current month
       const monthlyShifts = shifts.filter(
@@ -81,12 +91,31 @@ export default function EmployeeMonthlyCard({
         return total + calculateShiftHours(shift)
       }, 0)
 
-      // Placeholder for actual/clocked hours (to be implemented later)
-      const actualHours = 0 // TODO: Implement actual clocked hours calculation
+      // Calculate actual hours (realized hours from 1st day to consultation date)
+      let actualHours = 0
+      if (Array.isArray(timeEntries)) {
+        for (const entry of timeEntries) {
+          if (
+            entry.employeeId === employee.id &&
+            entry.status === 'completed' &&
+            entry.clockOut &&
+            entry.date >= firstDayOfMonth &&
+            entry.date < consultationDate
+          ) {
+            actualHours += entry.totalHours || 0
+          }
+        }
+      }
 
-      // Calculate projected hours (actual + remaining planned)
-      // For now, this equals planned hours since actual hours is 0
-      const projectedHours = actualHours + plannedHours
+      // Calculate projected hours for the month
+      // = Actual hours (1st to yesterday) + Planned hours (today to end of month)
+      const remainingPlannedHours = monthlyShifts
+        .filter((shift) => shift.date >= consultationDate)
+        .reduce((total, shift) => {
+          return total + calculateShiftHours(shift)
+        }, 0)
+
+      const projectedHours = actualHours + remainingPlannedHours
 
       // Count shift days
       const shiftDays = new Set(
@@ -102,7 +131,7 @@ export default function EmployeeMonthlyCard({
         totalShifts: monthlyShifts.length,
       }
     })
-  }, [employees, shifts, firstDayOfMonth, lastDayOfMonth])
+  }, [employees, shifts, timeEntries, firstDayOfMonth, lastDayOfMonth])
 
   // Get color classes for different statistics
   const getHoursColorClass = (hours: number) => {
@@ -169,7 +198,7 @@ export default function EmployeeMonthlyCard({
                 {/* Planned Hours */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-500" />
+                    <Calendar className="h-4 w-4 text-blue-500" />
                     <span className="text-sm font-medium text-gray-700">
                       Planned Hours
                     </span>
@@ -182,10 +211,26 @@ export default function EmployeeMonthlyCard({
                   </Badge>
                 </div>
 
+                {/* Actual Hours */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-green-500" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Actual Hours
+                    </span>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`font-mono text-sm ${getHoursColorClass(actualHours)}`}
+                  >
+                    {formatHoursToHHMM(actualHours)}
+                  </Badge>
+                </div>
+
                 {/* Projected Hours */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-green-500" />
+                    <Target className="h-4 w-4 text-purple-500" />
                     <span className="text-sm font-medium text-gray-700">
                       Projected Hours
                     </span>
@@ -221,8 +266,8 @@ export default function EmployeeMonthlyCard({
                     <span className="font-medium">{totalShifts}</span>
                   </div>
                   {actualHours === 0 && plannedHours > 0 && (
-                    <div className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-600">
-                      Clocked hours coming soon
+                    <div className="mt-1 rounded-md bg-blue-50 px-2 py-1 text-xs text-blue-600">
+                      No clocked hours yet this month
                     </div>
                   )}
                 </div>
@@ -252,7 +297,7 @@ export default function EmployeeMonthlyCard({
             <CardTitle className="text-base">Monthly Overview</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-4 lg:grid-cols-5">
               <div>
                 <div className="text-2xl font-bold text-blue-600">
                   {employeeMonthlyStats.length}
@@ -260,7 +305,7 @@ export default function EmployeeMonthlyCard({
                 <div className="text-sm text-gray-600">Active Employees</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-blue-600">
                   {formatHoursToHHMM(
                     employeeMonthlyStats.reduce(
                       (sum, stat) => sum + stat.plannedHours,
@@ -268,27 +313,38 @@ export default function EmployeeMonthlyCard({
                     )
                   )}
                 </div>
-                <div className="text-sm text-gray-600">Total Planned Hours</div>
+                <div className="text-sm text-gray-600">Total Planned</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  {formatHoursToHHMM(
+                    employeeMonthlyStats.reduce(
+                      (sum, stat) => sum + stat.actualHours,
+                      0
+                    )
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Total Actual</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">
+                  {formatHoursToHHMM(
+                    employeeMonthlyStats.reduce(
+                      (sum, stat) => sum + stat.projectedHours,
+                      0
+                    )
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Total Projected</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-orange-600">
                   {employeeMonthlyStats.reduce(
                     (sum, stat) => sum + stat.totalShifts,
                     0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Total Shifts</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">
-                  {Math.round(
-                    employeeMonthlyStats.reduce(
-                      (sum, stat) => sum + stat.plannedHours,
-                      0
-                    ) / Math.max(employeeMonthlyStats.length, 1)
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Avg Hours/Employee</div>
               </div>
             </div>
           </CardContent>
