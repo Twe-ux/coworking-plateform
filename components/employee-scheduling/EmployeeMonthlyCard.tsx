@@ -93,6 +93,8 @@ export default function EmployeeMonthlyCard({
 
       // Calculate actual hours (realized hours from 1st day to consultation date)
       let actualHours = 0
+      const completedShiftIds = new Set()
+      
       if (Array.isArray(timeEntries)) {
         for (const entry of timeEntries) {
           if (
@@ -100,17 +102,31 @@ export default function EmployeeMonthlyCard({
             entry.status === 'completed' &&
             entry.clockOut &&
             entry.date >= firstDayOfMonth &&
-            entry.date < consultationDate
+            entry.date <= consultationDate
           ) {
             actualHours += entry.totalHours || 0
+            // Track completed shifts to avoid double counting
+            const shiftId = `${entry.date.toDateString()}-${entry.shiftNumber || 1}`
+            completedShiftIds.add(shiftId)
           }
         }
       }
 
       // Calculate projected hours for the month
-      // = Actual hours (1st to yesterday) + Planned hours (today to end of month)
+      // = Actual hours + Remaining planned hours (excluding completed shifts)
       const remainingPlannedHours = monthlyShifts
-        .filter((shift) => shift.date >= consultationDate)
+        .filter((shift) => {
+          const shiftId = `${shift.date.toDateString()}-1`
+          const isCompleted = completedShiftIds.has(shiftId)
+          
+          if (shift.date.toDateString() === consultationDate.toDateString()) {
+            // For consultation day, only count if not completed
+            return !isCompleted
+          } else {
+            // For future days, count all shifts
+            return shift.date > consultationDate
+          }
+        })
         .reduce((total, shift) => {
           return total + calculateShiftHours(shift)
         }, 0)

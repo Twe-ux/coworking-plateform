@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type Employee } from '@/hooks/useEmployees'
 import { type Shift } from '@/hooks/useShifts'
+import { type TimeEntry } from '@/types/timeEntry'
 import { Calendar, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import EmployeeMonthlyCard from './EmployeeMonthlyCard'
 import TimeEntriesList from './TimeEntriesList'
 import TimeTrackingCard from './TimeTrackingCard'
@@ -66,6 +67,9 @@ export default function EmployeeScheduling({
 
   // Utiliser directement les shifts passés en props
   const schedules = propShifts
+  
+  // TimeEntries state
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
   const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'pointage'>(
     'calendar'
   )
@@ -148,6 +152,46 @@ export default function EmployeeScheduling({
   const goToToday = () => {
     setCurrentDate(new Date())
   }
+
+  // Fetch TimeEntries for the current month
+  const fetchTimeEntries = useCallback(async () => {
+    try {
+      const params = new URLSearchParams()
+      const startOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      )
+      const endOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      )
+      
+      params.append('startDate', startOfMonth.toISOString().split('T')[0])
+      params.append('endDate', endOfMonth.toISOString().split('T')[0])
+      
+      const response = await fetch(`/api/time-entries?${params.toString()}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        const entries = (data.data || []).map((entry: any) => ({
+          ...entry,
+          date: new Date(entry.date),
+          clockIn: new Date(entry.clockIn),
+          clockOut: entry.clockOut ? new Date(entry.clockOut) : null,
+        }))
+        setTimeEntries(entries)
+      }
+    } catch (error) {
+      console.error('Error fetching time entries:', error)
+      setTimeEntries([])
+    }
+  }, [currentDate])
+
+  useEffect(() => {
+    fetchTimeEntries()
+  }, [fetchTimeEntries])
 
   // Get schedules for a specific date
   const getSchedulesForDate = (date: Date): Shift[] => {
@@ -942,6 +986,7 @@ export default function EmployeeScheduling({
       <EmployeeMonthlyCard
         employees={employees}
         shifts={schedules}
+        timeEntries={timeEntries}
         currentDate={currentDate}
         className="mt-6"
       />
