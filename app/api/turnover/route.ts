@@ -8,6 +8,17 @@ export async function GET() {
 
     // Version simplifiée pour le déploiement - éviter l'agrégation complexe lors du build
     const turnovers = await Turnover.find().sort({ _id: 1 }).lean();
+    
+    // Debug logs
+    console.log('📊 Turnover API - Total documents found:', turnovers.length);
+    console.log('📊 Date range:', turnovers.length > 0 ? {
+      first: turnovers[0]._id,
+      last: turnovers[turnovers.length - 1]._id
+    } : 'No data');
+    
+    // Check for September 2024 and 2025 data specifically
+    const septemberData = turnovers.filter(t => t._id.includes('2024-09') || t._id.includes('2025-09'));
+    console.log('📊 September data found:', septemberData.map(s => s._id));
 
     // Traitement côté serveur au lieu d'agrégation MongoDB
     const processedData = turnovers.map(item => {
@@ -69,7 +80,18 @@ export async function GET() {
     });
 
     return NextResponse.json(
-      { success: true, data: processedData },
+      { 
+        success: true, 
+        data: processedData,
+        meta: {
+          total: turnovers.length,
+          dateRange: turnovers.length > 0 ? {
+            first: turnovers[0]._id,
+            last: turnovers[turnovers.length - 1]._id
+          } : null,
+          septemberCount: septemberData.length
+        }
+      },
       { status: 200 }
     );
   } catch (error: any) {

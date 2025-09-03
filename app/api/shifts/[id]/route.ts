@@ -278,7 +278,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/shifts/[id] - Supprimer un créneau (soft delete)
+// DELETE /api/shifts/[id] - Supprimer un créneau (suppression définitive)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions)
@@ -313,12 +313,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Soft delete : marquer comme inactif
-    await Shift.findByIdAndUpdate(params.id, { isActive: false })
+    // Suppression définitive de la base de données
+    await Shift.findByIdAndDelete(params.id)
 
     return NextResponse.json({
       success: true,
-      message: 'Créneau supprimé avec succès',
+      message: 'Créneau supprimé définitivement avec succès',
     })
   } catch (error) {
     console.error('Erreur API DELETE shift:', error)
