@@ -17,6 +17,20 @@ export async function PUT(request: NextRequest) {
       cbSansContact,
     } = await request.json();
 
+    console.log('PUT CashEntry Update - ID:', id);
+    console.log('PUT CashEntry Update - Full payload:', { 
+      id, date, virement, especes, cbClassique, cbSansContact,
+      prestaB2BLength: prestaB2B?.length,
+      depensesLength: depenses?.length
+    });
+
+    // Vérifier si l'entrée existe avant de tenter la mise à jour
+    const existingEntry = await CashEntry.findById(id);
+    console.log('Existing entry found:', !!existingEntry);
+    if (existingEntry) {
+      console.log('Existing entry data:', existingEntry);
+    }
+
     let processedPrestaB2B: Array<{ label: string; value: number }> = [];
     let processedDepenses: Array<{ label: string; value: number }> = [];
 
@@ -48,17 +62,19 @@ export async function PUT(request: NextRequest) {
       cbSansContact: Number(cbSansContact) || 0,
     };
 
-    const updatedEntry = await CashEntry.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    // Utiliser upsert: créer si n'existe pas, mettre à jour sinon
+    const updatedEntry = await CashEntry.findByIdAndUpdate(
+      id, 
+      updateData, 
+      {
+        new: true,
+        runValidators: true,
+        upsert: true, // Créer si n'existe pas
+        setDefaultsOnInsert: true
+      }
+    );
 
-    if (!updatedEntry) {
-      return NextResponse.json(
-        { success: false, error: "Entrée non trouvée" },
-        { status: 404 },
-      );
-    }
+    console.log('CashEntry upserted successfully:', updatedEntry._id);
 
     return NextResponse.json({ success: true, data: updatedEntry });
   } catch (error: any) {
