@@ -38,7 +38,7 @@ class ChartCacheManager {
   private readonly CACHE_TIMEOUT =
     process.env.NODE_ENV === "development"
       ? 5 * 60 * 1000 // 5 minutes en dev
-      : 24 * 60 * 60 * 1000; // 24 heures en prod
+      : 2 * 60 * 60 * 1000; // 2 heures en prod (au lieu de 24h)
 
   static getInstance(): ChartCacheManager {
     if (!ChartCacheManager.instance) {
