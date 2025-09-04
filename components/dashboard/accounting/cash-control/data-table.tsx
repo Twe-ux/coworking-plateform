@@ -171,7 +171,7 @@ export function DataTable<TData, TValue>({
   return (
     <div
       className="rounded-md border-2"
-      style={{ height: '84dvh', display: 'flex', flexDirection: 'column' }}
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
@@ -191,9 +191,9 @@ export function DataTable<TData, TValue>({
         </DialogContent>
       </Dialog>
       <div
-        className="bg-gray-200"
+        className="bg-grey-200"
         style={{
-          flex: 1,
+          // flex: 1,
           minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
