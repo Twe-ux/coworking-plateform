@@ -94,7 +94,7 @@ export default function EmployeeMonthlyCard({
       // Calculate actual hours (realized hours from 1st day to consultation date)
       let actualHours = 0
       const completedShiftIds = new Set()
-      
+
       if (Array.isArray(timeEntries)) {
         for (const entry of timeEntries) {
           if (
@@ -118,7 +118,7 @@ export default function EmployeeMonthlyCard({
         .filter((shift) => {
           const shiftId = `${shift.date.toDateString()}-1`
           const isCompleted = completedShiftIds.has(shiftId)
-          
+
           if (shift.date.toDateString() === consultationDate.toDateString()) {
             // For consultation day, only count if not completed
             return !isCompleted
