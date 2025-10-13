@@ -226,7 +226,7 @@ export default function EmployeeMonthlyCard({
                   </div>
                   <Badge
                     variant="outline"
-                    className={`font-mono text-sm ${getHoursColorClass(plannedHours)}`}
+                    className={`border-blue-200 bg-blue-50 font-mono text-sm text-blue-600`}
                   >
                     {formatHoursToHHMM(plannedHours)}
                   </Badge>
@@ -242,7 +242,7 @@ export default function EmployeeMonthlyCard({
                   </div>
                   <Badge
                     variant="outline"
-                    className={`font-mono text-sm ${getHoursColorClass(actualHours)}`}
+                    className={`border-green-200 bg-green-50 font-mono text-sm text-green-600`}
                   >
                     {formatHoursToHHMM(actualHours)}
                   </Badge>
@@ -258,7 +258,7 @@ export default function EmployeeMonthlyCard({
                   </div>
                   <Badge
                     variant="outline"
-                    className={`font-mono text-sm ${getHoursColorClass(projectedHours)}`}
+                    className={`border-purple-200 bg-purple-50 font-mono text-sm text-purple-600`}
                   >
                     {formatHoursToHHMM(projectedHours)}
                   </Badge>
@@ -267,14 +267,14 @@ export default function EmployeeMonthlyCard({
                 {/* Shift Days */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-purple-500" />
+                    <User className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">
                       Shift Days
                     </span>
                   </div>
                   <Badge
                     variant="outline"
-                    className={`${getShiftDaysColorClass(shiftDays)}`}
+                    className={`border-gray-200 bg-gray-50 font-mono text-sm text-gray-600`}
                   >
                     {shiftDays} days
                   </Badge>
