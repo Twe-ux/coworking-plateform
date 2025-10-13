@@ -68,13 +68,19 @@ export default function EmployeeMonthlyCard({
   const employeeMonthlyStats = useMemo(() => {
     return employees.map((employee) => {
       // Filter shifts for this employee within the current month
-      const monthlyShifts = shifts.filter(
-        (shift) =>
-          shift.employeeId === employee.id &&
-          shift.isActive &&
-          shift.date >= firstDayOfMonth &&
-          shift.date <= lastDayOfMonth
-      )
+      // Normalize dates to midnight local time for proper comparison
+      const monthlyShifts = shifts.filter((shift) => {
+        if (shift.employeeId !== employee.id || !shift.isActive) return false
+
+        // Normalize shift date to midnight local time
+        const shiftDateNormalized = new Date(shift.date)
+        shiftDateNormalized.setHours(0, 0, 0, 0)
+
+        return (
+          shiftDateNormalized >= firstDayOfMonth &&
+          shiftDateNormalized <= lastDayOfMonth
+        )
+      })
 
       // Calculate planned hours (sum of all scheduled shift hours)
       const plannedHours = monthlyShifts.reduce((total, shift) => {
