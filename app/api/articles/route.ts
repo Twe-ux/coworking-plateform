@@ -147,6 +147,13 @@ export async function GET(request: NextRequest) {
       Article.countDocuments(query),
     ])
 
+    // Transformer les articles pour ajouter l'id
+    const transformedArticles = articles.map((article: any) => ({
+      ...article,
+      id: article._id.toString(),
+      _id: undefined,
+    }))
+
     // Métadonnées de pagination
     const totalPages = Math.ceil(total / limit)
     const hasNext = page < totalPages
@@ -162,7 +169,7 @@ export async function GET(request: NextRequest) {
       filters: filters,
     }
 
-    return createSuccessResponse(articles, 'Articles récupérés avec succès', meta)
+    return createSuccessResponse(transformedArticles, 'Articles récupérés avec succès', meta)
 
   } catch (error: any) {
     console.error('Erreur lors de la récupération des articles:', error)
