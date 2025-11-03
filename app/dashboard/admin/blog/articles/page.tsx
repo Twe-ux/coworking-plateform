@@ -657,10 +657,11 @@ export default function ArticlesPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault()
                                 const articleId = article.id || (article as any)._id
-                                console.log('🔗 Navigation vers article:', articleId, article)
-                                router.push(`/dashboard/admin/blog/articles/${articleId}`)
+                                console.log('🔗 Navigation vers article:', articleId)
+                                window.location.href = `/dashboard/admin/blog/articles/${articleId}`
                               }}
                             >
                               <Edit3 className="mr-2 h-4 w-4" />
