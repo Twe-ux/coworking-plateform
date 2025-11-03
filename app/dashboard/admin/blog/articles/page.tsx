@@ -152,6 +152,7 @@ export default function ArticlesPage() {
           ...article,
           id: article.id || article._id,
         }))
+        console.log('📚 Articles chargés:', transformedArticles.map(a => ({ title: a.title, id: a.id, _id: a._id })))
         setArticles(transformedArticles)
         setTotal((data as any).meta?.total || 0)
         setTotalPages((data as any).meta?.totalPages || 1)
@@ -655,11 +656,15 @@ export default function ArticlesPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/admin/blog/articles/${article.id || (article as any)._id}`}>
-                                <Edit3 className="mr-2 h-4 w-4" />
-                                Modifier
-                              </Link>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const articleId = article.id || (article as any)._id
+                                console.log('🔗 Navigation vers article:', articleId, article)
+                                router.push(`/dashboard/admin/blog/articles/${articleId}`)
+                              }}
+                            >
+                              <Edit3 className="mr-2 h-4 w-4" />
+                              Modifier
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href={`/blog/${article.slug}`} target="_blank">
@@ -675,7 +680,36 @@ export default function ArticlesPage() {
                               Archiver
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleBulkAction('delete')}
+                              onClick={async () => {
+                                if (confirm(`Êtes-vous sûr de vouloir supprimer "${article.title}" ?`)) {
+                                  const articleId = article.id || (article as any)._id
+                                  try {
+                                    const response = await fetch(`/api/articles/${articleId}`, {
+                                      method: 'DELETE',
+                                    })
+                                    const result = await response.json()
+                                    if (result.success) {
+                                      toast({
+                                        title: 'Succès',
+                                        description: 'Article supprimé',
+                                      })
+                                      fetchArticles()
+                                    } else {
+                                      toast({
+                                        title: 'Erreur',
+                                        description: 'Impossible de supprimer l\'article',
+                                        variant: 'destructive',
+                                      })
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: 'Erreur',
+                                      description: 'Une erreur est survenue',
+                                      variant: 'destructive',
+                                    })
+                                  }
+                                }
+                              }}
                               className="text-destructive"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
