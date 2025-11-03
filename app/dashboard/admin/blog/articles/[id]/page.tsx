@@ -201,7 +201,7 @@ export default function EditArticlePage() {
           coverImage: articleData.coverImage || '',
           status: articleData.status,
           contentType: articleData.contentType,
-          categoryId: articleData.categoryId,
+          categoryId: articleData.category?._id || articleData.category?.id || articleData.categoryId,
           featured: articleData.featured,
           allowComments: articleData.allowComments,
           tags: articleData.tags,
@@ -269,8 +269,8 @@ export default function EditArticlePage() {
         status: publish ? 'published' : data.status,
       }
 
-      const response = await fetch(`/api/articles/${article.id}`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/articles/${article.id || article._id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData),
       })
@@ -308,7 +308,7 @@ export default function EditArticlePage() {
 
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/articles/${article.id}`, {
+      const response = await fetch(`/api/articles/${article.id || article._id}`, {
         method: 'DELETE',
       })
 
