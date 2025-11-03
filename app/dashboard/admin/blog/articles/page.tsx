@@ -148,11 +148,11 @@ export default function ArticlesPage() {
 
       if (data.success) {
         // Transformer les articles pour avoir un champ id
-       const transformedArticles = (data.data || []).map((article: any) => ({
-       ...article,
-       id: article.id || article._id,
-       }))
-       setArticles(transformedArticles)
+        const transformedArticles = (data.data || []).map((article: any) => ({
+          ...article,
+          id: article.id || article._id,
+        }))
+        setArticles(transformedArticles)
         setTotal((data as any).meta?.total || 0)
         setTotalPages((data as any).meta?.totalPages || 1)
       }
@@ -561,7 +561,7 @@ export default function ArticlesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <Link
-                              href={`/dashboard/admin/blog/articles/${article.id}`}
+                              href={`/dashboard/admin/blog/articles/${article.id || (article as any)._id}`}
                               className="font-medium hover:underline truncate"
                             >
                               {article.title}
@@ -656,7 +656,7 @@ export default function ArticlesPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/admin/blog/articles/${article.id}`}>
+                              <Link href={`/dashboard/admin/blog/articles/${article.id || (article as any)._id}`}>
                                 <Edit3 className="mr-2 h-4 w-4" />
                                 Modifier
                               </Link>
