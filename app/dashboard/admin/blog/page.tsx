@@ -188,24 +188,27 @@ export default function AdminBlogPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Articles</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalArticles}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.publishedArticles} publiés, {stats.draftArticles} brouillons
+              <p className="text-muted-foreground text-xs">
+                {stats.publishedArticles} publiés, {stats.draftArticles}{' '}
+                brouillons
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Commentaires</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">
+                Commentaires
+              </CardTitle>
+              <MessageSquare className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalComments}</div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {stats.pendingComments} en attente de modération
               </p>
             </CardContent>
@@ -213,12 +216,16 @@ export default function AdminBlogPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vues totales</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">
+                Vues totales
+              </CardTitle>
+              <Eye className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold">
+                {stats.totalViews.toLocaleString()}
+              </div>
+              <p className="text-muted-foreground text-xs">
                 {stats.monthlyGrowth.views > 0 ? '+' : ''}
                 {stats.monthlyGrowth.views}% ce mois
               </p>
@@ -228,11 +235,11 @@ export default function AdminBlogPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Catégories</CardTitle>
-              <Tag className="h-4 w-4 text-muted-foreground" />
+              <Tag className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalCategories}</div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Organisées hiérarchiquement
               </p>
             </CardContent>
@@ -243,13 +250,13 @@ export default function AdminBlogPage() {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
         <Link href="/dashboard/admin/blog/articles">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-              <BookOpen className="mr-3 h-5 w-5 text-primary" />
+              <BookOpen className="text-primary mr-3 h-5 w-5" />
               <CardTitle className="text-base">Gérer les articles</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Créer, modifier et organiser vos articles
               </p>
             </CardContent>
@@ -257,13 +264,13 @@ export default function AdminBlogPage() {
         </Link>
 
         <Link href="/dashboard/admin/blog/categories">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-              <Tag className="mr-3 h-5 w-5 text-primary" />
+              <Tag className="text-primary mr-3 h-5 w-5" />
               <CardTitle className="text-base">Gérer les catégories</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Organiser vos contenus par catégories
               </p>
             </CardContent>
@@ -271,13 +278,15 @@ export default function AdminBlogPage() {
         </Link>
 
         <Link href="/dashboard/admin/blog/comments">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
             <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-              <MessageSquare className="mr-3 h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Modérer les commentaires</CardTitle>
+              <MessageSquare className="text-primary mr-3 h-5 w-5" />
+              <CardTitle className="text-base">
+                Modérer les commentaires
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Approuver et modérer les commentaires
               </p>
             </CardContent>
@@ -298,9 +307,9 @@ export default function AdminBlogPage() {
         <CardContent>
           {recentArticles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <BookOpen className="mb-4 h-12 w-12 text-muted-foreground" />
+              <BookOpen className="text-muted-foreground mb-4 h-12 w-12" />
               <h3 className="mb-2 text-lg font-semibold">Aucun article</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mb-4 text-sm">
                 Commencez par créer votre premier article
               </p>
               <Link href="/dashboard/admin/blog/articles/create">
@@ -315,17 +324,23 @@ export default function AdminBlogPage() {
               {recentArticles.map((article) => (
                 <div
                   key={article.id}
-                  className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  className="hover:bg-muted/50 flex items-center gap-4 rounded-lg border p-4 transition-colors"
                 >
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: article.category.color }}
-                  />
-                  <div className="flex-1 min-w-0">
+                  {article.category && (
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: article.category.color }}
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
                     <h4 className="truncate font-medium">{article.title}</h4>
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                      <span>{article.category.name}</span>
-                      <span>•</span>
+                    <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+                      {article.category && (
+                        <>
+                          <span>{article.category.name}</span>
+                          <span>•</span>
+                        </>
+                      )}
                       <span>{article.authorName}</span>
                       <span>•</span>
                       <span>
@@ -335,7 +350,7 @@ export default function AdminBlogPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-3 text-sm">
                     <div className="flex items-center gap-1">
                       <Eye className="h-4 w-4" />
                       <span>{article.viewsCount}</span>
@@ -356,7 +371,9 @@ export default function AdminBlogPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/admin/blog/articles/${article.id}`}>
+                        <Link
+                          href={`/dashboard/admin/blog/articles/${article.id}`}
+                        >
                           <Edit3 className="mr-2 h-4 w-4" />
                           Modifier
                         </Link>
