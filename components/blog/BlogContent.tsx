@@ -76,10 +76,6 @@ export function BlogContent({ searchParams }: BlogContentProps) {
     filters: { isActive: true },
     includeStats: true,
   })
-
-  // Debug: vérifier les données reçues
-  console.log('📰 Articles reçus:', articles)
-  console.log('📊 Meta:', meta)
   
   // Articles à la une pour la première page
   const featuredArticles = useMemo(() => {
