@@ -147,7 +147,12 @@ export default function ArticlesPage() {
       const data: ArticlesResponse = await response.json()
 
       if (data.success) {
-        setArticles(data.data)
+        // Transformer les articles pour avoir un champ id
+       const transformedArticles = (data.data || []).map((article: any) => ({
+       ...article,
+       id: article.id || article._id,
+       }))
+       setArticles(transformedArticles)
         setTotal((data as any).meta?.total || 0)
         setTotalPages((data as any).meta?.totalPages || 1)
       }
