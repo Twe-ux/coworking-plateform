@@ -152,7 +152,6 @@ export default function ArticlesPage() {
           ...article,
           id: article.id || article._id,
         }))
-        console.log('📚 Articles chargés:', transformedArticles.map(a => ({ title: a.title, id: a.id, _id: a._id })))
         setArticles(transformedArticles)
         setTotal((data as any).meta?.total || 0)
         setTotalPages((data as any).meta?.totalPages || 1)
@@ -657,11 +656,12 @@ export default function ArticlesPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
-                              onClick={(e) => {
+                              onSelect={(e) => {
                                 e.preventDefault()
                                 const articleId = article.id || (article as any)._id
-                                console.log('🔗 Navigation vers article:', articleId)
-                                window.location.href = `/dashboard/admin/blog/articles/${articleId}`
+                                setTimeout(() => {
+                                  window.location.href = `/dashboard/admin/blog/articles/${articleId}`
+                                }, 0)
                               }}
                             >
                               <Edit3 className="mr-2 h-4 w-4" />
