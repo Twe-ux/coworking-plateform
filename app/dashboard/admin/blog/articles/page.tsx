@@ -595,13 +595,17 @@ export default function ArticlesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: article.category.color }}
-                          />
-                          <span className="text-sm">{article.category.name}</span>
-                        </div>
+                        {article.category ? (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded-full"
+                              style={{ backgroundColor: article.category.color }}
+                            />
+                            <span className="text-sm">{article.category.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
