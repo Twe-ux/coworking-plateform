@@ -27,8 +27,8 @@ interface ArticleCardProps {
   className?: string
 }
 
-export function ArticleCard({ 
-  article, 
+export function ArticleCard({
+  article,
   variant = 'default',
   showAuthor = true,
   showStats = true,
@@ -36,16 +36,28 @@ export function ArticleCard({
   className = ''
 }: ArticleCardProps) {
   const { isFavorite, toggleFavorite } = useFavoriteArticles()
-  const isArticleFavorite = isFavorite(article._id)
-  
+  const articleId = article.id || article._id
+  const isArticleFavorite = isFavorite(articleId)
+
   const publishedDate = article.publishedAt || article.createdAt
-  const timeAgo = formatDistanceToNow(new Date(publishedDate), { 
-    addSuffix: true, 
-    locale: fr 
+  const timeAgo = formatDistanceToNow(new Date(publishedDate), {
+    addSuffix: true,
+    locale: fr
   })
 
   // Couleur de la catégorie
-  const categoryColor = article.category.color || '#3B82F6'
+  const categoryColor = article.category?.color || '#3B82F6'
+
+  // Vérifications de sécurité
+  if (!article.category) {
+    console.warn('Article sans catégorie:', article)
+    return null
+  }
+
+  if (!article.author) {
+    console.warn('Article sans auteur:', article)
+    return null
+  }
 
   // Variante compacte pour les sidebars
   if (variant === 'compact') {
@@ -81,8 +93,8 @@ export function ArticleCard({
                 <time dateTime={publishedDate.toString()}>
                   {timeAgo}
                 </time>
-                
-                {showStats && article.stats.views > 0 && (
+
+                {showStats && article.stats && article.stats.views > 0 && (
                   <>
                     <Separator orientation="vertical" className="h-3" />
                     <div className="flex items-center space-x-1">
@@ -161,7 +173,7 @@ export function ArticleCard({
             className="absolute top-3 right-3 h-8 w-8 rounded-full bg-background/80 hover:bg-background transition-colors"
             onClick={(e) => {
               e.preventDefault()
-              toggleFavorite(article._id)
+              toggleFavorite(articleId)
             }}
           >
             <Heart 
@@ -245,18 +257,18 @@ export function ArticleCard({
         <CardFooter className="pt-0">
           <div className="flex items-center justify-between w-full">
             {/* Auteur */}
-            {showAuthor && (
-              <Link 
-                href={`/blog?author=${article.author._id}`}
+            {showAuthor && article.author && (
+              <Link
+                href={`/blog?author=${article.author.id || article.author._id}`}
                 className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               >
                 <Avatar className="h-6 w-6">
-                  <AvatarImage 
-                    src={article.author.image} 
+                  <AvatarImage
+                    src={article.author.image}
                     alt={`${article.author.firstName} ${article.author.lastName}`}
                   />
                   <AvatarFallback className="text-xs">
-                    {article.author.firstName[0]}{article.author.lastName[0]}
+                    {article.author.firstName?.[0]}{article.author.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-xs text-muted-foreground">
@@ -266,7 +278,7 @@ export function ArticleCard({
             )}
 
             {/* Statistiques */}
-            {showStats && (
+            {showStats && article.stats && (
               <div className="flex items-center space-x-3 text-xs text-muted-foreground">
                 {article.stats.views > 0 && (
                   <div className="flex items-center space-x-1">
@@ -274,7 +286,7 @@ export function ArticleCard({
                     <span>{article.stats.views}</span>
                   </div>
                 )}
-                
+
                 {article.allowComments && article.stats.comments > 0 && (
                   <div className="flex items-center space-x-1">
                     <MessageCircle className="h-3 w-3" />
