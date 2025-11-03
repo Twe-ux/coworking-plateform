@@ -71,11 +71,15 @@ export function BlogContent({ searchParams }: BlogContentProps) {
     filters,
     pagination,
   })
-  
+
   const { categories } = useCategories({
     filters: { isActive: true },
     includeStats: true,
   })
+
+  // Debug: vérifier les données reçues
+  console.log('📰 Articles reçus:', articles)
+  console.log('📊 Meta:', meta)
   
   // Articles à la une pour la première page
   const featuredArticles = useMemo(() => {
@@ -87,7 +91,7 @@ export function BlogContent({ searchParams }: BlogContentProps) {
   
   const regularArticles = useMemo(() => {
     if (featuredArticles.length > 0) {
-      return articles.filter((article: any) => !featuredArticles.some((featured: any) => featured._id === article._id))
+      return articles.filter((article: any) => !featuredArticles.some((featured: any) => (featured.id || featured._id) === (article.id || article._id)))
     }
     return articles
   }, [articles, featuredArticles])
@@ -334,7 +338,7 @@ export function BlogContent({ searchParams }: BlogContentProps) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {featuredArticles.map((article: any) => (
                   <ArticleCard
-                    key={article._id}
+                    key={article.id || article._id}
                     article={article}
                     variant="featured"
                     showAuthor={true}
@@ -356,13 +360,13 @@ export function BlogContent({ searchParams }: BlogContentProps) {
               )}
               
               <div className={
-                viewMode === 'grid' 
+                viewMode === 'grid'
                   ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
                   : 'space-y-6'
               }>
                 {regularArticles.map((article: any) => (
                   <ArticleCard
-                    key={article._id}
+                    key={article.id || article._id}
                     article={article}
                     variant={viewMode === 'list' ? 'featured' : 'default'}
                     showAuthor={true}
