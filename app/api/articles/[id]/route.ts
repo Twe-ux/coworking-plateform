@@ -129,8 +129,11 @@ export async function GET(
       .sort({ publishedAt: 1, _id: 1 })
       .lean() as { _id: ObjectId; title: string; slug: string; coverImage?: string } | null
 
+    const articleObject = article.toObject()
+
     const responseData = {
-      ...article.toObject(),
+      ...articleObject,
+      id: articleObject._id.toString(),
       relatedArticles,
       navigation: {
         prev: prevArticle ? {
@@ -147,6 +150,12 @@ export async function GET(
         } : undefined
       }
     }
+
+    console.log('📤 GET Article - Contenu retourné:', {
+      hasContent: !!responseData.content,
+      contentLength: responseData.content?.length,
+      contentPreview: responseData.content?.substring(0, 100)
+    })
 
     return createSuccessResponse(
       responseData,
@@ -217,6 +226,7 @@ export async function PUT(
 
     const validationResult = UpdateArticleSchema.safeParse(body)
     if (!validationResult.success) {
+      console.error('❌ Validation échouée:', validationResult.error)
       return createErrorResponse(
         'Données d\'article invalides',
         400,
@@ -226,6 +236,11 @@ export async function PUT(
     }
 
     const updateData: UpdateArticleInput = validationResult.data
+    console.log('✅ Données validées:', {
+      hasContent: !!updateData.content,
+      contentLength: updateData.content?.length,
+      contentPreview: updateData.content?.substring(0, 100)
+    })
 
     // Vérifier la catégorie si elle est modifiée
     if (updateData.categoryId) {
@@ -312,15 +327,27 @@ export async function PUT(
       shouldCreateRevision = true
     }
 
+    console.log('💾 Mise à jour avec les champs:', {
+      hasContent: !!updateFields.content,
+      contentLength: updateFields.content?.length,
+      contentPreview: updateFields.content?.substring(0, 100),
+      allFields: Object.keys(updateFields)
+    })
+
     // Mettre à jour l'article
     const updatedArticle = await Article.findByIdAndUpdate(
       id,
       updateFields,
-      { 
+      {
         new: true,
-        runValidators: true 
+        runValidators: true
       }
     )
+
+    console.log('✅ Article mis à jour, contenu:', {
+      hasContent: !!updatedArticle?.content,
+      contentLength: updatedArticle?.content?.length
+    })
       .populate('author', 'firstName lastName email image')
       .populate('category', 'name slug color icon')
       .populate('lastEditedBy', 'firstName lastName email image')
