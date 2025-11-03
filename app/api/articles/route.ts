@@ -147,6 +147,13 @@ export async function GET(request: NextRequest) {
       Article.countDocuments(query),
     ])
 
+    // Transformer les articles pour ajouter l'id
+    const transformedArticles = articles.map((article: any) => ({
+      ...article,
+      id: article._id.toString(),
+      _id: undefined,
+    }))
+
     // Métadonnées de pagination
     const totalPages = Math.ceil(total / limit)
     const hasNext = page < totalPages
@@ -162,7 +169,7 @@ export async function GET(request: NextRequest) {
       filters: filters,
     }
 
-    return createSuccessResponse(articles, 'Articles récupérés avec succès', meta)
+    return createSuccessResponse(transformedArticles, 'Articles récupérés avec succès', meta)
 
   } catch (error: any) {
     console.error('Erreur lors de la récupération des articles:', error)
@@ -206,14 +213,14 @@ export async function POST(request: NextRequest) {
         issues: validationResult.error.issues.map(issue => ({
           path: issue.path.join('.'),
           message: issue.message,
-          received: issue.received,
-          expected: issue.expected
+          ...(('received' in issue) && { received: issue.received }),
+          ...(('expected' in issue) && { expected: issue.expected })
         })),
         receivedData: JSON.stringify(body, null, 2)
       })
       
       const detailedErrors = validationResult.error.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message} (received: ${JSON.stringify(issue.received)})`
+        `${issue.path.join('.')}: ${issue.message}${('received' in issue) ? ` (received: ${JSON.stringify(issue.received)})` : ''}`
       )
       
       return createErrorResponse(
@@ -352,3 +359,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// Force Node.js runtime for database compatibility
+export const runtime = 'nodejs'
