@@ -221,7 +221,7 @@ export const PaginationSchema = z.object({
     .transform(limit => Math.min(100, Math.max(1, parseInt(limit || '20', 10)))),
   sortBy: z
     .string()
-    .regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/, 'Champ de tri invalide')
+    .regex(/^[a-zA-Z_][a-zA-Z0-9_.]*$/, 'Champ de tri invalide')
     .optional(),
   sortOrder: z
     .enum(['asc', 'desc'])
