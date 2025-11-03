@@ -117,11 +117,11 @@ export default function ArticlesPage() {
 
   // Filters state
   const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    status: searchParams.get('status') || 'all',
-    contentType: searchParams.get('contentType') || 'all',
-    categoryId: searchParams.get('categoryId') || 'all',
-    featured: searchParams.get('featured') || 'all',
+    search: searchParams?.get('search') || '',
+    status: searchParams?.get('status') || 'all',
+    contentType: searchParams?.get('contentType') || 'all',
+    categoryId: searchParams?.get('categoryId') || 'all',
+    featured: searchParams?.get('featured') || 'all',
   })
 
   const [isProcessing, setIsProcessing] = useState(false)
@@ -148,8 +148,8 @@ export default function ArticlesPage() {
 
       if (data.success) {
         setArticles(data.data)
-        setTotal(data.meta.total)
-        setTotalPages(data.meta.totalPages)
+        setTotal((data as any).meta?.total || 0)
+        setTotalPages((data as any).meta?.totalPages || 1)
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des articles:', error)
@@ -595,13 +595,17 @@ export default function ArticlesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: article.category.color }}
-                          />
-                          <span className="text-sm">{article.category.name}</span>
-                        </div>
+                        {article.category ? (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded-full"
+                              style={{ backgroundColor: article.category.color }}
+                            />
+                            <span className="text-sm">{article.category.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
