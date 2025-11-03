@@ -84,9 +84,9 @@ export function useArticles(options: UseArticlesOptions = {}) {
     fetcher,
     defaultConfig
   )
-  
+
   return {
-    articles: (data as any)?.articles || [],
+    articles: (data as any)?.data || [],
     meta: (data as any)?.meta,
     isLoading,
     error,
