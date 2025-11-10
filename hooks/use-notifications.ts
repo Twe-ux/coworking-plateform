@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { useMessaging } from './use-messaging'
+import { usePusherMessaging } from './use-pusher-messaging'
 
 interface NotificationCounts {
   totalUnread: number
@@ -13,7 +13,7 @@ interface NotificationCounts {
 
 export function useNotifications() {
   const { data: session } = useSession()
-  const { socket, isConnected, markMessagesAsRead } = useMessaging()
+  const { isConnected, markMessagesAsRead } = usePusherMessaging()
 
   const [notificationCounts, setNotificationCounts] =
     useState<NotificationCounts>({
@@ -39,86 +39,14 @@ export function useNotifications() {
     }
   }, [session?.user?.id])
 
-  // Écouter les mises à jour en temps réel
+  // TODO: Écouter les mises à jour en temps réel via Pusher
+  // Temporairement désactivé pendant la migration vers Pusher
   useEffect(() => {
-    if (!socket || !isConnected) return
-
-    const handleNotificationUpdate = (data: {
-      userId: string
-      channelId: string
-      channelType: 'direct' | 'dm' | 'public' | 'private'
-      increment: number
-    }) => {
-      setNotificationCounts((prev) => {
-        const newCounts = { ...prev }
-
-        // Mettre à jour le compteur par channel
-        newCounts.channelBreakdown = {
-          ...prev.channelBreakdown,
-          [data.channelId]: Math.max(
-            0,
-            (prev.channelBreakdown[data.channelId] || 0) + data.increment
-          ),
-        }
-
-        // Mettre à jour les totaux
-        if (data.channelType === 'direct' || data.channelType === 'dm') {
-          newCounts.messagesDMs = Math.max(0, prev.messagesDMs + data.increment)
-        } else {
-          newCounts.channels = Math.max(0, prev.channels + data.increment)
-        }
-
-        newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
-
-        return newCounts
-      })
-    }
-
-    const handleMarkAsRead = (data: {
-      userId: string
-      channelId: string
-      channelType?: string
-    }) => {
-      console.log('🔔 Notification read event received:', data)
-      setNotificationCounts((prev) => {
-        const channelCount = prev.channelBreakdown[data.channelId] || 0
-        if (channelCount === 0) return prev // Pas de changement nécessaire
-
-        const newCounts = { ...prev }
-
-        // Réinitialiser le compteur du channel
-        newCounts.channelBreakdown = {
-          ...prev.channelBreakdown,
-          [data.channelId]: 0,
-        }
-
-        // Déterminer si c'est un DM ou un channel et réduire le bon compteur
-        if (data.channelType === 'direct' || data.channelType === 'dm') {
-          newCounts.messagesDMs = Math.max(0, prev.messagesDMs - channelCount)
-        } else {
-          newCounts.channels = Math.max(0, prev.channels - channelCount)
-        }
-
-        newCounts.totalUnread = newCounts.messagesDMs + newCounts.channels
-
-        console.log('🔔 Notifications updated:', {
-          before: prev,
-          after: newCounts,
-          channelCount,
-        })
-
-        return newCounts
-      })
-    }
-
-    socket.on('notification_increment', handleNotificationUpdate)
-    socket.on('notifications_read', handleMarkAsRead)
-
-    return () => {
-      socket.off('notification_increment', handleNotificationUpdate)
-      socket.off('notifications_read', handleMarkAsRead)
-    }
-  }, [socket, isConnected])
+    if (!isConnected) return
+    
+    console.log('🔔 Notifications temporairement en mode fallback (Pusher migration)')
+    // Les notifications Pusher seront implémentées dans une version ultérieure
+  }, [isConnected])
 
   // Charger les compteurs au démarrage
   useEffect(() => {
