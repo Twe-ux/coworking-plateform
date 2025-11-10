@@ -25,7 +25,7 @@ import { ChatList } from '@/components/messaging/test/chat-list'
 import { ChatWindow } from '@/components/messaging/test/chat-window'
 import { TestAppSidebar } from '@/components/messaging/test/test-app-sidebar'
 import { SidebarProvider } from '@/components/messaging/test/ui/sidebar'
-import { useMessaging } from '@/hooks/use-messaging'
+import { usePusherMessaging as useMessaging } from '@/hooks/use-pusher-messaging'
 import { useNotifications } from '@/hooks/use-notifications'
 import { UserRole } from '@/types/auth'
 
