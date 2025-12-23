@@ -301,6 +301,9 @@ export default function EmployeeScheduling({
     const today = getFrenchDate(new Date())
     const currentWeekStart = getWeekStart(today)
 
+    // Calculer la fin de la 3ème semaine (semaine courante + 2 semaines suivantes)
+    const threeWeeksLater = new Date(currentWeekStart.getTime() + 3 * 7 * 24 * 60 * 60 * 1000)
+
     // Grouper les shifts par semaine
     const shiftsByWeek = new Map()
 
@@ -310,9 +313,8 @@ export default function EmployeeScheduling({
       const shiftWeekStart = getWeekStart(shiftDate)
       const weekKey = shiftWeekStart.getTime()
 
-      // Inclure la semaine courante et les semaines futures, plus 1 semaine passée pour contexte
-      const oneWeekAgo = new Date(currentWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000)
-      if (shiftWeekStart >= oneWeekAgo) {
+      // Inclure seulement la semaine courante et les 2 semaines suivantes
+      if (shiftWeekStart >= currentWeekStart && shiftWeekStart < threeWeeksLater) {
         if (!shiftsByWeek.has(weekKey)) {
           shiftsByWeek.set(weekKey, [])
         }
