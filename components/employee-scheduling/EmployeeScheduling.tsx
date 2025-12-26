@@ -288,7 +288,10 @@ export default function EmployeeScheduling({
     // Ajuster pour que lundi soit le premier jour de la semaine (1-6, dimanche devient 7)
     const dayAdjusted = day === 0 ? 6 : day - 1
     const diff = d.getDate() - dayAdjusted
-    return new Date(d.setDate(diff))
+    const weekStart = new Date(d.setDate(diff))
+    // Normaliser à minuit pour éviter les problèmes de comparaison
+    weekStart.setHours(0, 0, 0, 0)
+    return weekStart
   }
 
   const getWeekEnd = (date: Date) => {
@@ -301,7 +304,7 @@ export default function EmployeeScheduling({
     const today = getFrenchDate(new Date())
     const currentWeekStart = getWeekStart(today)
 
-    // Calculer la fin de la 3ème semaine (semaine courante + 2 semaines suivantes)
+    // Calculer la fin après 3 semaines (semaine courante + 2 semaines suivantes)
     const threeWeeksLater = new Date(currentWeekStart.getTime() + 3 * 7 * 24 * 60 * 60 * 1000)
 
     // Grouper les shifts par semaine
