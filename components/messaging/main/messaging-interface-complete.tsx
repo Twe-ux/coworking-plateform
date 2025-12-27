@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { MessagingSidebarMain } from './messaging-sidebar-main'
 import { MessagingSidebarContextual } from './messaging-sidebar-contextual'
-import { ChatArea } from '../modern/chat-area'
+// import { ChatArea } from '../modern/chat-area' // Temporairement commenté pour Pusher migration
 import { MessagingMobileOptimizations } from './messaging-mobile-optimizations'
 
 interface MessagingInterfaceCompleteProps {
